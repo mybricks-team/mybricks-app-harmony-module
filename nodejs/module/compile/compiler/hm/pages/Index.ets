@@ -24,7 +24,7 @@ export default struct EntryView {
   }
 
   aboutToAppear(): void {
-    appRouter.registTabbar($r('app.config.tabbar')).registEntryPage($r('app.config.entry'))
+    appRouter.registTabbar($r('app.config.tabbar'))
   }
 
   aboutToDisappear(): void {

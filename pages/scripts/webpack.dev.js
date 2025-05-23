@@ -44,8 +44,8 @@ module.exports = merge(common, {
         changeOrigin: true,
       },
       // {
-      //   context: ['/mybricks-app-mpsite/api'],
-      //   pathRewrite: { '^/mybricks-app-mpsite/api': '/api' },
+      //   context: ['/mybricks-app-harmony-module/api'],
+      //   pathRewrite: { '^/mybricks-app-harmony-module/api': '/api' },
       //   target: 'http://localhost:3000',
       //   secure: false,
       //   changeOrigin: true,
