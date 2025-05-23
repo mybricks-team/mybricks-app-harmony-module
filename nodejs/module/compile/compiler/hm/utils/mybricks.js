@@ -385,14 +385,28 @@ export const emit = (fn, value) => {
     return subject
   }
 
-  const res = fn(value)
+  if (value?.subscribe) {
+    value.subscribe((value) => {
+      const res = fn(value)
 
-  if (res instanceof Promise) {
-    res.then((value) => {
-      subject.next(value)
+      if (res instanceof Promise) {
+        res.then((value) => {
+          subject.next(value)
+        })
+      } else {
+        subject.next(value)
+      }
     })
   } else {
-    subject.next(value)
+    const res = fn(value)
+
+    if (res instanceof Promise) {
+      res.then((value) => {
+        subject.next(value)
+      })
+    } else {
+      subject.next(value)
+    }
   }
 
   return subject;

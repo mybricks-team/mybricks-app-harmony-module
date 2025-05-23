@@ -6,7 +6,7 @@ export default {
       required: true,
       inputs: [
         {
-          id: 'params',
+          id: 'open',
           title: '打开页面',
           schema: {
             type: 'object',

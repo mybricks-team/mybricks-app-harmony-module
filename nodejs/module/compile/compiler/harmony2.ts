@@ -232,10 +232,13 @@ const getPageCode = (toJson) => {
       return COMPONENT_PACKAGE_NAME
     }
   }).map((page) => {
-    return {
-      ...page,
-      path: `pages/${generatePageFileName(page.meta.title)}.ets`,
+    if (page.meta) {
+      return {
+        ...page,
+        path: `pages/${generatePageFileName(page.meta.title)}.ets`,
+      }
     }
+    return page
   });
 }
 
@@ -347,12 +350,12 @@ const compilerHarmonyApplication = async (params, config) => {
 
 /** 下载组件 */
 const compilerHarmonyComponent = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type } = params;
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId } = params;
   const { Logger } = config;
   const pageCode = getPageCode(data.toJson);
 
   // 目标项目路径
-  const targetPath = path.join(projectPath, "Component");
+  const targetPath = path.join(projectPath, "Module");
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
@@ -364,10 +367,18 @@ const compilerHarmonyComponent = async (params, config) => {
   await fse.copy(path.join(__dirname, "./hm/_proxy"), path.join(targetPath, "_proxy"), { overwrite: true })
   let _proxyIndexCode = await fse.readFile(path.join(__dirname, "./hm/_proxy/Index.ets"), 'utf-8')
   await fse.writeFile(path.join(targetPath, "_proxy/Index.ets"), _proxyIndexCode.replace("../../comlib/index", "../comlib/index").replace('{ domain: undefined }', `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`))
+  
+  let apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
+  apiCode = apiCode.replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`);
 
   const sceneMap = {};
 
   pageCode.forEach((page) => {
+    if (page.type === "extensionEvent") {
+      apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
+      return
+    }
+
     if (page.meta) {
       sceneMap[page.meta.id] = page.meta;
     }
@@ -387,6 +398,8 @@ const compilerHarmonyComponent = async (params, config) => {
 
     fse.outputFileSync(path.join(targetPath, page.path), content, { encoding: "utf8" })
   });
+
+  await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
 
   // 写入搭建Js
   const jsCodePath = path.join(targetPath, "_proxy/codes.js");

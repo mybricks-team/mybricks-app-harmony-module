@@ -1464,10 +1464,10 @@
     html-to-image "^1.11.11"
     html-webpack-plugin "^5.5.0"
 
-"@mybricks/to-code-react@^0.0.5-next.40":
-  version "0.0.5-next.40"
-  resolved "https://registry.npmjs.org/@mybricks/to-code-react/-/to-code-react-0.0.5-next.40.tgz"
-  integrity sha512-CCRz6zGw4CIv158gLhaI8GIjEjnfCnx5hBLj1Zbm1/PVcNz6/r0uL0LoUe8mft8CI/sVlqxJ6SrrvUDtL6MfBw==
+"@mybricks/to-code-react@^0.0.5-next.41":
+  version "0.0.5-next.41"
+  resolved "https://registry.npmjs.org/@mybricks/to-code-react/-/to-code-react-0.0.5-next.41.tgz"
+  integrity sha512-SbjM08zyig0v0LhLuPEsK/PHfhby2obeOGuoh5sv7CjBKENvBXDl3ZZyvlvWlnZCvmESdu2WOvb82Hs2Tmn4fw==
   dependencies:
     "@babel/runtime" "^7.26.0"
 

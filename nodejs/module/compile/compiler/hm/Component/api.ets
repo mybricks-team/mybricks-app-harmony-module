@@ -1,18 +1,18 @@
 import { HMRouterMgr } from "@hadss/hmrouter"
 import { MyBricks } from "./utils/types"
-import { page } from "./_proxy/Index"
 import { Subject, emit } from "./utils/mybricks"
+$r('app.api.import')
 
-type Callback<P, R> = (value: P) => Promise<R> | ((value: P) => R)
+type Callback<P, R> = (value: P) => R
 
 class Api {
   private callbacks: Map<string, Callback<MyBricks.EventValue, MyBricks.EventValue>> = new Map()
 
-  open(params?: MyBricks.EventValue) {
+  open(value?: MyBricks.EventValue) {
     HMRouterMgr.push({
       pageUrl: PAGE_URL,
     });
-    // 出码逻辑打开
+
     $r('app.api.open')
   }
 

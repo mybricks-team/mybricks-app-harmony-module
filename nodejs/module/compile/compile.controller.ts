@@ -531,6 +531,7 @@ export default class CompileController {
           depModules: getDepModules(data.depModules),
           origin: req.headers.origin,
           type,
+          fileId,
         },
         { Logger }
       );
