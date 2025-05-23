@@ -1,6 +1,7 @@
 import { globalModal } from "@/components";
 import { AppSelector } from "./content/AppSelector";
 import { HarmonyProductSelector } from "./content/HarmonyProductSelector"
+import { CompileType } from "@/types";
 
 export const showDownloadConfig = ({onCompile}) => {
   globalModal.show({
@@ -13,11 +14,14 @@ export const showDownloadConfig = ({onCompile}) => {
 };
 
 export const showHarmonyDownloadConfig = ({ onCompile }) => {
-  globalModal.show({
-    title: "产物类型选择",
-    footer: null,
-    width: 500,
-    maskClosable: false,
-    children: <HarmonyProductSelector onCompile={onCompile}></HarmonyProductSelector>,
+  onCompile({
+    type: CompileType.harmonyComponent,
   });
+  // globalModal.show({
+  //   title: "产物类型选择",
+  //   footer: null,
+  //   width: 500,
+  //   maskClosable: false,
+  //   children: <HarmonyProductSelector onCompile={onCompile}></HarmonyProductSelector>,
+  // });
 }
