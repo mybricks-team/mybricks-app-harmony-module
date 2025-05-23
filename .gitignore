@@ -41,3 +41,4 @@ node_modules
 /nodejs/.tmp
 /nodejs/.download-assets
 /assets
+.download-assets
