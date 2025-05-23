@@ -62,8 +62,9 @@ export class AppRouter {
 
   public push(name: string, params: UnknownJson | undefined = undefined,
     callback: Callback<PopInfo> | undefined = undefined) {
-    if (!this.navPathStack.size()) {
+     if (!this.routerStack.length) {
       this.registEntryPage(name)
+      this.routerStack.push(name)
     } else {
       if (this.isTabbarPage(name)) {
         this.clear(); // 一般来说回到tabbar再物理返回就是直接退出APP了，不会到启动页，也不会有历史页，所以清空
