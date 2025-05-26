@@ -3,8 +3,8 @@ import { appRouter } from './AppRouter'
 
 @ObservedV2
 class AppWindow {
-  statusBarHeight: number = 0
-  bottomBarHeight: number = 0
+  @Trace statusBarHeight: number = 0
+  @Trace bottomBarHeight: number = 0
 }
 
 export const appWindow = new AppWindow()

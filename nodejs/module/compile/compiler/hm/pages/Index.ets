@@ -10,7 +10,7 @@ initAppWindow()
 @ComponentV2
 export default struct EntryView {
   /** 开启闪屏页支持 */
-  @Local shouldShowHome: boolean = false
+  @Local shouldShowHome: boolean = true
 
   /** 所有Tabbar页面/入口页 */
   @Builder

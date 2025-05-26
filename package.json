@@ -1,6 +1,6 @@
 {
   "name": "mybricks-app-harmony-module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "MyBricks 鸿蒙模块",
   "scripts": {
     "start:dev": "NODE_ENV=development node nodejs/index.ts",
