@@ -29,6 +29,10 @@ class Api {
   clear() {
     this.callbacks = new Map()
   }
+
+  close() {
+    HMRouterMgr.pop()
+  }
 }
 
 export const PAGE_URL = $r('app.config.pageUrl')
