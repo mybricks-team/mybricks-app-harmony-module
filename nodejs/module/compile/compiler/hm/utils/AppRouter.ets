@@ -91,11 +91,19 @@ export class AppRouter {
 
   /** 返回上一页 */
   public pop(result?: Object) {
-    if (result !== undefined) {
-      this.navPathStack.pop(result, true)
-    } else {
-      this.navPathStack.pop(true)
+    if (this.routerStack.length === 0) {
+      return
     }
+    if (this.routerStack.length === 1) {
+      HMRouterMgr.pop()
+    } else {
+      if (result !== undefined) {
+        this.navPathStack.pop(result, true)
+      } else {
+        this.navPathStack.pop(true)
+      }
+    }
+    this.routerStack.pop();
   }
 
   /** 返回到堆栈中最近的页面 */
