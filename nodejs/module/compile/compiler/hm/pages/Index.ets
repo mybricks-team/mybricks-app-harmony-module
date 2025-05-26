@@ -57,7 +57,7 @@ export default struct EntryView {
             })
             .animationMode(AnimationMode.NO_ANIMATION)
           } else if (appRouter.entryPageId) {
-            this.renderMainScenes(appRouter.entryPageId)
+            this.renderScenes(appRouter.entryPageId)
           }
         } else {
           SplashPage({
