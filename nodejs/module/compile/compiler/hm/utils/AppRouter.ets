@@ -1,3 +1,4 @@
+import { HMRouterMgr } from '@hadss/hmrouter'
 type UnknownJson = Record<string, string | number | boolean | Object> | string | number | boolean
 
 export interface TabBarConfig {
