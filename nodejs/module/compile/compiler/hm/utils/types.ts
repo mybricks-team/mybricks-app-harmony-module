@@ -50,5 +50,6 @@ export declare namespace MyBricks {
   type Env = {
     callConnector: Any,
     appRouter: Any,
+    appContext: Any
   }
 }

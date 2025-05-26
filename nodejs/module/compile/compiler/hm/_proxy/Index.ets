@@ -2,7 +2,9 @@ import { appRouter } from "../utils"
 import {
   mybricks_harmony__showToast as basicMyBricksHarmony_showToast,
   mybricks_harmony__connector as basicMyBricksHarmony_connector,
+  mybricks_harmony__connectorGlobalHeaders as basicMyBricksHarmony_connectorGlobalHeaders,
   mybricks_harmony__router as basicMyBricksHarmony_router,
+  mybricks_harmony__aesEncode as basicMyBricksHarmony_aesEncode,
   mybricks_harmony_popup as BasicMyBricksHarmonyPopup,
   mybricks_harmony_popup_Data,
   mybricks_harmony_systemPage as BasicMyBricksHarmonySystemPage,
@@ -31,7 +33,7 @@ import {
   mybricks_harmony_smsInput_Data
 } from "../../comlib/index"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, appContext } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 
@@ -102,8 +104,9 @@ const _env: MyBricks._Env = {
 }
 
 const env: MyBricks.Env = {
-  callConnector: genCallConnector(basicCodes, { domain: "https://tjgateway.tymetro.ltd"}),
+  callConnector: genCallConnector(basicCodes, { domain: undefined }),
   appRouter,
+  appContext
 }
 
 export const Controller = () => {
@@ -123,9 +126,19 @@ export const myBricksHarmony_connector = (props: MyBricks.JSParams): (...values:
   return createJSHandle(basicMyBricksHarmony_connector, { props, env });
 }
 
+/** connectorGlobalHeaders */
+export const myBricksHarmony_connectorGlobalHeaders = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
+  return createJSHandle(basicMyBricksHarmony_connectorGlobalHeaders, { props, env });
+}
+
 /** router */
 export const myBricksHarmony_router = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
   return createJSHandle(basicMyBricksHarmony_router, { props, env });
+}
+
+/** aesEncode */
+export const myBricksHarmony_aesEncode = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
+  return createJSHandle(basicMyBricksHarmony_aesEncode, { props, env });
 }
 
 /** systemPage */

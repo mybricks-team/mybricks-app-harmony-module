@@ -1,4 +1,5 @@
 import axios from '@ohos/axios'
+import { appContext } from './mybricks'
 
 interface IOptions {
   method: string;
@@ -298,6 +299,14 @@ export function call(
             //   // 删除 Content-Type 以便浏览器自动设置正确的 boundary
             //   delete _options.header["Content-Type"];
             // }
+
+            _options.header = _options.header || {};
+            const mybricksGlobalHeaders = appContext['_MYBRICKS_GLOBAL_HEADERS_'] ?? {};
+            if (mybricksGlobalHeaders) {
+              Object.keys(mybricksGlobalHeaders).forEach(key => {
+                _options.header[key] = mybricksGlobalHeaders[key]
+              })
+            }
 
             return axios(_options)
               .then(res => {

@@ -11,10 +11,22 @@ export {
 } from './_Connector'
 
 export {
+  default as mybricks_harmony__connectorGlobalHeaders,
+  DataType as mybricks_harmony__connectorGlobalHeaders_DataType,
+  Data as mybricks_harmony__connectorGlobalHeaders_Data
+} from './_ConnectorGlobalHeaders'
+
+export {
   default as mybricks_harmony__router,
   DataType as mybricks_harmony__router_DataType,
   Data as mybricks_harmony__router_Data
 } from './_Router'
+
+export {
+  default as mybricks_harmony__aesEncode,
+  DataType as mybricks_harmony__aesEncode_DataType,
+  Data as mybricks_harmony__aesEncode_Data
+} from './_AesEncode'
 
 export {
   default as mybricks_harmony_systemPage,
