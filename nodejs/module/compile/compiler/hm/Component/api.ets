@@ -25,6 +25,10 @@ class Api {
 
     return emit(callback, value)
   }
+
+  clear() {
+    this.callbacks = new Map()
+  }
 }
 
 export const PAGE_URL = $r('app.config.pageUrl')
