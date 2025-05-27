@@ -42,3 +42,5 @@ node_modules
 /nodejs/.download-assets
 /assets
 .download-assets
+package-lock.json
+yarn.lock
