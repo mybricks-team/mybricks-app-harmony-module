@@ -16,7 +16,7 @@ class Api {
     $r('app.api.open')
   }
 
-  on<P, R>(key: string, callback: Callback<P, R>) {
+  on<P, R = void>(key: string, callback: Callback<P, R>) {
     this.callbacks.set(key, callback)
   }
 
