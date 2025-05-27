@@ -1,10 +1,7 @@
-import { appRouter, TabBarConfig, initAppWindow, closeAppWindow, appWindow, parseRadius } from '../utils'
+import { appRouter, TabBarConfig, appWindow, parseRadius } from '../utils'
 import api from '../api'
 
 $r('app.config.imports')
-
-// 初始化沉浸式窗口相关
-initAppWindow()
 
 @Entry
 @ComponentV2
@@ -31,7 +28,6 @@ export default struct EntryView {
   aboutToDisappear(): void {
     appRouter.clear()
     api.clear()
-    closeAppWindow()
   }
 
   build() {
@@ -49,9 +45,6 @@ export default struct EntryView {
             }
             .scrollable(false)
             .barHeight(54)
-            .padding({
-              bottom: appWindow.bottomBarHeight // 底部安全距离
-            })
             .onChange((index: number) => {
               appRouter.activeTabIndex = index
             })

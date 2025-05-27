@@ -9,28 +9,6 @@ class AppWindow {
 
 export const appWindow = new AppWindow()
 
-export function initAppWindow () {
-  // 沉浸模式相关
-  window.getLastWindow(getContext()).then(win => {
-    // 开启所有页面的沉浸式模式（开启全屏模式）
-    win.setWindowLayoutFullScreen(true)
-
-    // 获取状态栏和导航条的安全高度
-    let areas = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM); // 以状态栏为避让
-    appWindow.statusBarHeight = px2vp(areas.topRect.height);
-
-    areas = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR); // 以导航条避让
-    appWindow.bottomBarHeight = px2vp(areas.bottomRect.height);
-  })
-}
-
-export function closeAppWindow () {
-  // 沉浸模式相关
-  window.getLastWindow(getContext()).then(win => {
-    // 关闭所有页面的沉浸式模式（关闭全屏模式）
-    win.setWindowLayoutFullScreen(false)
-  })
-}
 
 interface RgbRes {
   r: number,
@@ -142,6 +120,7 @@ export struct AppCommonHeader {
     .width('100%')
     .padding({ top: appWindow.statusBarHeight })
     .backgroundColor(this.barBackgroundColor)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 }
 
