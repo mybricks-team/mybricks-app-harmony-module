@@ -397,7 +397,7 @@ export const emit = (fn, value) => {
           subject.next(value)
         })
       } else {
-        subject.next(value)
+        subject.next(res)
       }
     })
   } else {
@@ -408,7 +408,7 @@ export const emit = (fn, value) => {
         subject.next(value)
       })
     } else {
-      subject.next(value)
+      subject.next(res)
     }
   }
 

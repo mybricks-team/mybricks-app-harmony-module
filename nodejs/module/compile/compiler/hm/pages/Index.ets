@@ -1,5 +1,4 @@
 import { appRouter, TabBarConfig, appWindow, parseRadius } from '../utils'
-import api from '../api'
 
 $r('app.config.imports')
 
@@ -27,7 +26,7 @@ export default struct EntryView {
 
   aboutToDisappear(): void {
     appRouter.clear()
-    api.clear()
+    closeAppWindow()
   }
 
   build() {
