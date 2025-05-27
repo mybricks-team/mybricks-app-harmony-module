@@ -26,7 +26,6 @@ export default struct EntryView {
 
   aboutToDisappear(): void {
     appRouter.clear()
-    closeAppWindow()
   }
 
   build() {
