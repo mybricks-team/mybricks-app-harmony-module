@@ -33,7 +33,7 @@ import {
   mybricks_harmony_smsInput_Data
 } from "../comlib/Index"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, appContext, createVariable, createVars } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 
@@ -105,11 +105,12 @@ const _env: MyBricks._Env = {
   }
 }
 
+const vars: ESObject = createVars(globalVars)
+
 const env: MyBricks.Env = {
-  callConnector: genCallConnector(basicCodes, { domain: undefined }),
+  callConnector: genCallConnector(basicCodes, { domain: undefined }, { globalVars: vars }),
   appRouter,
-  appContext,
-  globalVars: createVars(globalVars)
+  globalVars: vars
 }
 
 export const Controller = () => {

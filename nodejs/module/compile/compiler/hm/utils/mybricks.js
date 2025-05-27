@@ -2,9 +2,6 @@ const log = (...args) => {
   console.log(`[MyBricks]`, ...args)
 }
 
-/** 全局上下文，可以挂载和读取各种动态数据 */
-export const appContext = {}
-
 /** 数据流 */
 export class Subject {
   _values = []

@@ -1,5 +1,4 @@
 import axios from '@ohos/axios'
-import { appContext } from './mybricks'
 
 interface IOptions {
   method: string;
@@ -73,7 +72,7 @@ const del = (data, keys) => {
   }
   dfs(data, 0);
 };
-const getFetch = (connector) => {
+const getFetch = (connector, appContext) => {
   return (params, { then, onError }, config) => {
     const method = connector.method;
     const path = connector.path.trim();
@@ -94,24 +93,24 @@ const getFetch = (connector) => {
 
     try {
       const url = path;
+      /** 新增额外参数，用于读取全局变量等信息 */
+      const extraParams = {
+        globalVars: appContext?.globalVars
+      }
+
       /** 全局入参处理 */
       const newParams = connector.globalParamsFn(
         method.startsWith("GET")
           ? { params, url, method, headers }
-          : { data: params, url, method, headers }
+          : { data: params, url, method, headers },
+        extraParams,
       );
       newParams.url = newParams.url || url;
       newParams.method = newParams.method || method;
       /** 局部入参处理 */
-      const options = connector.input(newParams);
+      const options = connector.input(newParams, extraParams);
 
-      // 小程序需要兼容 headers => header
-      if (options.headers) {
-        options.header = options.headers;
-        Reflect.deleteProperty(options, "headers");
-      }
-
-      // 由于小程序不支持 params，需要将 params 放到 url 上
+      // 由于不支持 params，需要将 params 放到 url 上
       if (options.params) {
         let search = Object.keys(options.params)
           .map((key) => `${key}=${options.params[key]}`)
@@ -268,11 +267,13 @@ function isPlainObject(value) {
 export function call(
   connector: Record<string, unknown>,
   params: any,
-  config?: IConfig
+  config?: IConfig,
+  /** 搭建上下文 */
+  appContext?: any
 ) {
   return new Promise((resolve, reject) => {
     try {
-      const fn = getFetch(connector);
+      const fn = getFetch(connector, appContext);
       const { before = defaultFn } = config || {};
 
       // 如果 params 不是 对象，则转换为空对象
@@ -300,14 +301,6 @@ export function call(
             //   delete _options.header["Content-Type"];
             // }
 
-            _options.header = _options.header || {};
-            const mybricksGlobalHeaders = appContext['_MYBRICKS_GLOBAL_HEADERS_'] ?? {};
-            if (mybricksGlobalHeaders) {
-              Object.keys(mybricksGlobalHeaders).forEach(key => {
-                _options.header[key] = mybricksGlobalHeaders[key]
-              })
-            }
-
             return axios(_options)
               .then(res => {
                 //兼容
@@ -326,7 +319,7 @@ export function call(
   });
 }
 
-export const genCallConnector = (connectorDefinitions, httpConfig) => (connector, params) => {
+export const genCallConnector = (connectorDefinitions, httpConfig, appContext) => (connector, params) => {
   return call(connectorDefinitions[connector?.id], params, {
     before(options) {
       const newOptions = { ...options };
@@ -341,5 +334,5 @@ export const genCallConnector = (connectorDefinitions, httpConfig) => (connector
       }
       return newOptions
     }
-  })
+  }, appContext)
 }
