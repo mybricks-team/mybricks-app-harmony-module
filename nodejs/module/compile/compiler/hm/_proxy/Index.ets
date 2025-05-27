@@ -31,9 +31,9 @@ import {
   mybricks_harmony_formRadio_Data,
   mybricks_harmony_smsInput as BasicMyBricksHarmonySmsInput,
   mybricks_harmony_smsInput_Data
-} from "../../comlib/index"
+} from "../comlib/Index"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, appContext } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, appContext, createVariable, createVars } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 
@@ -95,6 +95,8 @@ class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
 
 @Builder function Slot(params: MyBricks.SlotParams) {}
 
+$r('app.context.globalVars')
+
 const _env: MyBricks._Env = {
   currentScenes: {
     close: () => {
@@ -106,7 +108,8 @@ const _env: MyBricks._Env = {
 const env: MyBricks.Env = {
   callConnector: genCallConnector(basicCodes, { domain: undefined }),
   appRouter,
-  appContext
+  appContext,
+  globalVars: createVars(globalVars)
 }
 
 export const Controller = () => {

@@ -414,3 +414,68 @@ export const emit = (fn, value) => {
 
   return subject;
 }
+
+/** 创建变量 */
+export const createVariable = (initValue) => {
+  const value = new Subject()
+  value.next(initValue)
+  const ref = {
+    value
+  }
+
+  return {
+    /** 读取 */
+    get(value) {
+      const nextValue = new Subject()
+      if (value?.subscribe) {
+        value.subscribe(() => {
+          nextValue.next(ref.value.value)
+        })
+      } else {
+        nextValue.next(ref.value.value)
+      }
+      return nextValue
+    },
+    /** 赋值 */
+    set(value) {
+      const nextValue = new Subject()
+      if (value?.subscribe) {
+        value.subscribe((value) => {
+          ref.value.next(value)
+          nextValue.next(value)
+        })
+      } else {
+        ref.value.next(value)
+        nextValue.next(value)
+      }
+      return nextValue
+    },
+    /** 重置 */
+    reset(value) {
+      const nextValue = new Subject()
+      if (value?.subscribe) {
+        value.subscribe(() => {
+          ref.value.next(initValue)
+          nextValue.next(initValue)
+        })
+      } else {
+        ref.value.next(initValue)
+        nextValue.next(initValue)
+      }
+      return nextValue
+    }
+  }
+}
+
+/** 创建变量map */
+export const createVars = (vars) => {
+  return new Proxy(vars, {
+    get(target, key) {
+      const value = target[key]
+      if (value) {
+        return value.get().value
+      }
+      return value
+    }
+  })
+}

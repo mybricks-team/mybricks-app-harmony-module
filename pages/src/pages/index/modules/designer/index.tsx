@@ -1182,7 +1182,7 @@ const Designer = ({ appData }) => {
       await showPublishLoading();
 
       try {
-        const isHarmony = [CompileType.harmonyComponent, CompileType.harmonyApplication].includes(type)
+        const isHarmony = [CompileType.harmonyModule, CompileType.harmonyApplication].includes(type)
         const toJson = await contentModel.toJSON(isHarmony ? { withDiagrams: true } : null);
 
         let comlibs = [...ctx.comlibs];

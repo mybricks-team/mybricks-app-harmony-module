@@ -355,7 +355,7 @@ const compilerHarmonyComponent = async (params, config) => {
   const pageCode = getPageCode(data.toJson);
 
   // 目标项目路径
-  const targetPath = path.join(projectPath, "Module");
+  const targetPath = path.join(projectPath, "module");
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
@@ -366,8 +366,7 @@ const compilerHarmonyComponent = async (params, config) => {
   // 拷贝_proxy
   await fse.copy(path.join(__dirname, "./hm/_proxy"), path.join(targetPath, "_proxy"), { overwrite: true })
   let _proxyIndexCode = await fse.readFile(path.join(__dirname, "./hm/_proxy/Index.ets"), 'utf-8')
-  await fse.writeFile(path.join(targetPath, "_proxy/Index.ets"), _proxyIndexCode.replace("../../comlib/index", "../comlib/index").replace('{ domain: undefined }', `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`))
-  
+
   let apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
   apiCode = apiCode.replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`);
 
@@ -376,6 +375,11 @@ const compilerHarmonyComponent = async (params, config) => {
   pageCode.forEach((page) => {
     if (page.type === "extensionEvent") {
       apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
+      return
+    }
+
+    if (page.type === "globalVars") {
+      _proxyIndexCode = _proxyIndexCode.replace("$r('app.context.globalVars')", page.content)
       return
     }
 
@@ -399,6 +403,14 @@ const compilerHarmonyComponent = async (params, config) => {
     fse.outputFileSync(path.join(targetPath, page.path), content, { encoding: "utf8" })
   });
 
+  await fse.writeFile(
+    path.join(targetPath, "_proxy/Index.ets"),
+    _proxyIndexCode
+      .replace(
+        "{ domain: undefined }",
+        `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+      )
+  );
   await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
 
   // 写入搭建Js

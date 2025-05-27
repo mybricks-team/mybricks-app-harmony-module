@@ -48,8 +48,8 @@ export const HarmonyProductSelector = ({ onCompile }) => {
     <div className={css.selector}>
       <div className={classNames({
         [css.item]: true,
-        [css.active]: selectType === CompileType.harmonyComponent
-      })} onClick={() => { itemClick(CompileType.harmonyComponent) }}>
+        [css.active]: selectType === CompileType.harmonyModule
+      })} onClick={() => { itemClick(CompileType.harmonyModule) }}>
         {/* <img src={weapp} alt="" /> */}
         <div className={css.text}>组件</div>
       </div>

@@ -83,10 +83,10 @@
     html-to-image "^1.11.11"
     html-webpack-plugin "^5.5.0"
 
-"@mybricks/to-code-react@^0.0.5-next.42":
-  version "0.0.5-next.42"
-  resolved "https://registry.npmjs.org/@mybricks/to-code-react/-/to-code-react-0.0.5-next.42.tgz"
-  integrity sha512-R8BZhsRI5iyrMp0BHbor9MPro6b93BkyOgoYZsd8cMxhQDYEYm1jdxNCC0LaKXt47W9jmzIxrBMEmM+bLvUwhQ==
+"@mybricks/to-code-react@^0.0.5-next.43":
+  version "0.0.5-next.43"
+  resolved "https://registry.npmjs.org/@mybricks/to-code-react/-/to-code-react-0.0.5-next.43.tgz"
+  integrity sha512-pKuM5taqoXIh95OljpfWl2oN1w7ZQF30JduzJBXZfSGIpXmTITUrXY60c9eXhYznPtvL1kFF6f4o0cpJ2j/9jw==
   dependencies:
     "@babel/runtime" "^7.26.0"
 

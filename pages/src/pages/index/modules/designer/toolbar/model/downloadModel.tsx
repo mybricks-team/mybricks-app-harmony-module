@@ -15,7 +15,7 @@ export const showDownloadConfig = ({onCompile}) => {
 
 export const showHarmonyDownloadConfig = ({ onCompile }) => {
   onCompile({
-    type: CompileType.harmonyComponent,
+    type: CompileType.harmonyModule,
   });
   // globalModal.show({
   //   title: "产物类型选择",
