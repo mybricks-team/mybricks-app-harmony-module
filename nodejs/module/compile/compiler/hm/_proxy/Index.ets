@@ -36,7 +36,7 @@ import basicCodes from "./codes";
 import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
-import globalFxs from "./globalFxs"
+import { globalVars, globalFxs } from "./global"
 
 type Style = Record<string, string | number>;
 type Styles = Record<string, Style>;
@@ -95,8 +95,6 @@ class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
 }
 
 @Builder function Slot(params: MyBricks.SlotParams) {}
-
-$r('app.context.globalVars')
 
 const _env: MyBricks._Env = {
   currentScenes: {
@@ -505,5 +503,6 @@ const codes: MyBricks.Codes = Object.keys(basicCodes).reduce((pre, key) => {
 
 export {
   codes,
-  globalFxs
+  globalFxs,
+  globalVars
 }

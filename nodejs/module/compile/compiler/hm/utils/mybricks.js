@@ -426,7 +426,7 @@ export const emit = (fn, value) => {
 }
 
 /** 创建变量 */
-export const createVariable = (initValue) => {
+export const createVariable = (initValue, callBack) => {
   const value = new Subject()
   value.next(initValue)
   const ref = {
@@ -449,28 +449,34 @@ export const createVariable = (initValue) => {
     /** 赋值 */
     set(value) {
       const nextValue = new Subject()
-      if (value?.subscribe) {
-        value.subscribe((value) => {
-          ref.value.next(value)
-          nextValue.next(value)
-        })
-      } else {
+      const next = (value) => {
         ref.value.next(value)
         nextValue.next(value)
+        callBack(value)
+      }
+      if (value?.subscribe) {
+        value.subscribe((value) => {
+          next(value)
+        })
+      } else {
+        next(value)
       }
       return nextValue
     },
     /** 重置 */
     reset(value) {
       const nextValue = new Subject()
-      if (value?.subscribe) {
-        value.subscribe(() => {
-          ref.value.next(initValue)
-          nextValue.next(initValue)
-        })
-      } else {
+      const next = () => {
         ref.value.next(initValue)
         nextValue.next(initValue)
+        callBack(initValue)
+      }
+      if (value?.subscribe) {
+        value.subscribe(() => {
+          next()
+        })
+      } else {
+        next()
       }
       return nextValue
     }
@@ -495,7 +501,7 @@ export const createFx = (fx) => {
   return (value, ...args) => {
     const outputs = {}
 
-    const next = () => {
+    const next = (value) => {
       const res = fx(value, ...args)
       Object.entries(res).forEach(([key, value]) => {
         if (!outputs[key]) {
@@ -512,11 +518,11 @@ export const createFx = (fx) => {
     }
 
     if (value?.subscribe) {
-      value.subscribe(() => {
-        next()
+      value.subscribe((value) => {
+        next(value)
       })
     } else {
-      next()
+      next(value)
     }
 
     return outputs

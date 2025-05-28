@@ -258,29 +258,24 @@ const compilerHarmonyModule = async (params, config) => {
 
   pageCode.forEach((page) => {
     if (page.type === "extensionEvent") {
+      // 业务模块
       apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
       return
     }
 
-    if (page.type === "globalVars") {
-      _proxyIndexCode = _proxyIndexCode.replace("$r('app.context.globalVars')", page.content)
+    if (page.type === "global") {
+      // 全局变量、全局Fx
+      fse.outputFileSync(path.join(targetPath, `_proxy/global.ets`), page.content, { encoding: "utf8" })
       return
     }
 
-    if (page.type === "globalFxs") {
-      fse.outputFileSync(path.join(targetPath, `_proxy/globalFxs.ets`), page.content, { encoding: "utf8" })
-      return
-    }
 
     if (page.meta) {
       sceneMap[page.meta.id] = page.meta;
     }
 
     let content = "";
-    if (page.type === "ignore") {
-      // 不做特殊处理，一般是固定模版代码
-      content = page.content;
-    } else if (page.type === "normal") {
+    if (page.type === "normal") {
       const { pageConfig } = data.pages.find(p => p.id === page.meta?.id) ?? {}
       // 页面
       content = handlePageCode(page, pageConfig);
