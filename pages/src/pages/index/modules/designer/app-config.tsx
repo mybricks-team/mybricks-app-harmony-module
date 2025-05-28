@@ -850,7 +850,7 @@ export default function ({
     // aiView: getAiView(appConfig?.publishLocalizeConfig?.enableAI, {
     //   model: appConfig?.publishLocalizeConfig?.selectAIModel
     // }), // TODO: 开发settings页面后再放开注释
-    aiView: isDesignFilePlatform('harmony') ? null : getAiView(true, {
+    aiView: getAiView(true, {
       model: DEFAULT_AI_MODEL,
     }),
     com: {
