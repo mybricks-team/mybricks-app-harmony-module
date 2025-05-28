@@ -36,6 +36,7 @@ import basicCodes from "./codes";
 import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
+import globalFxs from "./globalFxs"
 
 type Style = Record<string, string | number>;
 type Styles = Record<string, Style>;
@@ -503,5 +504,6 @@ const codes: MyBricks.Codes = Object.keys(basicCodes).reduce((pre, key) => {
 }, {} as MyBricks.Codes)
 
 export {
-  codes
+  codes,
+  globalFxs
 }

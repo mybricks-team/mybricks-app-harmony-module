@@ -31,6 +31,19 @@ export class Subject {
   }
 }
 
+/** 合并数据流 */
+export const mergeSubjects = (...subjects) => {
+  const mergeSubject = new Subject()
+
+  subjects.forEach((subject) => {
+    subject.subscribe((value) => {
+      mergeSubject.next(value)
+    })
+  })
+
+  return mergeSubject
+}
+
 /** utils */
 /**
  * 判断是否js多输入
@@ -475,4 +488,37 @@ export const createVars = (vars) => {
       return value
     }
   })
+}
+
+/** 创建fx */
+export const createFx = (fx) => {
+  return (value, ...args) => {
+    const outputs = {}
+
+    const next = () => {
+      const res = fx(value, ...args)
+      Object.entries(res).forEach(([key, value]) => {
+        if (!outputs[key]) {
+          outputs[key] = new Subject()
+        }
+        if (value?.subscribe) {
+          value.subscribe((value) => {
+            outputs[key].next(value)
+          })
+        } else {
+          outputs[key].next(value)
+        }
+      })
+    }
+
+    if (value?.subscribe) {
+      value.subscribe(() => {
+        next()
+      })
+    } else {
+      next()
+    }
+
+    return outputs
+  }
 }

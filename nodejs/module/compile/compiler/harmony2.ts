@@ -267,6 +267,11 @@ const compilerHarmonyModule = async (params, config) => {
       return
     }
 
+    if (page.type === "globalFxs") {
+      fse.outputFileSync(path.join(targetPath, `_proxy/globalFxs.ets`), page.content, { encoding: "utf8" })
+      return
+    }
+
     if (page.meta) {
       sceneMap[page.meta.id] = page.meta;
     }
