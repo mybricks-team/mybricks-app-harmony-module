@@ -242,7 +242,7 @@ const Designer = ({ appData }) => {
 
     const urls = [
       {
-        url: `/api/compile/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`,
+        url: `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`,
         filename: `${pageModel.fileId}-${type}.zip`,
       },
       // {
@@ -269,7 +269,7 @@ const Designer = ({ appData }) => {
     //   let a = document.createElement("a");
     //   a.style = "display: none"; // 创建一个隐藏的a标签
     //   a.download = filename;
-    //   a.href = `/api/compile/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`;
+    //   a.href = `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`;
     //   document.body.appendChild(a);
     //   a.click(); // 触发a标签的click事件
     //   a.onload = () => {};
@@ -740,7 +740,7 @@ const Designer = ({ appData }) => {
       // pageModel.previewStatusTips.push("正在构建及上传小程序...");
 
       const res = await axios({
-        url: "/api/compile/miniapp/preview",
+        url: "/api/harmony-module/miniapp/preview",
         method: "POST",
         data: {
           userId: userModel.user?.id,
@@ -845,7 +845,7 @@ const Designer = ({ appData }) => {
         });
 
         const res = await axios({
-          url: "/api/compile/miniapp/publish",
+          url: "/api/harmony-module/miniapp/publish",
           method: "POST",
           data: {
             userId: userModel.user?.id,
@@ -952,7 +952,7 @@ const Designer = ({ appData }) => {
       // pageModel.previewStatusTips.push("正在构建及上传小程序...");
 
       const res = await axios({
-        url: "/api/compile/alipay/preview",
+        url: "/api/harmony-module/alipay/preview",
         method: "POST",
         data: {
           userId: userModel.user?.id,
@@ -1017,7 +1017,7 @@ const Designer = ({ appData }) => {
       const ComlibsScriptContent = await injectComlibsScriptContent(json);
 
       const res = await axios({
-        url: "/api/compile/h5/publish",
+        url: "/api/harmony-module/h5/publish",
         method: "POST",
         data: {
           userId: userModel.user?.id,
@@ -1105,7 +1105,7 @@ const Designer = ({ appData }) => {
       const ComlibsScriptContent = await injectComlibsScriptContent(json);
 
       const res = await axios({
-        url: "/api/compile/h5/preview",
+        url: "/api/harmony-module/h5/preview",
         method: "POST",
         data: {
           userId: userModel.user?.id,
@@ -1138,7 +1138,7 @@ const Designer = ({ appData }) => {
 
   const downloadProjectToLocal = useCallback(async ({ type = "weapp" }) => {
     const res = await axios({
-      url: "/api/compile/queryFiles",
+      url: "/api/harmony-module/queryFiles",
       method: "GET",
       params: {
         userId: userModel.user?.id,
@@ -1238,7 +1238,7 @@ const Designer = ({ appData }) => {
           })
         }
 
-        const url = isHarmony ? "/api/compile/harmony/compile" : "/api/compile/miniapp/compile"
+        const url = isHarmony ? "/api/harmony-module/harmony/compile" : "/api/harmony-module/miniapp/compile"
 
         const res = await axios({
           url,
@@ -1334,7 +1334,7 @@ const Designer = ({ appData }) => {
 
   const checkIsMiniCIReady = useCallback(async () => {
     const result = await axios({
-      url: "/api/compile/wx/ready",
+      url: "/api/harmony-module/wx/ready",
       method: "GET",
       withCredentials: false,
     });

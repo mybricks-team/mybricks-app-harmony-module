@@ -156,7 +156,7 @@ export default function ({
         onSearchUser: (keyword: string) => {
           return new Promise(async (resolve, reject) => {
             try {
-              const res = await searchUser(`api/compile/miniapp/searchUser`, {
+              const res = await searchUser(`api/harmony-module/miniapp/searchUser`, {
                 keyword,
               });
               // @ts-ignore

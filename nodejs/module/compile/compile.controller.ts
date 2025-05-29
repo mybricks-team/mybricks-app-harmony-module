@@ -84,7 +84,7 @@ if (!fs.existsSync(tempFolderPath)) {
   fs.mkdirSync(tempFolderPath);
 }
 
-@Controller("api/compile")
+@Controller("api/harmony-module")
 export default class CompileController {
   @Get("/health")
   async health() {

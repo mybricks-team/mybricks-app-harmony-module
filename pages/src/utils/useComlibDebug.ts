@@ -9,7 +9,7 @@ export default () => {
 	}, []);
 
 	const debugCompileApiUrl = useMemo(() => {
-		return `${debugServer}/api/compile`;
+		return `${debugServer}/api/harmony-module`;
 	}, [isDebugComlib]);
 
 	const debugComlibUrl = useMemo(() => {
