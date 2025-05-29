@@ -15,6 +15,11 @@ function read (zip, files, dirPath, filterCallback) {
     const fillPath = dirPath + '/' + fileName;
     const file = fs.statSync(fillPath);
     if (file.isDirectory()) {
+      if (fileName === "pages") {
+        if (dirPath === __dirname) {
+          return
+        }
+      }
       const childDir = zip.folder(fileName);
       const files = fs.readdirSync(fillPath)
       read(childDir, files, fillPath, filterCallback);
@@ -37,7 +42,6 @@ const filterFileName = [
   '.prettierrc', 
   'package-lock.json',
   'yarn.lock',
-  'pages',
   '.idea',
   '.git',
   '.vscode',
