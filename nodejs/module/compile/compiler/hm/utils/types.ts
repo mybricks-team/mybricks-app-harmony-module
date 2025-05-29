@@ -1,3 +1,5 @@
+import { Subject } from "./mybricks"
+
 export declare namespace MyBricks {
   type Any = any
 
@@ -51,5 +53,11 @@ export declare namespace MyBricks {
     callConnector: Any,
     appRouter: Any,
     globalVars: Any
+  }
+
+  type Var = {
+    get: (value: Any) => Subject
+    set: (value: Any) => Subject
+    reset: (value: Any) => Subject
   }
 }

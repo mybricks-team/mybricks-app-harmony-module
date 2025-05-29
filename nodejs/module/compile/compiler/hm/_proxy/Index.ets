@@ -33,7 +33,7 @@ import {
   mybricks_harmony_smsInput_Data
 } from "../comlib/Index"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
@@ -504,5 +504,7 @@ const codes: MyBricks.Codes = Object.keys(basicCodes).reduce((pre, key) => {
 export {
   codes,
   globalFxs,
-  globalVars
+  globalVars,
+  createVariable,
+  createFx
 }
