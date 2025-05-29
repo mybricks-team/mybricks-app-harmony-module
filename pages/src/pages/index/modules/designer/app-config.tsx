@@ -15,7 +15,7 @@ import versionPlugin from "mybricks-plugin-version";
 
 import { editorAppenderFn } from "./editorAppender";
 
-import { showAIPageModal, MobilePrompts, MobileDefinitions } from '@mybricks/sdk-for-ai'
+import { showAIPageModal, HarmonyPrompts, HarmonyDefinitions } from '/Users/cocolbell/Desktop/projects/mybricks/sdk-for-ai'
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { getAiEncryptData } from "./utils/get-ai-encrypt-data";
@@ -669,25 +669,22 @@ export default function ({
           // },
         ],
         adder: [
-          ...(isDesignFilePlatform('harmony') ? [] : [
-            {
-              type: 'defined',
-              title: 'AI生成...',
-              load: () => {
-                return new Promise((resolve, reject) => {
-                  const destroy = showAIPageModal({
-                    prompts: MobilePrompts,
-                    definitions: MobileDefinitions,
-                    onGenerateFinish({ templateJson }) {
-                      resolve(templateJson)
-                      destroy?.()
-                    },
-                  })
+          {
+            type: 'defined',
+            title: 'AI生成...',
+            load: () => {
+              return new Promise((resolve, reject) => {
+                const destroy = showAIPageModal({
+                  prompts: HarmonyPrompts,
+                  definitions: HarmonyDefinitions,
+                  onGenerateFinish({ templateJson }) {
+                    resolve(templateJson)
+                    destroy?.()
+                  },
                 })
-              }
-            },
-            {}
-          ]),
+              })
+            }
+          },
           {
             type: "normal",
             title: `${getPageTitlePrefix()}标签页`,

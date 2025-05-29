@@ -39,9 +39,31 @@ module.exports = merge(common, {
     }),
 
     ...generateAssetMapPlugin({
-      filename: "index.html",
-      template: path.resolve(__dirname, "../assets/index.html"),
-      chunks: ["index"],
+      filename: 'index.html',
+      template: path.resolve(__dirname, '../assets/index.html'),
+      chunks: ['index'],
+      assetsMap: [
+        {
+          tag: 'script',
+          path: 'public/babel/standalone-7.12.10/babel.min.js',
+          CDN: 'https://f2.beckwai.com/kos/nlav12333/mybricks/babel/standalone-7.12.10/babel.min.js'
+        },
+        {
+          tag: 'script',
+          path: 'public/terser/5.22.0/bundle.min.js',
+          CDN: 'https://f2.beckwai.com/kos/nlav12333/mybricks/terser/bundle.min.js'
+        },
+        {
+          tag: 'script',
+          path: 'public/clean-css/5.3.2/cleancss-browser.js',
+          CDN: 'https://f2.beckwai.com/kos/nlav12333/mybricks/clean-css/5.3.2/cleancss-browser.js'
+        },
+      ],
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'setting.html',
+      template: path.resolve(__dirname, '../assets/setting.html'),
+      chunks: ['setting'],
     }),
     // new BundleAnalyzerPlugin({
     //   analyzerMode: 'static',
