@@ -503,18 +503,20 @@ export const createFx = (fx) => {
 
     const next = (value) => {
       const res = fx(value, ...args)
-      Object.entries(res).forEach(([key, value]) => {
-        if (!outputs[key]) {
-          outputs[key] = new Subject()
-        }
-        if (value?.subscribe) {
-          value.subscribe((value) => {
+      if (res) {
+        Object.entries(res).forEach(([key, value]) => {
+          if (!outputs[key]) {
+            outputs[key] = new Subject()
+          }
+          if (value?.subscribe) {
+            value.subscribe((value) => {
+              outputs[key].next(value)
+            })
+          } else {
             outputs[key].next(value)
-          })
-        } else {
-          outputs[key].next(value)
-        }
-      })
+          }
+        })
+      }
     }
 
     if (value?.subscribe) {
