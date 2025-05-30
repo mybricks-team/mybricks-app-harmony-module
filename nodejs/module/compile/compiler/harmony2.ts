@@ -221,14 +221,6 @@ const getPageCode = (toJson) => {
     getComponentPackageName() {
       return COMPONENT_PACKAGE_NAME
     }
-  }).map((page) => {
-    if (page.meta) {
-      return {
-        ...page,
-        path: `pages/${generatePageFileName(page.meta.title)}.ets`,
-      }
-    }
-    return page
   });
 }
 
@@ -284,7 +276,7 @@ const compilerHarmonyModule = async (params, config) => {
       content = handlePopupCode(page);
     }
 
-    fse.outputFileSync(path.join(targetPath, page.path), content, { encoding: "utf8" })
+    fse.outputFileSync(path.join(targetPath, `pages/${generatePageFileName(page.meta.title)}.ets`), content, { encoding: "utf8" })
   });
 
   await fse.writeFile(
