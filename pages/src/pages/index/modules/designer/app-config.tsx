@@ -559,39 +559,39 @@ export default function ({
               },
             },
           },
-          {
-            title: "默认全局请求头（仅在调试模式下生效）",
-            description: "每当页面刷新时会，将会在每次请求时自动携带",
-            type: "code",
-            options: ({ data, output }) => {
-              return {
-                language: "json",
-              };
-            },
-            value: {
-              get() {
-                return pageModel?.debug?.mybricksGlobalHeaders;
-              },
-              set(context, val) {
-                pageModel.debug.mybricksGlobalHeaders = val;
+          // {
+          //   title: "默认全局请求头（仅在调试模式下生效）",
+          //   description: "每当页面刷新时会，将会在每次请求时自动携带",
+          //   type: "code",
+          //   options: ({ data, output }) => {
+          //     return {
+          //       language: "json",
+          //     };
+          //   },
+          //   value: {
+          //     get() {
+          //       return pageModel?.debug?.mybricksGlobalHeaders;
+          //     },
+          //     set(context, val) {
+          //       pageModel.debug.mybricksGlobalHeaders = val;
 
-                let data = {};
-                try {
-                  data = decodeURIComponent(val);
-                  data = JSON.parse(data);
-                } catch (e) {
-                  data = {};
-                }
+          //       let data = {};
+          //       try {
+          //         data = decodeURIComponent(val);
+          //         data = JSON.parse(data);
+          //       } catch (e) {
+          //         data = {};
+          //       }
 
-                try {
-                  localStorage.setItem(
-                    "_MYBRICKS_GLOBAL_HEADERS_",
-                    JSON.stringify({ data })
-                  );
-                } catch (e) { }
-              },
-            },
-          },
+          //       try {
+          //         localStorage.setItem(
+          //           "_MYBRICKS_GLOBAL_HEADERS_",
+          //           JSON.stringify({ data })
+          //         );
+          //       } catch (e) { }
+          //     },
+          //   },
+          // },
         ];
         // cate0.items = cate0.items.concat([
         //   {

@@ -264,20 +264,7 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
 
 
         <Toolbar.Save disabled={!operable} onClick={onSave} dotTip={isModify} />
-
-        {
-          CompileType.harmony !== selectType ? <PreviewPopOver onCompile={previewHandle}>
-            <Toolbar.Button onClick={previewHandle}>预览</Toolbar.Button>
-          </PreviewPopOver> : null
-        }
-
-        {
-          CompileType.harmony !== selectType ? <Toolbar.Button disabled={!globalOperable} onClick={publishHandle}>发布</Toolbar.Button> : null
-        }
-
-        {[CompileType.weapp, CompileType.alipay, CompileType.dd, CompileType.miniprogram, CompileType.harmony].includes(
-          selectType
-        ) && <Toolbar.Button onClick={compileHandle}>下载</Toolbar.Button>}
+        <Toolbar.Button onClick={compileHandle}>下载源码</Toolbar.Button>
 
 
         {/* 判断是不是老文件（没有应用类型数据） */}
