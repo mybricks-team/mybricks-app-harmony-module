@@ -19,6 +19,8 @@ import {
   mybricks_harmony_image_Data,
   mybricks_harmony_video as BasicMyBricksHarmonyVideo,
   mybricks_harmony_video_Data,
+  mybricks_harmony_richText as BasicMyBricksHarmonyRichText,
+  mybricks_harmony_richText_Data,
   mybricks_harmony_tabs as BasicMyBricksHarmonyTabs,
   mybricks_harmony_tabs_Data,
   mybricks_harmony_swiper as BasicMyBricksHarmonySwiper,
@@ -27,6 +29,8 @@ import {
   mybricks_harmony_sidebar_Data,
   mybricks_harmony_containerList as BasicMyBricksHarmonyContainerList,
   mybricks_harmony_containerList_Data,
+  mybricks_harmony_containerCondition as BasicMyBricksHarmonyContainerCondition,
+  mybricks_harmony_containerCondition_Data,
   mybricks_harmony_containerBasic as BasicMyBricksHarmonyContainerBasic,
   mybricks_harmony_containerBasic_Data,
   mybricks_harmony_formInput as BasicMyBricksHarmonyFormInput,
@@ -123,7 +127,7 @@ const _env: MyBricks._Env = {
 const vars: ESObject = createVars(globalVars)
 
 const env: MyBricks.Env = {
-  callConnector: genCallConnector(basicCodes, { domain: undefined }, { globalVars: vars }),
+  callConnector: genCallConnector(basicCodes, { domain: undefined}, { globalVars: vars }),
   appRouter,
   globalVars: vars
 }
@@ -349,6 +353,32 @@ export struct MyBricksHarmonyVideo {
   }
 }
 
+/** richText */
+@ComponentV2
+export struct MyBricksHarmonyRichText {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyRichText({
+        data: new mybricks_harmony_richText_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+
+  }
+}
+
 /** tabs */
 @ComponentV2
 export struct MyBricksHarmonyTabs {
@@ -483,6 +513,34 @@ export struct MyBricksHarmonyContainerBasic {
     .visibility(this.columnVisibility)
   }
 }
+
+/** containerCondition */
+@ComponentV2
+export struct MyBricksHarmonyContainerCondition {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyContainerCondition({
+        data: new mybricks_harmony_containerCondition_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+        slots: this.slots,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
 
 /** containerRow */
 @ComponentV2
