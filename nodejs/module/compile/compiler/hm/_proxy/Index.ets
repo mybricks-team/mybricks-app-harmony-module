@@ -5,6 +5,8 @@ import {
   mybricks_harmony__connectorGlobalHeaders as basicMyBricksHarmony_connectorGlobalHeaders,
   mybricks_harmony__router as basicMyBricksHarmony_router,
   mybricks_harmony__aesEncode as basicMyBricksHarmony_aesEncode,
+  mybricks_harmony__callPhone as basicMyBricksHarmony_callPhone,
+  mybricks_harmony__vibrate as basicMyBricksHarmony_vibrate,
   mybricks_harmony_popup as BasicMyBricksHarmonyPopup,
   mybricks_harmony_popup_Data,
   mybricks_harmony_systemPage as BasicMyBricksHarmonySystemPage,
@@ -45,12 +47,18 @@ import {
   mybricks_harmony_formRadio_Data,
   mybricks_harmony_smsInput as BasicMyBricksHarmonySmsInput,
   mybricks_harmony_smsInput_Data,
-  mybricks_harmony_searchBar as BasicMyBricksHarmonySearchBar,
-  mybricks_harmony_searchBar_Data,
-  mybricks_harmony_qrcode as BasicMyBricksHarmonyQrcode,
-  mybricks_harmony_qrcode_Data,
-  mybricks_harmony_support as BasicMyBricksHarmonySupport,
-  mybricks_harmony_support_Data
+  mybricks_harmony_sidebar as BasicMyBricksHarmonySidebar,
+  mybricks_harmony_sidebar_Data,
+  mybricks_harmony_tabs as BasicMyBricksHarmonyTabs,
+  mybricks_harmony_tabs_Data,
+  mybricks_harmony_formCheckbox as BasicMyBricksHarmonyFormCheckbox,
+  mybricks_harmony_formCheckbox_Data,
+  mybricks_harmony_swiper as BasicMyBricksHarmonySwiper,
+  mybricks_harmony_swiper_Data,
+  mybricks_harmony_formSelect as BasicMyBricksHarmonyFormSelect,
+  mybricks_harmony_formSelect_Data,
+  mybricks_harmony_line as BasicMyBricksHarmonyLine,
+  mybricks_harmony_line_Data,
 } from "../comlib/Index"
 import basicCodes from "./codes";
 import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx } from "../utils/mybricks"
@@ -162,6 +170,16 @@ export const myBricksHarmony_router = (props: MyBricks.JSParams): (...values: My
 /** aesEncode */
 export const myBricksHarmony_aesEncode = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
   return createJSHandle(basicMyBricksHarmony_aesEncode, { props, env });
+}
+
+/** callPhone */
+export const myBricksHarmony_callPhone = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
+  return createJSHandle(basicMyBricksHarmony_callPhone, { props, env });
+}
+
+/** vibrate */
+export const myBricksHarmony_vibrate = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
+  return createJSHandle(basicMyBricksHarmony_vibrate, { props, env });
 }
 
 /** systemPage */
@@ -673,6 +691,32 @@ export struct MyBricksHarmonyFormRadio {
   }
 }
 
+/** FormCheckbox */
+@ComponentV2
+export struct MyBricksHarmonyFormCheckbox {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyFormCheckbox({
+        data: new mybricks_harmony_formCheckbox_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
 /** formSwitch */
 @ComponentV2
 export struct MyBricksHarmonyFormSwitch {
@@ -724,6 +768,140 @@ export struct MyBricksHarmonySmsInput {
     .visibility(this.columnVisibility)
   }
 }
+
+/** sidebar */
+@ComponentV2
+export struct MyBricksHarmonySidebar {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonySidebar({
+        data: new mybricks_harmony_sidebar_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+        slots: this.slots,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+/** Tabs */
+@ComponentV2
+export struct MyBricksHarmonyTabs {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyTabs({
+        data: new mybricks_harmony_tabs_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+        slots: this.slots,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+/** swiper */
+@ComponentV2
+export struct MyBricksHarmonySwiper {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonySwiper({
+        data: new mybricks_harmony_swiper_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+/** FormSelect */
+@ComponentV2
+export struct MyBricksHarmonyFormSelect {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyFormSelect({
+        data: new mybricks_harmony_formSelect_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+
+/** Line */
+@ComponentV2
+export struct MyBricksHarmonyLine {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyLine({
+        data: new mybricks_harmony_line_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
 
 /** searchBar */
 @ComponentV2
