@@ -29,7 +29,6 @@ import { sleep, isDesignFilePlatform } from "@/utils";
 import { CompileType } from "@/types";
 import { DESIGNER_STATIC_PATH } from "../../../../constants";
 import { ExclamationCircleFilled, CheckCircleFilled } from "@ant-design/icons";
-import hmdownloadtmp from "./hmdownloadtmp";
 
 // message.success(
 //  "保存成功",
@@ -781,15 +780,7 @@ const Designer = ({ appData }) => {
   }, []);
 
   const onPublish = useCallback(
-    async ({
-      type = CompileType.weapp,
-      version = "1.0.0",
-      description = "版本说明",
-    }: {
-      type: CompileType;
-      version: string;
-      description: string;
-    }) => {
+    async () => {
       if (!pageModel.operable) {
         // 没有页面级权限
         return true;
@@ -801,51 +792,13 @@ const Designer = ({ appData }) => {
 
       await onSave(false);
 
+      const type = "publishModule";
+
       try {
         const toJson = await contentModel.toJSON();
 
-        //
-        let comlibs = [...ctx.comlibs];
-        if (window.__DEBUG_COMLIB__) {
-          let containIndex = comlibs.findIndex((lib) => {
-            return (
-              lib.id === window.__DEBUG_COMLIB__.id ||
-              lib.namespace === window.__DEBUG_COMLIB__.namespace
-            );
-          });
-
-          if (containIndex > -1) {
-            comlibs.splice(containIndex, 1, window.__DEBUG_COMLIB__);
-          } else {
-            comlibs.push(window.__DEBUG_COMLIB__);
-          }
-        }
-
-        const json = await getMiniappJson({
-          toJson: {
-            ...toJson,
-            tabbar: window.__tabbar__.get(),
-          },
-          ci: {
-            appid: pageModel.wxConfig.appid,
-            privateKey: decodeURIComponent(pageModel.wxConfig.privateKey || ""),
-            type: "miniProgram",
-            version,
-            desc: description,
-          },
-          status: {
-            projectId: pageModel.sdk.projectId,
-            fileId: pageModel.fileId,
-            apiEnv: "prod",
-            ...pageModel.appConfig,
-            appid: pageModel.wxConfig.appid,
-            appsecret: pageModel.wxConfig.appsecret,
-          },
-          comlibs: comlibs,
-        });
-
         const res = await axios({
-          url: "/api/harmony-module/miniapp/publish",
+          url:  "/api/harmony-module/publish",
           method: "POST",
           data: {
             userId: userModel.user?.id,
@@ -853,31 +806,30 @@ const Designer = ({ appData }) => {
             fileName: pageModel.file.name,
             type,
             data: {
-              ...json,
-              services: toJson.services,
-              serviceFxUrl: pageModel.appConfig.serviceFxUrl,
-              database: pageModel.appConfig.datasource,
-            },
+              toJson,
+            }
           },
           withCredentials: false,
         });
         let data = res.data;
-
+        pageModel.publishLoading = false;
         if (data.code !== 1) {
           handlePublishErrCode(data);
-          pageModel.publishLoading = false;
 
           if (data.innerMessage) {
             message.error(data.innerMessage);
           }
           return;
-          // throw new Error(data?.data ?? data?.message);
         }
-        showWeappPublishSuccessModal();
+
+        download({
+          type,
+          backEndProjectPath: data?.data?.backEndProjectPath,
+        })
       } catch (e) {
         console.error(e);
-        message.error(e?.message ?? "构建小程序失败，请重试");
-        console.error(e?.message ?? "构建小程序失败，请重试");
+        message.error(e?.message ?? "发布失败，请重试");
+        console.error(e?.message ?? "发布失败，请重试");
       }
 
       pageModel.publishLoading = false;
@@ -1170,12 +1122,6 @@ const Designer = ({ appData }) => {
       version: string;
       description: string;
     }) => {
-      // if (type === CompileType.harmony) {
-      //   const toJson = await contentModel.toJSON({ withDiagrams: true });
-      //   hmdownloadtmp(toJson);
-      //   return;
-      // }
-
       if (pageModel?.publishLoading) {
         return;
       }
@@ -1467,7 +1413,7 @@ const Designer = ({ appData }) => {
         onSave={onSave}
         onCompile={onCompile}
         onPreview={onPreview}
-        onPublish={(params) => onPublish(params)}
+        onPublish={onPublish}
         onH5Publish={onH5Publish}
         onH5Preview={onH5Preview}
         onAlipayPreview={onAlipayPreview}

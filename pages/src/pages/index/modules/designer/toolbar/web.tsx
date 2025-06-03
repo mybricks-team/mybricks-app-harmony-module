@@ -1,33 +1,12 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useComputed } from "rxui-t";
 import { Locker, Toolbar } from "@mybricks/sdk-for-app/ui";
 import { pageModel, versionModel } from "@/stores";
-import { showH5RequireModal, showWeappRequireModal } from "./../modals";
-import { PreviewPopOver } from "./../pop-overs";
-import { Dropdown, message, Alert, Tooltip, Menu } from "antd";
+import { message, Tooltip } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import cx from "classnames";
-// import Marquee from 'react-fast-marquee';
-import {
-  DownOutlined,
-  EyeOutlined,
-  ToTopOutlined,
-  DownloadOutlined,
-} from "@ant-design/icons";
-import { CompileType } from "@/types";
-import { CompileButtonGroups, CompileButton } from "./compile-buttons";
-import PopContact from "../pop-contact";
 import css from "./web.less";
-
 import help from "./icons/help"
-
-import { showDownloadConfig, showHarmonyDownloadConfig } from "./model/downloadModel"
-
-interface PublishParams {
-  type: string;
-  version: string;
-  description: string;
-}
+import { showHarmonyDownloadConfig } from "./model/downloadModel"
 
 interface WebToolbarProps {
   operable: boolean;
@@ -38,63 +17,21 @@ interface WebToolbarProps {
   onSave: any;
   onCompile: any;
   onPreview: any;
-  onPublish: (params: PublishParams) => void;
+  onPublish: () => void;
   onH5Publish?: any;
   onH5Preview?: any;
 }
-
-const DescMap = {
-  [CompileType.weapp]: "微信小程序",
-  [CompileType.h5]: "H5",
-  [CompileType.alipay]: "支付宝小程序(Beta)",
-  [CompileType.dd]: "钉钉小程序(Beta)",
-};
-
-class SelectTypeStorage {
-  key = `_mybricks_mpsite_${new URL(location.href).searchParams.get(
-    "id"
-  )}_type_`;
-
-  set = (selectType: CompileType) => {
-    localStorage.setItem(this.key, selectType);
-  };
-
-  get = (): CompileType => {
-    return localStorage.getItem(this.key) as CompileType;
-  };
-}
-
-const selectTypeStorage = new SelectTypeStorage();
 
 export const WebToolbar: React.FC<WebToolbarProps> = ({
   operable,
   globalOperable,
   statusChange,
-
   isModify = false,
   designerRef,
-
   onSave,
-  onPreview,
   onCompile,
   onPublish,
-  onH5Publish,
-  onH5Preview,
-
-  onAlipayPreview,
 }) => {
-  const [selectType, setSelectType] = useState<CompileType>(
-    selectTypeStorage.get() ?? window.__PLATFORM__ ?? CompileType.weapp
-  );
-
-  //如果默认是miniprogram的应用类型，则设置为weapp
-  useEffect(() => {
-    if (selectType === CompileType.miniprogram) {
-      setSelectType(CompileType.weapp)
-    }
-    window.__PLATFORM__ = selectType
-  }, [selectType])
-
   const handleSwitch2SaveVersion = useCallback(() => {
     designerRef.current?.switchActivity?.("@mybricks/plugins/version");
     setTimeout(() => {
@@ -118,70 +55,15 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
     }
   }, [publishLoading]);
 
-  // useEffect(() => {
-  //   // selectTypeStorage.set(selectType);
-  //   window.__PLATFORM__ = selectType
-  // }, [selectType]);
-
-  const previewHandle = () => {
-    if (selectType === CompileType.miniprogram || selectType === CompileType.alipay || selectType === CompileType.dd || selectType === CompileType.weapp) {
-      //miniprogram 指代所有小程序类型，目前预览时统一都先使用微信小程序
-      onPreview?.();
-    }
-    if (selectType === CompileType.h5) {
-      onH5Preview?.();
-    }
-  };
-
   const compileHandle = () => {
-    // 判断是不是老文件（没有应用类型）走下拉框直接下载的逻辑
-    if (window.__isOldFile__) {
-      onCompile?.({
-        type: selectType,
-        // version: version,
-        // description: description,
-      });
-    } else if (CompileType.harmony === selectType) {
-      // onCompile?.({
-      //   type: selectType,
-      // })
-      showHarmonyDownloadConfig({ onCompile })
-    } else {
-      showDownloadConfig({ onCompile })
-    }
+    showHarmonyDownloadConfig({ onCompile })
   };
-
 
   const publishHandle = () => {
     if (!globalOperable) {
       return;
     }
-    if ([CompileType.weapp, CompileType.alipay, CompileType.miniprogram, CompileType.dd].includes(selectType)) {
-      //支付宝小程序发布还没做，所以点击后暂时先用小程序的发布逻辑
-      showWeappRequireModal({
-        onSubmit: ({ version, description }) => {
-          onPublish?.({
-            type: selectType,
-            version: version,
-            description: description,
-          });
-        },
-      });
-    }
-    if (selectType === CompileType.h5) {
-      showH5RequireModal({
-        onSubmit: (formValues) => {
-          onH5Publish?.(formValues);
-        },
-      });
-    }
-  };
-
-  const getExtraFileIds = () => {
-    return true;
-    // return Object.entries(pageModel.pages).map(([,value]) => {
-    //   return value.fileId
-    // }).filter((fileId) => fileId)
+    onPublish()
   };
 
   return (
@@ -190,26 +72,11 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
         title={pageModel.file?.name}
         updateInfo={<Toolbar.LastUpdate onClick={handleSwitch2SaveVersion} />}
       >
-        {/* <Alert
-          style={{ maxWidth: 350 }}
-          banner
-          message={
-            <Marquee pauseOnHover gradient={false} speed={30}>
-              I can be a React component, multiple React components, or just some text.
-            </Marquee>
-          }
-        /> */}
-
-        {/* <div
-          className="ant-divider ant-divider-vertical"
-          style={{ marginLeft: 10, marginRight: -13 }}
-        ></div> */}
-        {/* <PopContact></PopContact> */}
         <Locker
           statusChange={statusChange}
           compareVersion={false}
-          getExtraFileIds={window.__type__ === "mpa" ? getExtraFileIds : null}
-          // autoLock={window.__type__ === "mpa" ? false : true}
+          // @ts-ignore 更新sdk类型定义
+          getExtraFileIds={() => true}
           autoLock={true}
           beforeToggleLock={
             window.__type__ === "mpa"
@@ -222,10 +89,7 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
               }
               : null
           }
-        // pollable={false} // 测试
         />
-
-
         <Tooltip
           placement="bottom"
           title={"查看教程文档"}
@@ -261,43 +125,9 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
             />
           </Tooltip>
         ) : null}
-
-
         <Toolbar.Save disabled={!operable} onClick={onSave} dotTip={isModify} />
+        {/* <Toolbar.Button disabled={!operable} onClick={publishHandle}>发布</Toolbar.Button> */}
         <Toolbar.Button onClick={compileHandle}>下载源码</Toolbar.Button>
-
-
-        {/* 判断是不是老文件（没有应用类型数据） */}
-        {window.__isOldFile__ === true && (
-          <CompileButtonGroups>
-          <Dropdown
-            overlay={
-              <Menu
-                onClick={(e) => {
-                  setSelectType(e.key);
-                  selectTypeStorage.set(e.key);
-                  window.location.reload();
-                }}
-              >
-                {Object.keys(DescMap).map((type) => (
-                  <Menu.Item key={type} style={{ fontSize: 13 }}>
-                    {DescMap[type]}
-                  </Menu.Item>
-                ))}
-              </Menu>
-            }
-            trigger={["click"]}
-          >
-            <CompileButton onClick={() => { }}>
-              <span style={{ color: "#ea732e", fontWeight: "bold" }}>
-                {DescMap[selectType]}
-              </span>
-              <DownOutlined style={{ marginLeft: 3, color: "#ea732e" }}/>
-            </CompileButton>
-          </Dropdown>
-          </CompileButtonGroups>
-        )}
-
       </Toolbar>
     </>
   );
