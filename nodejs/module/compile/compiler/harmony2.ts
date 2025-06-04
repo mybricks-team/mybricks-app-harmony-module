@@ -4,6 +4,10 @@ import * as fse from "fs-extra";
 import { COMPONENT_PACKAGE_NAME } from "./hm/constant";
 import { pinyin, cleanAndSplitString, firstCharToUpperCase } from "../utils";
 
+/**
+ * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
+ */
+
 function convertNamespaceToComponentName(namespace: string) {
   return namespace
     .split(".")
@@ -186,18 +190,13 @@ const generatePageFileName = (text: string) => {
   }, "") + "Page"
 }
 
-const getPageCode = (toJson) => {
-  return toHarmonyCode(toJson, {
+const generatePageCodeWithMetadata = (params) => {
+  const { toJson, componentMetaMap } = params;
+  const usedComponentsMap = {};
+  const pageCode = toHarmonyCode(toJson, {
     getComponentMetaByNamespace(namespace, config) {
-      if (namespace === "mybricks.harmony._muilt-inputJs") {
-        return {
-          dependencyImport: {
-            packageName: COMPONENT_PACKAGE_NAME,
-            dependencyNames: ["codes"],
-            importType: "named",
-          },
-          componentName: "codes"
-        };
+      if (!usedComponentsMap[namespace]) {
+        usedComponentsMap[namespace] = config;
       }
 
       let componentName = convertNamespaceToComponentName(namespace);
@@ -222,13 +221,117 @@ const getPageCode = (toJson) => {
       return COMPONENT_PACKAGE_NAME
     }
   });
+
+  let importComponentCode = "";
+  let declaredComponentCode = "";
+
+  Object.entries(usedComponentsMap).forEach(([namespace, config]: any) => {
+    const namespaceSplit = namespace.split(".")
+
+    const importName = namespaceSplit.join("_");
+    const asImportName = (config.type === "ui" ? "Basic" : "basic") + namespaceSplit.map((text) => {
+      if (text.toUpperCase() === "MYBRICKS") {
+        return "MyBricks";
+      }
+
+      return text[0].toUpperCase() + text.slice(1);
+    }).join("")
+
+    importComponentCode += `${importName} as ${asImportName},`
+
+    if (config.type === "ui") {
+      const importData = importName + "_Data";
+      importComponentCode += `${importData},`
+      const componentName = asImportName.replace("Basic", "");
+      const { hasSlots } = componentMetaMap[namespace]
+      declaredComponentCode += `@Builder
+      function ${componentName}Builder (params: MyBricksComponentBuilderParams) {
+        Column() {
+          ${asImportName}({
+            uid: params.uid,
+            data: new ${importData}(params.data as MyBricks.Any),
+            inputs: createInputsHandle(params),
+            outputs: createEventsHandle(params.events),
+            styles: params.styles,
+            ${hasSlots ? "slots: params.slots," : ""}
+            parentSlot: params.parentSlot
+          })
+        }
+        .attributeModifier(params.myBricksColumnModifier)
+        .visibility(params.columnVisibility)
+      }
+      
+      @ComponentV2
+      export struct ${componentName} {
+        @Param @Require uid: string;
+        @Param controller: MyBricks.Controller = Controller();
+        @Param @Require data: MyBricks.Data
+        @Param events: MyBricks.Events = {}
+        @Param styles: Styles = {};
+        @Local columnVisibility: Visibility = Visibility.Visible;
+        ${hasSlots ? "@BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;" : ""}
+        @Param parentSlot?: MyBricks.SlotParams = undefined
+
+        myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+        build() {
+          if (this.parentSlot?.itemWrap) {
+            this.parentSlot.itemWrap({
+              id: this.uid,
+              inputs: this.controller._inputEvents
+            }).wrap.builder(wrapBuilder(${componentName}Builder), {
+              uid: this.uid,
+              controller: this.controller,
+              data: this.data,
+              events: this.events,
+              styles: this.styles,
+              columnVisibility: this.columnVisibility,
+              myBricksColumnModifier: this.myBricksColumnModifier,
+              ${hasSlots ? "slots: this.slots," : ""}
+              parentSlot: this.parentSlot
+            }, this.parentSlot.itemWrap({
+              id: this.uid,
+              inputs: this.controller._inputEvents
+            }).params)
+          } else {
+            ${componentName}Builder({
+              uid: this.uid,
+              controller: this.controller,
+              data: this.data,
+              events: this.events,
+              styles: this.styles,
+              columnVisibility: this.columnVisibility,
+              myBricksColumnModifier: this.myBricksColumnModifier,
+              ${hasSlots ? "slots: this.slots," : ""}
+              parentSlot: this.parentSlot
+            })
+          }
+        }
+      }\n`
+    } else {
+      let componentName = asImportName.replace("basic", "");
+      componentName = componentName[0].toLowerCase() + componentName.slice(1);
+      declaredComponentCode += `export const ${componentName} = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
+        return createJSHandle(${asImportName}, { props, env });
+      }\n`
+    }
+  })
+
+  return {
+    pageCode,
+    declaredComponentCode,
+    importComponentCode
+  }
 }
 
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId } = params;
   const { Logger } = config;
-  const pageCode = getPageCode(data.toJson);
+  const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata({
+    toJson: data.toJson,
+    componentMetaMap: data.componentMetaMap
+  });
 
   // 目标项目路径
   const targetPath = path.join(projectPath, "module");
@@ -286,6 +389,8 @@ const compilerHarmonyModule = async (params, config) => {
         "{ domain: undefined }",
         `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
       )
+      .replace("$r('app._proxy.component.import')", importComponentCode ? `import { ${importComponentCode} } from "../comlib/Index"` : "")
+      .replace("$r('app._proxy.component.declared')", declaredComponentCode)
   );
   await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
 

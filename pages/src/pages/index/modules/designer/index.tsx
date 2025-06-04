@@ -1186,6 +1186,32 @@ const Designer = ({ appData }) => {
 
         const url = isHarmony ? "/api/harmony-module/harmony/compile" : "/api/harmony-module/miniapp/compile"
 
+        const getComponentMetaMap = () => {
+          const componentMetaMap = {};
+        
+          (window as any).__comlibs_edit_.forEach(({ id, namespace, comAray }) => {
+            if (id && namespace) {
+              traverseComAry(comAray, id);
+            }
+          })
+        
+          function traverseComAry(comAry, npm) {
+            comAry.forEach((com) => {
+              if (Array.isArray(com.comAray)) {
+                traverseComAry(com.comAray, npm);
+              } else {
+                componentMetaMap[com.namespace] = {
+                  hasSlots: !!com.slots?.length
+                }
+              }
+            });
+          }
+        
+          return componentMetaMap;
+        }
+
+        const componentMetaMap = getComponentMetaMap()
+
         const res = await axios({
           url,
           method: "POST",
@@ -1199,7 +1225,8 @@ const Designer = ({ appData }) => {
               services: toJson.services,
               serviceFxUrl: pageModel.appConfig.serviceFxUrl,
               database: pageModel.appConfig.datasource,
-              toJson: isHarmony ? toJson : undefined
+              toJson: isHarmony ? toJson : undefined,
+              componentMetaMap
             },
           },
           withCredentials: false,

@@ -1,10 +1,11 @@
+import { AnyType, AnyObjectType } from "./any"
 import { Subject } from "./mybricks"
 
 export declare namespace MyBricks {
-  type Any = any
+  type Any = AnyType
 
   /** 组件数据源 */
-  type Data = Record<string, Any>
+  type Data = AnyObjectType
 
   /** 事件参数 */
   type EventValue = Any
@@ -15,11 +16,22 @@ export declare namespace MyBricks {
   /** 组件控制器 */
   type Controller = Record<string, (value: EventValue) => Record<string, Any>>
 
+  interface ItemWrapParams {
+    id: string
+    inputs: Any
+  }
+
+  interface ItemWrapResult {
+    wrap: WrappedBuilder<Any>
+    params: Any
+  }
+
   /** 调用插槽传参 */
   interface SlotParams {
     id: string
     inputValues?: Any
     style?: Any
+    itemWrap?: (params: ItemWrapParams) => ItemWrapResult
   }
 
   /** 插槽传参 */
@@ -34,28 +46,32 @@ export declare namespace MyBricks {
 
   type JSReturn = (...values: MyBricks.EventValue[]) => Record<string, MyBricks.EventValue>
 
+  interface JSData {
+    runImmediate: boolean
+  }
+
   interface CodeParams extends JSParams {
-    data: {
-      runImmediate: boolean
-    }
+    data: JSData
   }
 
   type Codes = Record<string, (params: CodeParams) => (...values: MyBricks.EventValue[]) => Record<string, MyBricks.EventValue>>
 
-  /** _env */
-  type _Env = {
-    currentScenes: {
-      close: () => void
-    }
+  interface _EnvCurrentScenes {
+    close: () => void;
   }
 
-  type Env = {
+  /** _env */
+  interface _Env {
+    currentScenes: _EnvCurrentScenes
+  }
+
+  interface  Env {
     callConnector: Any,
     appRouter: Any,
     globalVars: Any
   }
 
-  type Var = {
+  interface Var {
     get: (value: Any) => Subject
     set: (value: Any) => Subject
     reset: (value: Any) => Subject
