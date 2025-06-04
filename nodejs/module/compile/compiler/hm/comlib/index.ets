@@ -142,11 +142,6 @@ export {
   Data as mybricks_harmony_smsInput_Data,
 } from './SmsInput'
 
-export {
-  default as mybricks_harmony_sidebar,
-  DataType as mybricks_harmony_sidebar_DataType,
-  Data as mybricks_harmony_sidebar_Data,
-} from './Sidebar'
 
 export {
   default as mybricks_harmony_video,
@@ -197,12 +192,6 @@ export {
   DataType as mybricks_harmony_formCheckbox_DataType,
   Data as mybricks_harmony_formCheckbox_Data,
 } from './FormCheckbox'
-
-export {
-  default as mybricks_harmony_swiper,
-  DataType as mybricks_harmony_swiper_DataType,
-  Data as mybricks_harmony_swiper_Data,
-} from './Swiper'
 
 export {
   default as mybricks_harmony_formSelect,
