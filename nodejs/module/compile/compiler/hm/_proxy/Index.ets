@@ -62,7 +62,10 @@ import {
   mybricks_harmony_support as BasicMyBricksHarmonySupport,
   mybricks_harmony_support_Data,
   mybricks_harmony_qrcode as BasicMyBricksHarmonyQrcode,
-  mybricks_harmony_qrcode_Data
+  mybricks_harmony_qrcode_Data,
+  mybricks_harmony_containerWaterfall as BasicMyBricksHarmonyContainerWaterfall,
+  mybricks_harmony_containerWaterfall_Data
+
 } from "../comlib/Index"
 import basicCodes from "./codes";
 import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx } from "../utils/mybricks"
@@ -497,6 +500,34 @@ export struct MyBricksHarmonyContainerList {
     Column() {
       BasicMyBricksHarmonyContainerList({
         data: new mybricks_harmony_containerList_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+        slots: this.slots,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+
+/** ContainerWaterfall */
+@ComponentV2
+export struct MyBricksHarmonyContainerWaterfall {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyContainerWaterfall({
+        data: new mybricks_harmony_containerWaterfall_Data(this.data as MyBricks.Any),
         inputs: createInputsHandle(this),
         outputs: createEventsHandle(this.events),
         styles: this.styles,

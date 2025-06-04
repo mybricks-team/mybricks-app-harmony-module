@@ -233,3 +233,10 @@ export {
   DataType as mybricks_harmony_formFileUploader_DataType,
   Data as mybricks_harmony_formFileUploader_Data,
 } from './FormFileUploader'
+
+
+export {
+  default as mybricks_harmony_containerWaterfall,
+  DataType as mybricks_harmony_containerWaterfall_DataType,
+  Data as mybricks_harmony_containerWaterfall_Data,
+} from './ContainerWaterfall'
