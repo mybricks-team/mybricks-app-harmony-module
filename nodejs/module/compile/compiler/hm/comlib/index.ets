@@ -29,6 +29,12 @@ export {
 } from './_AesEncode'
 
 export {
+  default as mybricks_harmony__callPhone,
+  DataType as mybricks_harmony__callPhone_DataType,
+  Data as mybricks_harmony__callPhone_Data
+} from './_CallPhone'
+
+export {
   default as mybricks_harmony__vibrate,
   DataType as mybricks_harmony__vibrate_DataType,
   Data as mybricks_harmony__vibrate_Data
@@ -48,8 +54,8 @@ export {
 
 export {
   default as mybricks_harmony_systemWebview,
-  DataType as mybricks_Harmony_SystemWebview_DataType,
-  Data as mybricks_Harmony_SystemWebview_Data
+  DataType as mybricks_harmony_systemWebview_DataType,
+  Data as mybricks_harmony_systemWebview_Data
 } from './SystemWebview'
 
 export {
@@ -125,10 +131,22 @@ export {
 } from './FormRadio'
 
 export {
+  default as mybricks_harmony_formCheckbox,
+  DataType as mybricks_harmony_formCheckbox_DataType,
+  Data as mybricks_harmony_formCheckbox_Data,
+} from './FormCheckbox'
+
+export {
   default as mybricks_harmony_formPassword,
   DataType as mybricks_harmony_formPassword_DataType,
   Data as mybricks_harmony_formPassword_Data,
 } from './FormPassword'
+
+export {
+  default as mybricks_harmony_formDatetime,
+  DataType as mybricks_harmony_formDatetime_DataType,
+  Data as mybricks_harmony_formDatetime_Data,
+} from './FormDateTime'
 
 export {
   default as mybricks_harmony_qrcode,
@@ -142,6 +160,11 @@ export {
   Data as mybricks_harmony_smsInput_Data,
 } from './SmsInput'
 
+export {
+  default as mybricks_harmony_sidebar,
+  DataType as mybricks_harmony_sidebar_DataType,
+  Data as mybricks_harmony_sidebar_Data,
+} from './Sidebar'
 
 export {
   default as mybricks_harmony_video,
@@ -176,28 +199,22 @@ export {
 } from './FormContainer'
 
 export {
-  default as mybricks_harmony_sidebar,
-  DataType as mybricks_harmony_sidebar_DataType,
-  Data as mybricks_harmony_sidebar_Data,
-} from './Sidebar'
-
-export {
-  default as mybricks_harmony__callPhone,
-  DataType as mybricks_harmony__callPhone_DataType,
-  Data as mybricks_harmony__callPhone_Data
-} from './_CallPhone'
-
-export {
-  default as mybricks_harmony_formCheckbox,
-  DataType as mybricks_harmony_formCheckbox_DataType,
-  Data as mybricks_harmony_formCheckbox_Data,
-} from './FormCheckbox'
+  default as mybricks_harmony_cell,
+  DataType as mybricks_harmony_cell_DataType,
+  Data as mybricks_harmony_cell_Data,
+} from './Cell'
 
 export {
   default as mybricks_harmony_formSelect,
   DataType as mybricks_harmony_formSelect_DataType,
   Data as mybricks_harmony_formSelect_Data,
 } from './FormSelect'
+
+export {
+  default as mybricks_harmony_formRate,
+  DataType as mybricks_harmony_formRate_DataType,
+  Data as mybricks_harmony_formRate_Data,
+} from './FormRate'
 
 export {
   default as mybricks_harmony_line,

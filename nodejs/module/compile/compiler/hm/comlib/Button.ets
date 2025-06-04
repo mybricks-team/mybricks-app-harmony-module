@@ -59,6 +59,8 @@ export default struct MyBricksButton {
   @Param styles: Record<string, CSSProperties> = {}
   @Param inputs?: Inputs = undefined;
   @Param outputs?: Outputs = undefined;
+  @Param uid?: string = undefined;
+  @Param parentSlot?: AnyType = undefined;
 
   aboutToAppear(): void {
     this.inputs?.setDisabled((val, outputRels: AnyType) => {
@@ -92,6 +94,7 @@ export default struct MyBricksButton {
       left: 14,
       right: 14
     })
+    .type(ButtonType.Normal)
     .onClick(() => {
       if (this.data.disabled) {
         return

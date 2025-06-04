@@ -107,6 +107,8 @@ export default struct MyBricksTabs {
   @Param styles: Record<string, CSSProperties> = {}
   @Param inputs?: Inputs = undefined
   @Param outputs?: Outputs = undefined
+  @Param uid?: string = undefined;
+  @Param parentSlot?: AnyType = undefined;
 
   @BuilderParam slots: (params: SlotsParamsTabItem) => void = emptySlot;
 
@@ -219,7 +221,6 @@ export default struct MyBricksTabs {
       Tabs({ barPosition: BarPosition.Start }) {
         ForEach(this.data.tabs, (tab: Tab, index: number) => {
           TabContent() {
-            Text('21323')
             this.renderTabContent(tab, index)
           }
           .tabBar(
