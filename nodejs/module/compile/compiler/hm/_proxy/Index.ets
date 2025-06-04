@@ -59,6 +59,10 @@ import {
   mybricks_harmony_formSelect_Data,
   mybricks_harmony_line as BasicMyBricksHarmonyLine,
   mybricks_harmony_line_Data,
+  mybricks_harmony_formImageUploader as BasicMyBricksHarmonyFormImageUploader,
+  mybricks_harmony_formImageUploader_Data,
+  mybricks_harmony_formFileUploader as BasicMyBricksHarmonyFormFileUploader,
+  mybricks_harmony_formFileUploader_Data
 } from "../comlib/Index"
 import basicCodes from "./codes";
 import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx } from "../utils/mybricks"
@@ -972,6 +976,61 @@ export struct MyBricksHarmonySupport{
       BasicMyBricksHarmonySupport({
         data: new mybricks_harmony_support_Data(this.data as MyBricks.Any),
         styles: this.styles,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+
+/** FormImageUploader */
+@ComponentV2
+export struct MyBricksHarmonyFormImageUploader {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyFormImageUploader({
+        data: new mybricks_harmony_formImageUploader_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+        slots: this.slots,
+      })
+    }
+    .attributeModifier(this.myBricksColumnModifier)
+    .visibility(this.columnVisibility)
+  }
+}
+
+/** FormFileUploader */
+@ComponentV2
+export struct MyBricksHarmonyFormFileUploader {
+  @Param controller: MyBricks.Controller = Controller();
+  @Param @Require data: MyBricks.Data
+  @Param events: MyBricks.Events = {}
+  @Param styles: Styles = {};
+  @Local columnVisibility: Visibility = Visibility.Visible;
+  @BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;
+
+  myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+
+  build() {
+    Column() {
+      BasicMyBricksHarmonyFormFileUploader({
+        data: new mybricks_harmony_formFileUploader_Data(this.data as MyBricks.Any),
+        inputs: createInputsHandle(this),
+        outputs: createEventsHandle(this.events),
+        styles: this.styles,
+        slots: this.slots,
       })
     }
     .attributeModifier(this.myBricksColumnModifier)
