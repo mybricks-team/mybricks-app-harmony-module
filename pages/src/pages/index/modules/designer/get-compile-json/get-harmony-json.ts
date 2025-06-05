@@ -76,7 +76,7 @@ export class GetHarmonyJson {
               config = findComFromToJson(item, COMPONENT_NAMESPACE.systemWebview)?.model?.data;
             }
 
-            switch (config.navigationStyle) {
+            switch (config?.navigationStyle) {
               case "default":
                 pageConfig.navigationStyle = "default";
                 pageConfig.navigationBarStyle = config.navigationBarStyle;
