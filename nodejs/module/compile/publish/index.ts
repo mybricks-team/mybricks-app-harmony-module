@@ -14,11 +14,25 @@ const publish = async (params: any) => {
   await fse.writeJSON(path.join(projectPath, "module.json"), publishModule, "utf-8");
 
   // @ts-ignore
-  await API.File.publish({
+  const publishResult: any = await API.File.publish({
     userId,
     fileId,
     extName: "harmony-module",
-    content: JSON.stringify(publishModule),
+    content: JSON.stringify(publishModule)
+  })
+
+  await API.Material.createCommonMaterial({
+    userId,
+    title: fileName,
+    type: "harmony-module",
+    namespace: `mybricks.harmony.module.${fileId}`,
+    scene: null,
+    content: JSON.stringify({ 
+      content: {
+        publishId: publishResult.pib_id,
+        moduleId: fileId
+      }
+    }),
   })
 }
 
@@ -35,25 +49,14 @@ const getPublishModule = (params) => {
     scenes: Array<{ type: "module" }>
   }
 
-  const { modules, scenes } = toJson as ToJSON;
+  // mpa模式，模块也体现在scenes中
+  const { scenes } = toJson as ToJSON;
 
   return {
     id: fileId,
     title: fileName,
-    sectionAry: Object.entries(modules).map(([_, module]) => {
-      return {
-        id: module.id,
-        title: module.title,
-        editors: module.json.inputs.filter((input) => input.type === "config"),
-        runtime: {
-          ...module.json,
-          from: fileId
-        }
-      }
-    }),
-    sceneAry: scenes.filter((scene) => {
-      return scene.type !== "module"
-    })
+    // [TODO] 记录版本号
+    scenes,
   }
 }
 

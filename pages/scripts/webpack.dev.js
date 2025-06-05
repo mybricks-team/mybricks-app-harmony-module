@@ -28,6 +28,8 @@ module.exports = merge(common, {
           "/api/harmony-module/miniapp/compile",
           "/api/harmony-module/harmony/compile",
           "/api/harmony-module/publish",
+          "/api/harmony-module/getModule",
+          "/api/harmony-module/loadPage",
           "/api/harmony-module/alipay/preview",
           "/api/harmony-module/alipay/publish",
           "/api/harmony-module/alipay/compile",

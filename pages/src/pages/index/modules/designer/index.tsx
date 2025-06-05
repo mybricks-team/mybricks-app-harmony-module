@@ -1201,7 +1201,7 @@ const Designer = ({ appData }) => {
                 traverseComAry(com.comAray, npm);
               } else {
                 componentMetaMap[com.namespace] = {
-                  hasSlots: !!com.slots?.length
+                  hasSlots: !!com.slots
                 }
               }
             });

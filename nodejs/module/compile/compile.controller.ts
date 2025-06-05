@@ -21,6 +21,8 @@ import {
 import { Logger } from "@mybricks/rocker-commons";
 import { compilerHarmony2  } from "./compiler";
 import publish from "./publish";
+import getModule from "./getModule";
+import loadPage from "./loadPage";
 
 const tempFolderPath = path.resolve(__dirname, "../../.tmp"); //临时目录
 
@@ -316,6 +318,46 @@ export default class CompileController {
         message:
           error?.message ||
           (error.code ? `发布失败，错误码：${error.code}` : "发布失败"),
+        stack: error?.stack,
+      };
+    }
+  }
+
+  @Get("getModule")
+  async getModule(
+    @Query("moduleId") moduleId: number,
+    @Query("version") version: string,
+    @Query("origin") origin: string,
+    @Res() res: Response
+  ) {
+    const result = await getModule({ moduleId, version, origin });
+
+    res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+    res.status(200).send(result.code).end();
+  }
+
+  @Get("loadPage")
+  async loadPage(
+    @Query("moduleId") moduleId: number,
+    @Query("version") version: string,
+    @Query("pageId") pageId: number,
+  ) {
+    try {
+      const page = await loadPage({ moduleId, version, pageId });
+
+      return {
+        code: 1,
+        message: "获取页面成功",
+        data: page,
+      };
+    } catch (error) {
+      Logger.info("[loadPage] fail " + error.message, error);
+      return {
+        code: -1,
+        errCode: error.errCode,
+        message:
+          error?.message ||
+          (error.code ? `获取页面失败，错误码：${error.code}` : "获取页面失败"),
         stack: error?.stack,
       };
     }
