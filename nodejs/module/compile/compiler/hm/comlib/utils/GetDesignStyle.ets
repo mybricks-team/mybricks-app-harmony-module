@@ -109,9 +109,9 @@ export class ApplyStyleModifier implements AttributeModifier<ComponentAttribute>
     }
 
     if (!isNil(this.css?.borderRadius)) {
-      instance.borderRadius(this.css.borderRadius)
+      instance.borderRadius(parseFloat(String(this.css.borderRadius)))
     } else if (!isNil(this.initBorderRadius)) {
-      instance.borderRadius(this.initBorderRadius)
+      instance.borderRadius(parseFloat(String(this.initBorderRadius)))
     }
 
     if (!isNil(this.css.border) && typeof this.css.border === 'string') {
