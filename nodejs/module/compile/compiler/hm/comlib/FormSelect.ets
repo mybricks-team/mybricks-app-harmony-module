@@ -56,6 +56,13 @@ interface Outputs {
   setDisabledComplete: (value: string) => void
 }
 
+export interface SlotsParams {
+  id: string,
+  style?: CSSProperties
+}
+
+@Builder function emptySlot(params: SlotsParams) {}
+
 @ComponentV2
 export default struct MyBricksFormSelect {
   @Param data: Data = new Data({});
@@ -64,6 +71,8 @@ export default struct MyBricksFormSelect {
   @Param outputs?: Outputs = undefined;
   @Param uid?: string = undefined;
   @Param parentSlot?: AnyType = undefined;
+
+  @BuilderParam slots: (slotsParams: SlotsParams) => void = emptySlot;
 
   @Local selectedIndex?: number = 0
 
@@ -125,6 +134,10 @@ export default struct MyBricksFormSelect {
           // 设置select为按下确定按钮时候的选中项index，这样当弹窗再次弹出时显示选中的是上一次确定的选项
           this.data.value = _value
           this.outputs?.onChange(_value)
+          this.parentSlot?._inputs?.["onChange"]?.({
+            id: this.uid,
+            value,
+          });
 
         },
         onCancel: () => {

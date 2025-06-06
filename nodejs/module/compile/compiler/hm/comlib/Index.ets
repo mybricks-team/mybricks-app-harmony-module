@@ -5,6 +5,18 @@ export {
 } from './_ShowToast'
 
 export {
+  default as mybricks_harmony__format,
+  DataType as mybricks_harmony__format_DataType,
+  Data as mybricks_harmony__format_Data
+} from './_Format'
+
+export {
+  default as mybricks_harmony__TimerDelay,
+  DataType as mybricks_harmony__TimerDelay_DataType,
+  Data as mybricks_harmony__TimerDelay_Data
+} from './_TimerDelay'
+
+export {
   default as mybricks_harmony__connector,
   DataType as mybricks_harmony__connector_DataType,
   Data as mybricks_harmony__connector_Data
@@ -39,6 +51,12 @@ export {
   DataType as mybricks_harmony__vibrate_DataType,
   Data as mybricks_harmony__vibrate_Data
 } from './_Vibrate'
+
+export {
+  default as mybricks_harmony__scanQrcode,
+  DataType as mybricks_harmony__scanQrcode_DataType,
+  Data as mybricks_harmony__scanQrcode_Data
+} from './_ScanQrcode'
 
 export {
   default as mybricks_harmony_systemPage,
@@ -87,6 +105,12 @@ export {
   DataType as mybricks_harmony_containerList_DataType,
   Data as mybricks_harmony_containerList_Data,
 } from './ContainerList'
+
+export {
+  default as mybricks_harmony_containerWaterfall,
+  DataType as mybricks_harmony_containerWaterfall_DataType,
+  Data as mybricks_harmony_containerWaterfall_Data,
+} from './ContainerWaterfall'
 
 export {
   default as mybricks_harmony_containerBasic,
@@ -234,9 +258,8 @@ export {
   Data as mybricks_harmony_formFileUploader_Data,
 } from './FormFileUploader'
 
-
 export {
-  default as mybricks_harmony_containerWaterfall,
-  DataType as mybricks_harmony_containerWaterfall_DataType,
-  Data as mybricks_harmony_containerWaterfall_Data,
-} from './ContainerWaterfall'
+  default as mybricks_harmony_formItemContainer,
+  DataType as mybricks_harmony_formItemContainer_DataType,
+  Data as mybricks_harmony_formItemContainer_Data,
+} from './FormItemContainer'
