@@ -222,9 +222,7 @@ export default struct MyBricksFormDateTime {
           .fontColor(['#000000', Color.White])
       }
       .width('100%')
-      .height(44)
       .backgroundColor(Color.White)
-      .padding({ left: 16, right: 16 })
       .onClick(() => {
         this.dialogController?.open()
       })
@@ -290,7 +288,7 @@ struct DateDialog {
               this.cancel();
             }
           }).backgroundColor(Color.Transparent)
-            .fontColor('#FF0A59F7')
+          .fontColor('#FF0A59F7')
         Button('确认')
           .onClick(() => {
             if (this.controller != undefined) {
@@ -304,12 +302,12 @@ struct DateDialog {
         top: 16,
       })
     }
-      .padding({
-        top: 24,
-        left: 24,
-        right: 24,
-        bottom: 8
-      })
+    .padding({
+      top: 24,
+      left: 24,
+      right: 24,
+      bottom: 8
+    })
   }
 }
 
