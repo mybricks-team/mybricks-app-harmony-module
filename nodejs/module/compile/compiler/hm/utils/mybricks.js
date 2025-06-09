@@ -530,3 +530,51 @@ export const createFx = (fx) => {
     return outputs
   }
 }
+
+/** 创建插槽IO */
+export const createSlotsIO = () => {
+  const slotsIOMap = {}
+  return new Proxy({}, {
+    get(_, key) {
+      if (!slotsIOMap[key]) {
+        const inputsMap = {}
+        slotsIOMap[key] = {
+          inputs: new Proxy({}, {
+            get(_, key) {
+              if (!inputsMap[key]) {
+                inputsMap[key] = new Subject()
+              }
+
+              const next = (value) => {
+                inputsMap[key].next(value)
+              }
+
+              next.subscribe = (next) => {
+                inputsMap[key].subscribe(next)
+              }
+
+              return next
+            }
+          }),
+          outputs: new Proxy({}, {
+            get(_, key) {
+              return (next) => {
+                return (value) => {
+                  if (value?.subscribe) {
+                    value.subscribe((value) => {
+                      next(value)
+                    })
+                  } else {
+                    next(value)
+                  }
+                }
+              }
+            }
+          })
+        }
+      }
+
+      return slotsIOMap[key]
+    }
+  })
+}

@@ -74,6 +74,11 @@ export default struct MyBricksRate {
   onChange = (val: number) => {
     this.value = val;
     this.outputs?.onChange?.(val)
+
+    this.parentSlot?._inputs?.["onChange"]?.({
+      id: this.uid,
+      value:this.value,
+    });
   }
 
   build() {
@@ -87,6 +92,8 @@ export default struct MyBricksRate {
         .enabled(!this.data.disabled)
         .onChange(this.onChange)
     }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
     .attributeModifier(
       new ApplyRootStyleModifier(this.styles['root'])
     )

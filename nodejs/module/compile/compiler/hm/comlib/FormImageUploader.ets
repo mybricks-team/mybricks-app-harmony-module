@@ -83,6 +83,7 @@ export default struct MyBricksFormImageUploader {
   @Param uid?: string = undefined;
   @Param parentSlot?: AnyType = undefined;
 
+  @Param slotsIO?: AnyType = undefined;
   @BuilderParam slots: (slotsParams: SlotsParamsItem) => void = emptySlot;
 
   @Local LocalImgList: Array<LocalImgList> = []
@@ -129,6 +130,11 @@ export default struct MyBricksFormImageUploader {
         //这里因为还没有实现slot output所以先输出本地文件路径，并回显到value上
         this.outputs?.onChange(this.LocalImgList)
         this.data.value = this.LocalImgList
+
+        this.parentSlot?._inputs?.["onChange"]?.({
+          id: this.uid,
+          value:this.data.value,
+        });
 
       }).catch((err: BusinessError) => {
         console.error(`PhotoViewPicker.select failed with err: ${err.code}, ${err.message}`);
@@ -219,8 +225,6 @@ export default struct MyBricksFormImageUploader {
 
     }
     .width("100%")
-    .height("100%")
-
     .attributeModifier(
       new ApplyStyleModifier(this.styles['.mybricks-square'])
     )
