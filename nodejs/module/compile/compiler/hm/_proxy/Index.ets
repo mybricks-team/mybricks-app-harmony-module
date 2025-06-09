@@ -1,6 +1,6 @@
 import { appRouter } from "../utils"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
@@ -17,6 +17,7 @@ interface MyBricksComponentBuilderParams {
   columnVisibility: Visibility
   myBricksColumnModifier: MyBricksColumnModifier
   slots?: (params: MyBricks.SlotParams) => void
+  slotsIO?: MyBricks.Any
   parentSlot?: MyBricks.SlotParams
 }
 

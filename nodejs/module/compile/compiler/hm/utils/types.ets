@@ -32,6 +32,7 @@ export declare namespace MyBricks {
     inputValues?: Any
     style?: Any
     itemWrap?: (params: ItemWrapParams) => ItemWrapResult
+    outputs?: Any;
   }
 
   /** 插槽传参 */

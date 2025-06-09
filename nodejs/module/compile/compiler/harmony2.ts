@@ -254,6 +254,7 @@ const generatePageCodeWithMetadata = (params) => {
             outputs: createEventsHandle(params.events),
             styles: params.styles,
             ${hasSlots ? "slots: params.slots," : ""}
+            ${hasSlots ? "slots: params.slotsIO," : ""}
             parentSlot: params.parentSlot
           })
         }
@@ -270,6 +271,7 @@ const generatePageCodeWithMetadata = (params) => {
         @Param styles: Styles = {};
         @Local columnVisibility: Visibility = Visibility.Visible;
         ${hasSlots ? "@BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;" : ""}
+        ${hasSlots ? "@Local slotsIO: MyBricks.Any = createSlotsIO();" : ""}
         @Param parentSlot?: MyBricks.SlotParams = undefined
 
         myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
@@ -288,6 +290,7 @@ const generatePageCodeWithMetadata = (params) => {
               columnVisibility: this.columnVisibility,
               myBricksColumnModifier: this.myBricksColumnModifier,
               ${hasSlots ? "slots: this.slots," : ""}
+              ${hasSlots ? "slotsIO: this.slotsIO," : ""}
               parentSlot: this.parentSlot
             }, this.parentSlot.itemWrap({
               id: this.uid,
@@ -303,6 +306,7 @@ const generatePageCodeWithMetadata = (params) => {
               columnVisibility: this.columnVisibility,
               myBricksColumnModifier: this.myBricksColumnModifier,
               ${hasSlots ? "slots: this.slots," : ""}
+              ${hasSlots ? "slotsIO: this.slotsIO," : ""}
               parentSlot: this.parentSlot
             })
           }
