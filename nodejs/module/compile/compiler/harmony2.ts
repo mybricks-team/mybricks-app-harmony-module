@@ -254,7 +254,7 @@ const generatePageCodeWithMetadata = (params) => {
             outputs: createEventsHandle(params.events),
             styles: params.styles,
             ${hasSlots ? "slots: params.slots," : ""}
-            ${hasSlots ? "slots: params.slotsIO," : ""}
+            ${hasSlots ? "slotsIO: params.slotsIO," : ""}
             parentSlot: params.parentSlot
           })
         }
@@ -286,7 +286,9 @@ const generatePageCodeWithMetadata = (params) => {
               controller: this.controller,
               data: this.data,
               events: this.events,
-              styles: this.styles,
+              styles: {
+                root: {}
+              },
               columnVisibility: this.columnVisibility,
               myBricksColumnModifier: this.myBricksColumnModifier,
               ${hasSlots ? "slots: this.slots," : ""}
