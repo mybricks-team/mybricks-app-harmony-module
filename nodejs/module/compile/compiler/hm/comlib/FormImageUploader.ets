@@ -225,8 +225,6 @@ export default struct MyBricksFormImageUploader {
 
     }
     .width("100%")
-    .height("100%")
-
     .attributeModifier(
       new ApplyStyleModifier(this.styles['.mybricks-square'])
     )

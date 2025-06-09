@@ -70,6 +70,13 @@ const FORMAT_MAP: AnyType = {
 const LAST_TEN_YEAR = new Date(new Date().setFullYear(new Date().getFullYear() - 10))
 const AFTER_TEN_YEAR = new Date(new Date().setFullYear(new Date().getFullYear() + 10))
 
+export interface SlotsParams {
+  id: string,
+  style?: CSSProperties
+}
+
+@Builder function emptySlot(params: SlotsParams) {}
+
 @ComponentV2
 export default struct MyBricksFormDateTime {
   @Param data: Data = new Data()
@@ -78,6 +85,9 @@ export default struct MyBricksFormDateTime {
   @Param outputs?: Outputs = undefined
   @Param uid?: string = undefined;
   @Param parentSlot?: AnyType = undefined;
+
+  @Param slotsIO?: AnyType = undefined;
+  @BuilderParam slots: (slotsParams: SlotsParams) => void = emptySlot;
 
   @Local showPicker: boolean = false
   @Local valueInDate: Date | undefined = undefined
