@@ -41,7 +41,7 @@ export default (context: IOContext) => {
       scanBarcode.startScanForResult(getContext(context), options).then((result: scanBarcode.ScanResult) => {
         hilog.info(0x0001, '[Scan Sample]',
           `Succeeded in getting ScanResult by promise with options, result is ${JSON.stringify(result)}`);
-        outputs?.onSuccess(result)
+        outputs?.onSuccess(`${result}`)
       }).catch((error: BusinessError) => {
         hilog.error(0x0001, '[Scan Sample]',
           `Failed to get ScanResult by promise with options. Code: ${error.code}, message: ${error.message}`);

@@ -106,6 +106,11 @@ export default struct MyBricksFormTextarea {
         .onChange((value: string) => {
           this.data.value = value;
           this.outputs?.onChange?.(value);
+
+          this.parentSlot?._inputs?.["onChange"]?.({
+            id: this.uid,
+            value:this.data.value,
+          });
         })
         .attributeModifier(
           new ApplyStyleModifier(this.styles['.taroify-textarea__wrapper'])

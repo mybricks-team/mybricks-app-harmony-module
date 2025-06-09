@@ -58,6 +58,7 @@ export default struct MyBricksContainerList {
 
   @Local dataSource: Array<DataSourceItem> = []
 
+  @Param slotsIO?: AnyType = undefined;
   @BuilderParam slots: (slotsParams: SlotsParamsItem) => void = emptySlot;
 
   @Local maxItemHeight: number = -1
@@ -91,8 +92,8 @@ export default struct MyBricksContainerList {
           })
         })
       }
-        .listDirection(this.data.direction === 'row' ? Axis.Horizontal: Axis.Vertical)
-        .height(this.maxItemHeight == -1 ? 'fit-content' : this.maxItemHeight)
+      .listDirection(this.data.direction === 'row' ? Axis.Horizontal: Axis.Vertical)
+      .height(this.maxItemHeight == -1 ? 'fit-content' : this.maxItemHeight)
     }
     .alignItems(HorizontalAlign.Start)
     .align(Alignment.Start)

@@ -344,6 +344,7 @@ export default struct MyBricksFormContainer {
   @Param uid?: string = undefined;
   @Param parentSlot?: AnyType = undefined;
 
+  @Param slotsIO?: AnyType = undefined;
   @BuilderParam slots: (slotsParams: SlotsParams) => void = emptySlot;
   @Provider() formLayout: string = 'null'
   /** 按钮loading */
@@ -364,7 +365,8 @@ export default struct MyBricksFormContainer {
 
     // 提交表单
     this.inputs?.submit?.((val: AnyType, outputRels: AnyType) => {
-      this.formInstance.validate().then((values) => {
+      this.formInstance.validate().then((res) => {
+        const values = res?.values ?? {}
         outputRels?.['onSubmit']?.(values)
       })
     })
@@ -375,7 +377,8 @@ export default struct MyBricksFormContainer {
 
       this.formInstance.validate()
         .then((res) => {
-          outputRels?.["onMergeSubmit"]?.(ObjectUtils.assign({}, res, _val));
+          const values = res?.values ?? {}
+          outputRels?.["onMergeSubmit"]?.(ObjectUtils.assign({}, values, _val));
         })
         .catch(() => {
         });

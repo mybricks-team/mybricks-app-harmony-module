@@ -84,6 +84,7 @@ export default struct MyBricksFormFileUploader {
   @Param uid?: string = undefined;
   @Param parentSlot?: AnyType = undefined;
 
+  @Param slotsIO?: AnyType = undefined;
   @BuilderParam slots: (slotsParams: SlotsParamsItem) => void = emptySlot;
 
   @Local LocalFileList: Array<LocalFileList> = []
@@ -133,6 +134,11 @@ export default struct MyBricksFormFileUploader {
       //这里因为还没有实现slot output所以先输出本地文件路径，并回显到value上
       this.outputs?.onChange(this.LocalFileList)
       this.data.value = this.LocalFileList
+
+      this.parentSlot?._inputs?.["onChange"]?.({
+        id: this.uid,
+        value:this.data.value,
+      });
 
     } catch (err) {
       console.error('Document picker error:', err);
