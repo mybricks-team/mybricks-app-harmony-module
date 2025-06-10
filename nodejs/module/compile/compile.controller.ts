@@ -289,20 +289,11 @@ export default class CompileController {
     @Body("data") data: any,
   ) {
     try {
-      fse.ensureDirSync(tempFolderPath);
-
-      const projectName = `project-${fileId}-build-${type}`;
-      const projectPath = path.resolve(tempFolderPath, `./${projectName}`);
-
-      await fse.ensureDir(projectPath);
-      await fse.emptyDir(projectPath);
-
       await publish({
         userId,
         fileId,
         fileName,
         type,
-        projectPath,
         data,
       })
       return {

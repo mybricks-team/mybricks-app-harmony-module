@@ -7,8 +7,14 @@ const loadPage = async (params) => {
     version
   })
   const publishContent = await API.File.getPublishContent({ pubId: harmonyModule.content.publishId });
+  
+  const json = publishContent.content.data.toJson.scenes.find((scene) => scene.id === pageId);
+  json.extra = {
+    moduleId,
+    moduleVersion: version
+  }
 
-  return publishContent.content.scenes.find((scene) => scene.id === pageId);
+  return json;
 }
 
 export default loadPage

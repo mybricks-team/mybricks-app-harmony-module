@@ -821,11 +821,6 @@ const Designer = ({ appData }) => {
           }
           return;
         }
-
-        download({
-          type,
-          backEndProjectPath: data?.data?.backEndProjectPath,
-        })
       } catch (e) {
         console.error(e);
         message.error(e?.message ?? "发布失败，请重试");

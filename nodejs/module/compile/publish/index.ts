@@ -3,15 +3,13 @@ import * as path from "path";
 import * as fse from "fs-extra";
 
 const publish = async (params: any) => {
-  const { userId, fileId, data, fileName, projectPath } = params;
+  const { userId, fileId, data, fileName } = params;
 
   const publishModule = getPublishModule({
     toJson: data.toJson,
     fileId,
     fileName
   })
-
-  await fse.writeJSON(path.join(projectPath, "module.json"), publishModule, "utf-8");
 
   // @ts-ignore
   const publishResult: any = await API.File.publish({
@@ -46,17 +44,30 @@ const getPublishModule = (params) => {
         inputs: Array<{ type: "config" }>
       }
     }>
-    scenes: Array<{ type: "module" }>
+    scenes: Array<{ 
+      type: "module"
+      pinProxies: Record<string, any>
+    }>
   }
 
   // mpa模式，模块也体现在scenes中
   const { scenes } = toJson as ToJSON;
 
+  scenes.forEach((scene) => {
+    Object.entries(scene.pinProxies).forEach(([_, pinProxy]) => {
+      if (pinProxy.type === "extension") {
+        pinProxy.moduleId = fileId
+      }
+    })
+  })
+
   return {
     id: fileId,
     title: fileName,
     // [TODO] 记录版本号
-    scenes,
+    data: {
+      toJson
+    }
   }
 }
 

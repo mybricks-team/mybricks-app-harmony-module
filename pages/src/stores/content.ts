@@ -996,7 +996,9 @@ class Content {
       });
     });
 
-    return toJson;
+    Reflect.deleteProperty(toJson, "modules")
+
+    return handleGlobal(toJson);
   };
 }
 
@@ -1035,4 +1037,75 @@ function fixOpenedPageAry(pageAry) {
   }
 
   return pageAry.map((item) => ({ id: item.id }));
+}
+
+function handleGlobal(tojson) {
+  const { global, modules, scenes } = tojson
+  const { comsReg, consReg, pinRels, fxFrames, pinProxies } = global
+
+  if (comsReg) {
+    Object.keys(comsReg).forEach((key) => {
+      if (comsReg[key].def.namespace === "mybricks.core-comlib.var") {
+        // 全局变量，设置global属性
+        comsReg[key].global = true
+      }
+    })
+  }
+
+  // 处理全局FX
+  if (Array.isArray(fxFrames)) {
+    // 将全局组件信息合并入fxjson
+    fxFrames.forEach((fxFrame) => {
+      if (comsReg && fxFrame.coms) {
+        Object.assign(fxFrame.coms, comsReg)
+      }
+      if (consReg && fxFrame.cons) {
+        Object.assign(fxFrame.cons, consReg)
+      }
+      if (pinRels && fxFrame.pinRels) {
+        Object.assign(fxFrame.pinRels, pinRels)
+      }
+      if (pinProxies && fxFrame.pinProxies) {
+        Object.assign(fxFrame.pinProxies, pinProxies)
+      }
+    })
+  }
+
+  // 处理模块
+  if (modules) {
+    // 将全局组件信息合并入modulejson
+    Object.entries(modules).forEach(([key, module]: any) => {
+      const { json } = module
+      if (comsReg && json.coms) {
+        Object.assign(json.coms, comsReg)
+      }
+      if (consReg && json.cons) {
+        Object.assign(json.cons, consReg)
+      }
+      if (pinRels && json.pinRels) {
+        Object.assign(json.pinRels, pinRels)
+      }
+      if (pinProxies && json.pinProxies) {
+        Object.assign(json.pinProxies, pinProxies)
+      }
+    })
+  }
+
+  // 处理多场景
+  scenes.forEach((scene: any) => {
+    if (comsReg && scene.coms) {
+      Object.assign(scene.coms, comsReg)
+    }
+    if (consReg && scene.cons) {
+      Object.assign(scene.cons, consReg)
+    }
+    if (pinRels && scene.pinRels) {
+      Object.assign(scene.pinRels, pinRels)
+    }
+    if (pinProxies && scene.pinProxies) {
+      Object.assign(scene.pinProxies, pinProxies)
+    }
+  })
+
+  return tojson
 }
