@@ -1,6 +1,6 @@
 import { appRouter } from "../utils"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
@@ -94,6 +94,10 @@ const env: MyBricks.Env = {
 
 export const Controller = () => {
   return createInputsHandle({}, true) as MyBricks.Controller
+}
+
+export const ModuleController = () => {
+  return createModuleInputsHandle() as MyBricks.ModuleController
 }
 
 /** 场景打开、输出 */
