@@ -178,6 +178,27 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
       `;
 }
 
+const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
+  if (page.content.includes("MyBricks.")) {
+    page.importManager.addImport({
+      packageName: "../utils/types",
+      dependencyNames: ["MyBricks"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("controller:")) {
+    page.importManager.addImport({
+      packageName: COMPONENT_PACKAGE_NAME,
+      dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  return `${page.importManager.toCode()}
+
+      ${page.content}
+      `;
+}
+
 export const compilerHarmony2 = async (params, config) => {
   await compilerHarmonyModule(params, config)
 }
@@ -356,6 +377,7 @@ const compilerHarmonyModule = async (params, config) => {
   apiCode = apiCode.replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`);
 
   const sceneMap = {};
+  const moduleNames = new Set<string>();
 
   pageCode.forEach((page) => {
     if (page.type === "extensionEvent") {
@@ -367,6 +389,12 @@ const compilerHarmonyModule = async (params, config) => {
     if (page.type === "global") {
       // 全局变量、全局Fx
       fse.outputFileSync(path.join(targetPath, `_proxy/global.ets`), page.content, { encoding: "utf8" })
+      return
+    }
+
+    if (page.type === "module") {
+      moduleNames.add(page.name);
+      fse.outputFileSync(path.join(targetPath, `sections/${page.name}.ets`), handleModuleCode(page), { encoding: "utf8" })
       return
     }
 
@@ -385,8 +413,18 @@ const compilerHarmonyModule = async (params, config) => {
       content = handlePopupCode(page);
     }
 
-    fse.outputFileSync(path.join(targetPath, `pages/${generatePageFileName(page.meta.title)}.ets`), content, { encoding: "utf8" })
+    fse.outputFileSync(path.join(targetPath, `pages/${page.name}Page.ets`), content, { encoding: "utf8" })
   });
+
+  if (moduleNames.size) {
+    // 有区块，补充区块的入口文件
+    fse.outputFileSync(
+      path.join(targetPath, `sections/index.ets`),
+      Array.from(moduleNames).reduce((pre, cur) => {
+        return pre + `export { default as ${cur} } from "./${cur}"\n`
+      }, ""),
+      { encoding: "utf8" })
+  }
 
   await fse.writeFile(
     path.join(targetPath, "_proxy/Index.ets"),

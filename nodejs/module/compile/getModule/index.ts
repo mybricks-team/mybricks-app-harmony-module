@@ -99,6 +99,7 @@ function calculateUiComponent({tojson, version, origin, module}) {
     data: ${JSON.stringify({ config })},
     inputs: ${JSON.stringify(inputs)},
     outputs: ${JSON.stringify(outputs)},
+    isCloudComponent: true,
     editors: (${editors
       .replace('"--replace-init-width--"', replaceWidth)
       .replace('"--replace-init-height--"', replaceHeight)
@@ -188,6 +189,7 @@ function calculateJsComponent({tojson, version, origin, module}) {
     data: ${JSON.stringify({ config })},
     inputs: ${JSON.stringify(inputs)},
     outputs: ${JSON.stringify(outputs)},
+    isCloudComponent: true,
     editors: (${editors
       .replace('"--replace-title--"', `"${mainScene.title}"`)
       .replace('"--replace-configs--"', JSON.stringify(configs))

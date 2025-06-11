@@ -578,3 +578,61 @@ export const createSlotsIO = () => {
     }
   })
 }
+
+/** 
+ * 模块 
+ * [TODO] 暂时无法在多处使用关联输出项
+ */
+export const createModuleInputsHandle = () => {
+  const inputsMap = {}
+  const outputsMap = {}
+
+  return new Proxy({}, {
+    get(_, key) {
+      if (key === "outputs") {
+        return new Proxy({}, {
+          get(_, key) {
+            if (!outputsMap[key]) {
+              outputsMap[key] = new Subject()
+            }
+            return (value) => {
+              if (value?.subscribe) {
+                value.subscribe((value) => {
+                  outputsMap[key].next(value)
+                });
+              } else {
+                outputsMap[key].next(value)
+              }
+            }
+          }
+        })
+      }
+
+      if (!inputsMap[key]) {
+        inputsMap[key] = new Subject()
+      }
+
+      const next = (value) => {
+        if (value?.subscribe) {
+          value.subscribe((value) => {
+            inputsMap[key].next(value)
+          });
+        } else {
+          inputsMap[key].next(value)
+        }
+
+        return new Proxy({}, {
+          get(_, key) {
+            return outputsMap[key] || (outputsMap[key] = new Subject())
+          }
+        })
+      }
+
+      next.subscribe = (next) => {
+        inputsMap[key].subscribe(next)
+      }
+
+      return next
+    }
+  })
+}
