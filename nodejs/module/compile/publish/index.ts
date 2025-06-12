@@ -6,7 +6,7 @@ const publish = async (params: any) => {
   const { userId, fileId, data, fileName } = params;
 
   const publishModule = getPublishModule({
-    toJson: data.toJson,
+    data,
     fileId,
     fileName
   })
@@ -35,7 +35,7 @@ const publish = async (params: any) => {
 }
 
 const getPublishModule = (params) => {
-  const { toJson, fileId, fileName } = params;
+  const { data, fileId, fileName } = params;
   interface ToJSON {
     modules: Record<string, {
       id: string;
@@ -50,6 +50,7 @@ const getPublishModule = (params) => {
     }>
   }
 
+  const { toJson } = data;
   // mpa模式，模块也体现在scenes中
   const { scenes } = toJson as ToJSON;
 
@@ -65,9 +66,7 @@ const getPublishModule = (params) => {
     id: fileId,
     title: fileName,
     // [TODO] 记录版本号
-    data: {
-      toJson
-    }
+    data
   }
 }
 

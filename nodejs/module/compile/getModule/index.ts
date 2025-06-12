@@ -179,6 +179,7 @@ function calculateJsComponent({tojson, version, origin, module}) {
     };
   });
 
+  // outputs: ${JSON.stringify(outputs)},
   // [TODO] version
   return `{
     namespace: "mybricks.harmony.module.${module.id}.${tojson.id}",
@@ -188,7 +189,7 @@ function calculateJsComponent({tojson, version, origin, module}) {
     rtType: "js",
     data: ${JSON.stringify({ config })},
     inputs: ${JSON.stringify(inputs)},
-    outputs: ${JSON.stringify(outputs)},
+    outputs: [],
     isCloudComponent: true,
     editors: (${editors
       .replace('"--replace-title--"', `"${mainScene.title}"`)
@@ -271,7 +272,7 @@ const getModule = async (params) => {
     id: ${module.id},
     comAray: [],
     title: "${module.title}",
-    version: "${version}",
+    version: "${harmonyModule.version}",
     comAray: [${comArayCode}],
     callback: ${JSON.stringify(callback)}
   }

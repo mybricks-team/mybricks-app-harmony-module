@@ -7,6 +7,7 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 import css from "./web.less";
 import help from "./icons/help"
 import { showHarmonyDownloadConfig } from "./model/downloadModel"
+import { CompileType } from "@/types";
 
 interface WebToolbarProps {
   operable: boolean;
@@ -54,10 +55,6 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
       message.destroy("loading");
     }
   }, [publishLoading]);
-
-  const compileHandle = () => {
-    showHarmonyDownloadConfig({ onCompile })
-  };
 
   const publishHandle = () => {
     if (!globalOperable) {
@@ -127,7 +124,8 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
         ) : null}
         <Toolbar.Save disabled={!operable} onClick={onSave} dotTip={isModify} />
         <Toolbar.Button disabled={!operable} onClick={publishHandle}>发布</Toolbar.Button>
-        <Toolbar.Button onClick={compileHandle}>下载源码</Toolbar.Button>
+        <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>下载源码(模块)</Toolbar.Button>
+        <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyApplication })}>下载源码(应用)</Toolbar.Button>
       </Toolbar>
     </>
   );

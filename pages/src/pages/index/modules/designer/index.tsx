@@ -29,6 +29,7 @@ import { sleep, isDesignFilePlatform } from "@/utils";
 import { CompileType } from "@/types";
 import { DESIGNER_STATIC_PATH } from "../../../../constants";
 import { ExclamationCircleFilled, CheckCircleFilled } from "@ant-design/icons";
+import cloneDeep from "lodash/cloneDeep"
 
 // message.success(
 //  "保存成功",
@@ -795,7 +796,15 @@ const Designer = ({ appData }) => {
       const type = "publishModule";
 
       try {
-        const toJson = await contentModel.toJSON();
+        const toJson = await contentModel.toJSON({ withDiagrams: true });
+
+        const json = await getHarmonyJson({
+          toJson: cloneDeep(toJson),
+          comlibs: [...ctx.comlibs],
+          appConfig: {
+            defaultCallServiceHost:  pageModel.appConfig?.defaultCallServiceHost,
+          }
+        })
 
         const res = await axios({
           url:  "/api/harmony-module/publish",
@@ -806,6 +815,7 @@ const Designer = ({ appData }) => {
             fileName: pageModel.file.name,
             type,
             data: {
+              ...json,
               toJson,
             }
           },
@@ -1205,8 +1215,6 @@ const Designer = ({ appData }) => {
           return componentMetaMap;
         }
 
-        const componentMetaMap = getComponentMetaMap()
-
         const res = await axios({
           url,
           method: "POST",
@@ -1221,7 +1229,8 @@ const Designer = ({ appData }) => {
               serviceFxUrl: pageModel.appConfig.serviceFxUrl,
               database: pageModel.appConfig.datasource,
               toJson: isHarmony ? toJson : undefined,
-              componentMetaMap
+              componentMetaMap: getComponentMetaMap(),
+              installedModules: designerRef.current.getInstalledModules()
             },
           },
           withCredentials: false,

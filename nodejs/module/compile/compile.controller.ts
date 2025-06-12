@@ -19,7 +19,7 @@ import {
   localizeFile,
 } from "./utils";
 import { Logger } from "@mybricks/rocker-commons";
-import { compilerHarmony2  } from "./compiler";
+import { compilerHarmony2, compilerHarmonyApp } from "./compiler";
 import publish from "./publish";
 import getModule from "./getModule";
 import loadPage from "./loadPage";
@@ -75,7 +75,7 @@ export default class CompileController {
     @Body("fileId") fileId: number,
     @Body("fileName") fileName: string,
     @Body("data") data: any,
-    @Body("type") type: string = "harmony",
+    @Body("type") type: string,
     @Req() req: any
   ) {
     try {
@@ -89,7 +89,7 @@ export default class CompileController {
 
       Logger.info("[compile] init harmony template start");
 
-      await compilerHarmony2(
+      await (type === "harmonyApplication" ? compilerHarmonyApp : compilerHarmony2)(
         {
           data,
           projectPath,
@@ -111,6 +111,7 @@ export default class CompileController {
         data: {},
       };
     } catch (error) {
+      console.log(error)
       Logger.info("[compile] compile harmony fail " + error.message, error);
       return {
         code: -1,
