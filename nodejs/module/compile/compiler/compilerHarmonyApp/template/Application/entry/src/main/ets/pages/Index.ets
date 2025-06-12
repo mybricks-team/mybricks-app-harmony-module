@@ -32,10 +32,10 @@ export default struct EntryView {
             Tabs({ index: appRouter.activeTabIndex, barPosition: BarPosition.End }) {
               ForEach(appRouter.tabList, (item: TabBarConfig, index: number) => {
                 TabContent() {
-                  this.renderMainScenes(item.id)
+                  this.renderMainScenes(`app_${item.id}`)
                 }
                 .tabBar(renderTabItems(item, index))
-              }, (item: TabBarConfig) => item.id)
+              }, (item: TabBarConfig) => `app_${item.id}}`)
             }
             .scrollable(false)
             .barHeight(54)
