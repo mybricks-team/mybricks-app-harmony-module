@@ -5,11 +5,17 @@ export type DataType = AnyType
 
 @ObservedV2
 export class Data implements DataType {
-  @Trace background: string
+  navigationStyle?: string
+  navigationBarStyle?: AnyType
   enabledPulldown: boolean = false
+  backgroundImage?: string
+  backgroundColor?: string
 
   constructor(config: DataType) {
-    this.background = config.background
+    this.navigationBarStyle = config?.navigationBarStyle
+    this.navigationStyle = config?.navigationStyle
+    this.backgroundColor = config?.backgroundColor ?? config.background
+    this.backgroundImage = config?.backgroundImage
   }
 }
 
@@ -45,9 +51,13 @@ export default struct MyBricksSystemPage {
   @Builder
   renderContent () {
     Column() {
-      this.slots({
-        id: 'header'
-      })
+      if (this.data.navigationStyle === 'custom') {
+        Row() {
+          this.slots({
+            id: 'header'
+          })
+        }.backgroundColor(this.data.navigationBarStyle?.backgroundColor)
+      }
       Scroll() {
         Column() {
           this.slots({
@@ -70,7 +80,7 @@ export default struct MyBricksSystemPage {
       Refresh({ refreshing: this.isRefreshing }) {
         this.renderContent()
       }
-        .backgroundColor(this.data?.background)
+        .backgroundColor(this.data?.backgroundColor)
         .onRefreshing(() => {
           // 数据刷新逻辑
         })
@@ -78,7 +88,7 @@ export default struct MyBricksSystemPage {
       Column() {
         this.renderContent()
       }
-        .backgroundColor(this.data?.background)
+        .backgroundColor(this.data?.backgroundColor)
     }
   }
 }
