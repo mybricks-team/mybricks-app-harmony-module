@@ -140,8 +140,11 @@ export struct AppCustomHeader {
   }
 
   build() {
-    Column(){}
+    Stack(){
+    }
     .width('100%')
-    .height(appWindow.statusBarHeight)
+    .padding({ top: appWindow.statusBarHeight })
+    .backgroundColor(this.barBackgroundColor)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 }

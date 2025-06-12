@@ -35,6 +35,7 @@ export default struct EntryView {
                   this.renderMainScenes(`app_${item.id}`)
                 }
                 .tabBar(renderTabItems(item, index))
+                .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
               }, (item: TabBarConfig) => `app_${item.id}}`)
             }
             .scrollable(false)
@@ -42,6 +43,7 @@ export default struct EntryView {
             .onChange((index: number) => {
               appRouter.activeTabIndex = index
             })
+            .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
             .animationMode(AnimationMode.NO_ANIMATION)
           } else if (appRouter.entryPageId) {
             this.renderMainScenes(appRouter.entryPageId)
