@@ -20,7 +20,7 @@ const PROXY_PACKAGE_NAME = "../_proxy/Index"
 const compilerHarmonyApp = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId } = params;
   const { Logger } = config;
-  const { toJson, installedModules, componentMetaMap, allModules, pages, appConfig } = data;
+  const { toJson, installedModules, componentMetaMap, allModules, pages, appConfig, tabBarJson } = data;
 
   // 目标项目路径
   const targetAppPath = path.join(projectPath, "Application");
@@ -50,7 +50,8 @@ const compilerHarmonyApp = async (params, config) => {
       toJson,
       allModules,
       pages,
-      appConfig
+      appConfig,
+      tabBarJson
     }
   }, modulesData)
 
@@ -83,13 +84,32 @@ const compilerHarmonyApp = async (params, config) => {
       if (page.meta) {
         // const pageFileName = firstCharToUpperCase(`${page.name}Page`);
         const pageName = page.name + "Page";
-        normalScenes.push({
-          // id: page.meta.id,
-          id: `${moduleName}_${page.meta.id}`,
-          title: page.meta.title,
-          pageName: firstCharToUpperCase(`${moduleName}${pageName}`),
-          path: `modules/${moduleName}/pages/${pageName}`
-        })
+
+        let pushNormalScenes = true
+
+        if (moduleName === "app") {
+          // 目前仅处理app
+          const tabBar = data.pages.filter(p => 
+            (data.tabBarJson || []).some(
+              (b) => b?.id === p?.id
+            )
+          )
+          const isTabBar = tabBar.find((tab) => tab.id === page.meta.id)
+          if (isTabBar) {
+            pushNormalScenes = false
+          }
+        }
+
+        if (pushNormalScenes) {
+          normalScenes.push({
+            // id: page.meta.id,
+            id: `${moduleName}_${page.meta.id}`,
+            title: page.meta.title,
+            pageName: firstCharToUpperCase(`${moduleName}${pageName}`),
+            path: `modules/${moduleName}/pages/${pageName}`
+          })
+        }
+
         sceneMap[`${key}_${page.meta.id}`] = {
           // id: page.meta.id,
           id: `${moduleName}_${page.meta.id}`,

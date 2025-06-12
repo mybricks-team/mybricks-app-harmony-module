@@ -9,7 +9,6 @@ const getModules = async (installedModules) => {
   // const module = publishContent.content
 
   const modulesData = {};
-  console.log(11, installedModules)
 
   await Promise.all(installedModules.map(async ({ id: moduleId }) => {
     const harmonyModule = await API.Material.getMaterialContent({ namespace: `mybricks.harmony.module.${moduleId}` })
