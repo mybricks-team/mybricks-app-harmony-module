@@ -34,7 +34,7 @@ interface Inputs {
 }
 
 interface Outputs {
-
+  onClick: (src: string | undefined) => void,
 }
 
 @ComponentV2
@@ -58,6 +58,9 @@ export default struct MyBricksIcon {
         .renderingStrategy(SymbolRenderingStrategy.SINGLE)
         .width(this.data.fontSize)
         .height(this.data.fontSize)
+        .onClick(()=>{
+          this.outputs?.onClick(this.data.icon)
+        })
     }.attributeModifier(
       new ApplyRootStyleModifier(this.styles['root'])
     )
