@@ -118,6 +118,7 @@ export default struct MyBricksTabs {
   @Local customNavigationHeight: number = 0
   @Local tabsHeight: number = 0
   @Local currentTabId: string = ''
+  @Local currentTabIndex: number = 0
   @Local windowHeight: number = 0
   @Local windowWidth: number = 0
   @Local safeAreaHeight: number = 0
@@ -127,6 +128,10 @@ export default struct MyBricksTabs {
     if(this.data.tabs.length > 0) {
       this.currentTabId = this.data.tabs[0]._id
     }
+
+    this.inputs?.activeTabId?.((index)=>{
+      this.currentTabIndex = index
+    })
 
     this.inputs?.dataSource?.((ds: InputTabData[], outputRels: AnyType) => {
       if(Array.isArray(ds)) {
@@ -219,7 +224,7 @@ export default struct MyBricksTabs {
   build() {
     Column() {
       // Tabs组件
-      Tabs({ barPosition: BarPosition.Start }) {
+      Tabs({ barPosition: BarPosition.Start,index: this.currentTabIndex}) {
         ForEach(this.data.tabs, (tab: Tab, index: number) => {
           TabContent() {
             this.renderTabContent(tab, index)

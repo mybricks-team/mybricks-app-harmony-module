@@ -99,35 +99,83 @@ export default struct MyBricksSearchBar {
     Column() {
       Row(){
         Text(this.data.label).textAlign(TextAlign.Center).width(this.data.label ? '10%': void 0).fontSize(13)
-        Search({ value: this.value, placeholder: this.data.placeholderText })
-          .searchIcon({
-            src: $r('sys.media.ohos_ic_public_search_filled'),
+
+        Row(){
+          // Image($r('sys.media.ohos_ic_public_search_filled'))
+          //   .width(15)
+          //   .height(15)
+          //   .fillColor("#C4C2C2")
+          //   .margin({
+          //     left:10
+          //   })
+          TextInput({
+            placeholder:this.data.placeholderText,
+            text:this.value
           })
-          .cancelButton({
-            style: this.data.clearable ? CancelButtonStyle.CONSTANT : CancelButtonStyle.INVISIBLE,
-            icon: {
-              src: $r('sys.media.ohos_ic_public_cancel_filled')
-            }
-          })
-          .searchButton(this.data.showSearchButton ? this.data.searchButtonText : void 0,{fontSize:13,fontColor:'#FA6400'})
-          .defaultFocus(this.data.autoFocus)
-          .height('100%')
-          .maxLength(20)
-          .backgroundColor('#F5F5F5')
-          .placeholderColor(Color.Grey)
-          .placeholderFont({ size: 14, weight: 400 })
-          .textFont({ size: 14, weight: 400 })
-          .onSubmit((value: string) => {
-            this.outputs?.onSearch(value)
-          })
-          .onChange((value: string) => {
-            this.outputs?.onChange(value)
-          })
-          .onClick(()=>{
-            this.outputs?.onClick(this.value || '')
-          })
-          .width(this.data.label ? '90%' : '100%')
-          .margin(0)
+            .placeholderColor("#999999")
+            .placeholderFont({
+              size:13
+            })
+            .fontSize(13)
+            .backgroundColor(Color.Transparent)
+            .layoutWeight(1) // 添加这一行使其占据剩余空间
+            .margin({right: 5}) // 添加右边距
+            .onChange((value)=>{
+              this.value = value
+            })
+            .defaultFocus(this.data.autoFocus)
+
+          Button("搜索")
+            .backgroundColor("#00CF22")
+            .fontColor(Color.White)
+            .fontSize(14)
+            .width(60)
+            .height(30)
+            .margin({
+              right:5,
+              top:5,
+              bottom:5,
+              left:5
+            })
+            .onClick(()=>{
+              this.outputs?.onSearch(this.value ?? "")
+            })
+        }
+        .borderRadius(50)
+        .backgroundColor(Color.White)
+        .height('100%')
+        .width(this.data.label ? '90%' : '100%')
+        .justifyContent(FlexAlign.SpaceBetween)
+        .alignItems(VerticalAlign.Center)
+        // Search({ value: this.value, placeholder: this.data.placeholderText })
+        //   .searchIcon({
+        //     src: $r('sys.media.ohos_ic_public_search_filled'),
+        //   })
+        //   .cancelButton({
+        //     style: this.data.clearable ? CancelButtonStyle.CONSTANT : CancelButtonStyle.INVISIBLE,
+        //     icon: {
+        //       src: $r('sys.media.ohos_ic_public_cancel_filled')
+        //     }
+        //   })
+        //   .searchButton(this.data.showSearchButton ? this.data.searchButtonText : void 0,{fontSize:13,fontColor:'#FA6400'})
+        //   .defaultFocus(this.data.autoFocus)
+        //   .height('100%')
+        //   .maxLength(20)
+        //   .backgroundColor('#F5F5F5')
+        //   .placeholderColor(Color.Grey)
+        //   .placeholderFont({ size: 14, weight: 400 })
+        //   .textFont({ size: 14, weight: 400 })
+        //   .onSubmit((value: string) => {
+        //     this.outputs?.onSearch(value)
+        //   })
+        //   .onChange((value: string) => {
+        //     this.outputs?.onChange(value)
+        //   })
+        //   .onClick(()=>{
+        //     this.outputs?.onClick(this.value || '')
+        //   })
+        //   .width(this.data.label ? '90%' : '100%')
+        //   .margin(0)
       }.justifyContent(FlexAlign.Start)
 
 
