@@ -34,7 +34,7 @@ export class AppRouter {
   }
 
   public registEntryPage(name: string) {
-    const targetIndex = this.tabList.findIndex(t => t?.id === name)
+    const targetIndex = this.tabList.findIndex(t => name.indexOf(t?.id) > -1)
     if (this.hasTabs() && targetIndex > -1) {
       this.entryMode = 'tab'
       this.activeTabIndex = targetIndex
@@ -62,9 +62,9 @@ export class AppRouter {
 
   public push(name: string, params: UnknownJson | undefined = undefined,
     callback: Callback<PopInfo> | undefined = undefined) {
-    if (!this.entryPageId) {
+    if (this.entryMode === 'page') {
       this.registEntryPage(name)
-    } else {
+    } else if (this.entryMode === 'tab') {
       if (this.isTabbarPage(name)) {
         this.clear(); // 一般来说回到tabbar再物理返回就是直接退出APP了，不会到启动页，也不会有历史页，所以清空
         this.activeTabIndex = this.tabList.findIndex(t => t.id === name);
