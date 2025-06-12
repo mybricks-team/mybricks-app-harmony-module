@@ -5,6 +5,7 @@ export interface DataType {
   direction?: 'row' | 'column',
   spacing?: number
   rowKey?: string
+  scrollBar?: boolean
 }
 
 type DataSourceItem = Record<string, string | number | boolean | Object> | string | number | boolean
@@ -14,11 +15,13 @@ export class Data implements DataType {
   @Trace rowKey?: string
   @Trace spacing?: number = 0
   @Trace direction?: 'row' | 'column' = 'column'
+  @Trace scrollBar?: boolean = false
 
   constructor(config: DataType) {
     this.rowKey = config.rowKey ?? 'id'
     this.spacing = config.spacing ?? 0
     this.direction = config?.direction ?? 'column'
+    this.scrollBar = config?.scrollBar ?? false
   }
 }
 
@@ -92,6 +95,7 @@ export default struct MyBricksContainerList {
           })
         })
       }
+      .scrollBar(this.data.scrollBar ? BarState.Auto : BarState.Off)
       .listDirection(this.data.direction === 'row' ? Axis.Horizontal: Axis.Vertical)
       .height(this.maxItemHeight == -1 ? 'fit-content' : this.maxItemHeight)
     }
