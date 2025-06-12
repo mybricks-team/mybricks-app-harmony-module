@@ -168,9 +168,7 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
             Index()
           }
           .hideTitleBar(true)
-          .hideBackButton(true)
           .mode(NavDestinationMode.DIALOG)
-          .systemTransition(NavigationSystemTransitionType.NONE)
         }
       }
   
@@ -459,6 +457,10 @@ const compilerHarmonyModule = async (params, config) => {
     _proxyIndexCode
       .replace(
         "{ domain: undefined }",
+        `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+      )
+      .replace(
+        "{ domain: undefined}",
         `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
       )
       .replace("$r('app._proxy.component.import')", importComponentCode ? `import { ${importComponentCode} } from "../comlib/Index"` : "")
