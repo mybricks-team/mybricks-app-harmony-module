@@ -365,15 +365,19 @@ export class Page {
   /** 确定 */
   commit(name, value) {
     const params = this.appRouter.getParams(name)
-    params.controller.commit.next(value)
     this.appRouter.pop()
+    setTimeout(() => {
+      params.controller.commit.next(value)
+    }, 100)
   }
 
   /** 取消 */
   cancel(name, value) {
     const params = this.appRouter.getParams(name)
-    params.controller.cancel.next(value)
     this.appRouter.pop()
+    setTimeout(() => {
+      params.controller.cancel.next(value)
+    }, 100)
   }
 
   /** 应用，不关闭 */
@@ -385,8 +389,10 @@ export class Page {
   /** 关闭 */
   close(name, value) {
     const params = this.appRouter.getParams(name)
-    params.controller.close.next(value)
     this.appRouter.pop()
+    setTimeout(() => {
+      params.controller.close.next(value)
+    }, 100)
   }
 }
 
