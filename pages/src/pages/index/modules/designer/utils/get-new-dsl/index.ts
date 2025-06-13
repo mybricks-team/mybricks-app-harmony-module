@@ -1,12 +1,12 @@
 
+import { checkValueType, getValidSlotStyle, getValidSizeValue } from './helper'
 
-// @ts-nocheck
-import { checkValueType, getValidSlotStyle, getValidSizeValue, uuid } from './helper'
-
+/**
+ * @description Json遍历器，支持对不同类型及诶单注册修改函数
+ */
 class DslJsonTraversal {
-  constructor() {
-    this.modifiers = new Map(); // 存储修改器函数
-  }
+  /** 不同节点的修改器函数 */
+  modifiers = new Map()
 
   // 注册修改器函数
   registerModifier(namespace, modifier) {
@@ -142,12 +142,12 @@ traversal.registerModifier('root', (root) => {
   if (!root.style?.width && child0.namespace === 'mybricks.basic-comlib.antd5.popup') {
     const child0width = child0.style.width;
     if (checkValueType(child0width) === 'number') {
-      root.style?.width = getValidSizeValue(child0width)
+      root.style.width = getValidSizeValue(child0width)
     }
   }
   if (!root.style?.height && child0.namespace === 'mybricks.basic-comlib.antd5.popup') {
     const child0height = child0.style.height;
-    root.style?.height = child0height
+    root.style.height = child0height
   }
 })
 
