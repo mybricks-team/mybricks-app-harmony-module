@@ -186,23 +186,31 @@ export default struct MyBricksTabs {
   renderTabItem(params: RenderTabItemParams) {
     Column() {
       Text(params?.tab.tabName)
+        .flexGrow(1)  // 让Text填充剩余空间
+        .height('100%') // 占满高度
+        .textAlign(TextAlign.Center)
+        .attributeModifier(new ApplyStyleModifier(
+          this.styles[params.isActive ? '.taroify-tabs__text--active' : '.taroify-tabs__text:not(.taroify-tabs__text--active)']
+        ))
+
       Line()
-        .position({
-          left: '50%',
-          bottom: 0,
-        })
         .width(40)
         .height(3)
-        .translate({ x: '-50%' })
-        .backgroundColor(params.isActive ? '#ee0a24' : Color.Transparent)
-      }
-    // .align(Alignment.Bottom)
+        .zIndex(-1)
+        .attributeModifier(
+          new ApplyStyleModifier(
+            this.styles['.taroify-tabs__line']
+          )
+          .backgroundColor(params.isActive ? '#00F500' : Color.Transparent)
+        )
+    }
     .align(Alignment.Center)
-    .width('50%')
-    // .flexGrow(1)
     .height(44)
-    .justifyContent(FlexAlign.Center)
+    .justifyContent(FlexAlign.SpaceBetween)
     .alignItems(HorizontalAlign.Center)
+    .attributeModifier(new ApplyStyleModifier(
+      this.styles[params.isActive ? '.taroify-tabs__tab--active' : '.taroify-tabs__tab:not(.taroify-tabs__tab--active)']
+    )) //样式编辑器配置背景
   }
 
   setCurrentTabId (currentTabId: string) {
@@ -229,20 +237,7 @@ export default struct MyBricksTabs {
           TabContent() {
             this.renderTabContent(tab, index)
           }
-          .tabBar(
-            SubTabBarStyle.of(tab.tabName)
-            .indicator({
-              color: '#ee0a24', //下划线颜色
-              height: 3, //下划线高度
-              width: 44, //下划线宽度
-              borderRadius: 0, //下划线圆角半径
-              marginTop: 10 //下划线与文字间距
-            })
-            .board({ borderRadius: 0 })
-            .selectedMode(SelectedMode.INDICATOR)
-            .labelStyle({ unselectedColor: '#646566', selectedColor: '#323233' })
-          )
-          // .tabBar(this.renderTabItem({ tab, index, isActive: this.currentTabId === tab._id }))
+          .tabBar(this.renderTabItem({ tab, index, isActive: this.currentTabId === tab._id }))
         })
       }
       .scrollable(this.data.swipeable)
