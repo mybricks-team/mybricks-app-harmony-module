@@ -2,7 +2,7 @@
 import { checkValueType, getValidSlotStyle, getValidSizeValue } from './helper'
 
 /**
- * @description Json遍历器，支持对不同类型及诶单注册修改函数
+ * @description Json遍历器，支持对不同类型的节点注册修改函数
  */
 class DslJsonTraversal {
   /** 不同节点的修改器函数 */
@@ -64,6 +64,7 @@ class DslJsonTraversal {
   }
 }
 
+/** 处理所有组件的通用CSS样式 */
 function polyfillComponentStyAry(styleAry) {
   if (!Array.isArray(styleAry)) {
     return
@@ -79,6 +80,7 @@ function polyfillComponentStyAry(styleAry) {
   })
 }
 
+/** 处理所有组件的搭建样式 */
 function polyfillComponentStyle(style) {
   if (!style) {
     return
