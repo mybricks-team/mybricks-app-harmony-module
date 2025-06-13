@@ -34,6 +34,8 @@ class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
     instance.width(style.width);
     // height
     instance.height(style.height);
+    // zIndex
+    instance.zIndex(style.zIndex as number);
     // marginTop
     // marginBottom
     // marginLeft
