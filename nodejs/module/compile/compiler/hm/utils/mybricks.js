@@ -129,35 +129,35 @@ export const createInputsHandle = (that, init = false) => {
 
     return proxy;
   } else {
-    const { controller } = that
+    const { controller, columnVisibilityController } = that
     const { _inputEvents } = controller
 
     // 内置显示隐藏逻辑
     _inputEvents.show = (value) => {
       if (value?.subscribe) {
         value.subscribe(() => {
-          that.columnVisibility = Visibility.Visible
+          columnVisibilityController.setVisibility(Visibility.Visible)
         });
       } else {
-        that.columnVisibility = Visibility.Visible
+        columnVisibilityController.setVisibility(Visibility.Visible)
       }
     }
     _inputEvents.hide = (value) => {
       if (value?.subscribe) {
         value.subscribe(() => {
-          that.columnVisibility = Visibility.None
+          columnVisibilityController.setVisibility(Visibility.None)
         });
       } else {
-        that.columnVisibility = Visibility.None
+        columnVisibilityController.setVisibility(Visibility.None)
       }
     }
     _inputEvents.showOrHide = (value) => {
       if (value?.subscribe) {
         value.subscribe((value) => {
-          that.columnVisibility = !!value ? Visibility.Visible : Visibility.None
+          columnVisibilityController.setVisibility(!!value ? Visibility.Visible : Visibility.None)
         });
       } else {
-        that.columnVisibility = !!value ? Visibility.Visible : Visibility.None
+        columnVisibilityController.setVisibility(!!value ? Visibility.Visible : Visibility.None)
       }
     }
 
@@ -295,8 +295,8 @@ export const createJSHandle = (fn, options) => {
 }
 
 // 事件
-export const createEventsHandle = (events) => {
-  return new Proxy(events, {
+export const createEventsHandle = (params) => {
+  return new Proxy(params.events, {
     get(target, key) {
       return target[key] || (() => {})
     }
@@ -635,4 +635,16 @@ export const createModuleInputsHandle = () => {
       return next
     }
   })
+}
+
+/**
+ * 组件样式
+ */
+export const createStyles = (params) => {
+  const { styles, parentSlot } = params;
+  if (parentSlot?.itemWrap) {
+    const { root, ...other } = parentSlot
+    return other
+  }
+  return styles
 }

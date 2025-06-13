@@ -1,6 +1,6 @@
 import { appRouter } from "../../../utils"
 import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle } from "../../../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle, createStyles } from "../../../utils/mybricks"
 import { genCallConnector } from "../../../utils/CallConnector"
 import { MyBricks } from "../../../utils/types"
 import { globalVars, globalFxs } from "./global"
@@ -14,7 +14,7 @@ interface MyBricksComponentBuilderParams {
   data: MyBricks.Data
   events: MyBricks.Events
   styles: Styles
-  columnVisibility: Visibility
+  columnVisibilityController: ColumnVisibilityController
   myBricksColumnModifier: MyBricksColumnModifier
   slots?: (params: MyBricks.SlotParams) => void
   slotsIO?: MyBricks.Any
@@ -73,6 +73,15 @@ class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
         bottom: style.bottom as number,
       })
     }
+  }
+}
+
+@ObservedV2
+class ColumnVisibilityController {
+  @Trace visibility = Visibility.Visible;
+
+  setVisibility = (visibility: Visibility) => {
+    this.visibility = visibility
   }
 }
 

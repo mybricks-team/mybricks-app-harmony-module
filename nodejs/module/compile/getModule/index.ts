@@ -1,7 +1,7 @@
 import API from "@mybricks/sdk-for-app/api";
 import { runtime, editors, runtimeJs } from './template';
 
-function calculateUiComponent({tojson, version, origin, module}) {
+function calculateUiComponent({tojson, version, origin, module, sectionsMap}) {
   const mainScene = tojson;
   const { pinRels } = mainScene;
   const relsOutputsMap: { [key: string]: boolean } = {};
@@ -94,6 +94,7 @@ function calculateUiComponent({tojson, version, origin, module}) {
   return `{
     namespace: "mybricks.harmony.module.${module.id}.${tojson.id}",
     version: "0.0.1",
+    previewImageData: "${sectionsMap?.[tojson.id]?.previewImageData || ""}",
     title: "${mainScene.title}",
     description: "${mainScene.title}",
     data: ${JSON.stringify({ config })},
@@ -221,7 +222,7 @@ const getModule = async (params) => {
   const publishContent = await API.File.getPublishContent({ pubId: publishId });
   // [TODO]
   const module = publishContent.content;
-  const { toJson } = module.data;
+  const { toJson, sectionsMap } = module.data;
   toJson.global.fxFrames.forEach((fxFrame) => {
     Object.entries(fxFrame.pinProxies).forEach(([_, pinProxy]: any) => {
       if (pinProxy.type === "extension") {
@@ -238,7 +239,7 @@ const getModule = async (params) => {
   let comArayCode = "";
   toJson.scenes.forEach((scene) => {
     if (scene.type === "module") {
-      comArayCode += `${calculateUiComponent({tojson: scene, version, origin, module})},`
+      comArayCode += `${calculateUiComponent({tojson: scene, version, origin, module, sectionsMap})},`
     }
     Object.entries(scene.pinProxies).forEach(([_, pinProxy]: any) => {
       if (pinProxy.type === "extension") {

@@ -28,8 +28,8 @@ const getUsedComponent = (params) => {
           uid: params.uid,
           data: new ${importData}(params.data as MyBricks.Any),
           inputs: createInputsHandle(params),
-          outputs: createEventsHandle(params.events),
-          styles: params.styles,
+          outputs: createEventsHandle(params),
+          styles: createStyles(params),
           ${hasSlots ? "slots: params.slots," : ""}
           ${hasSlots ? "slotsIO: params.slotsIO," : ""}
           parentSlot: params.parentSlot
@@ -43,7 +43,7 @@ const getUsedComponent = (params) => {
         @Param @Require data: MyBricks.Data
         @Param events: MyBricks.Events = {}
         @Param styles: Styles = {};
-        @Local columnVisibility: Visibility = Visibility.Visible;
+        @Local columnVisibilityController: ColumnVisibilityController = new ColumnVisibilityController()
         ${hasSlots ? "@BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;" : ""}
         ${hasSlots ? "@Local slotsIO: MyBricks.Any = createSlotsIO();" : ""}
         @Param parentSlot?: MyBricks.SlotParams = undefined
@@ -56,40 +56,16 @@ const getUsedComponent = (params) => {
               this.parentSlot.itemWrap({
                 id: this.uid,
                 inputs: this.controller._inputEvents
-              }).wrap.builder(wrapBuilder(${componentName}Builder), {
-                uid: this.uid,
-                controller: this.controller,
-                data: this.data,
-                events: this.events,
-                styles: {
-                  root: {}
-                },
-                columnVisibility: this.columnVisibility,
-                myBricksColumnModifier: this.myBricksColumnModifier,
-                ${hasSlots ? "slots: this.slots," : ""}
-                ${hasSlots ? "slotsIO: this.slotsIO," : ""}
-                parentSlot: this.parentSlot
-              }, this.parentSlot.itemWrap({
+              }).wrap.builder(wrapBuilder(${componentName}Builder), this, this.parentSlot.itemWrap({
                 id: this.uid,
                 inputs: this.controller._inputEvents
               }).params)
             } else {
-              ${componentName}Builder({
-                uid: this.uid,
-                controller: this.controller,
-                data: this.data,
-                events: this.events,
-                styles: this.styles,
-                columnVisibility: this.columnVisibility,
-                myBricksColumnModifier: this.myBricksColumnModifier,
-                ${hasSlots ? "slots: this.slots," : ""}
-                ${hasSlots ? "slotsIO: this.slotsIO," : ""}
-                parentSlot: this.parentSlot
-              })
+              ${componentName}Builder(this)
             }
           }
           .attributeModifier(this.myBricksColumnModifier)
-          .visibility(this.columnVisibility)
+          .visibility(this.columnVisibilityController.visibility)
         }
       }\n`
     } else {
