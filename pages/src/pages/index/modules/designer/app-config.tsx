@@ -19,6 +19,7 @@ import { showAIPageModal, HarmonyPrompts, HarmonyDefinitions } from '@mybricks/s
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { getAiEncryptData } from "./utils/get-ai-encrypt-data";
+import { getNewDSL } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
 import { message } from "antd";
@@ -1270,6 +1271,7 @@ const getAiView = (enableAI, option) => {
 
   if (enableAI) {
     return {
+      getNewDSL,
       async requestAsStream(messages, ...args) {
         const { context, tools, model, role } = getDesignerParams(args);
         const { write, complete, error, cancel } = context ?? {};
