@@ -1,6 +1,6 @@
 {
   "name": "mybricks-app-harmony-module",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "可视化搭建鸿蒙模块，下载源码，与原有应用无缝集成",
   "scripts": {
     "start:dev": "NODE_ENV=development node nodejs/index.ts",
