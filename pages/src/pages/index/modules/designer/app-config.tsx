@@ -19,13 +19,16 @@ import { showAIPageModal, HarmonyPrompts, HarmonyDefinitions } from '@mybricks/s
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { getAiEncryptData } from "./utils/get-ai-encrypt-data";
-import { getNewDSL } from './utils/get-new-dsl'
+import { getNewDSL, getDSLPrompts } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
 import { message } from "antd";
 import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
+
+// import { mock1Res, mock2Messages, systemPrompts } from './mock'
+
 // import  AICom  from "../../../../../public/ai-com"
 // import typeConfig from "./configs/type";
 // import { PcEditor } from "/Users/stuzhaoxing-office/Program/editors-pc-common/src/index";
@@ -1238,18 +1241,24 @@ function getDesignerParams(args) {
 
   switch (true) {
     case extraOption?.expert === 'image': {
-      model = 'anthropic/claude-3.7-sonnet';
+      model = 'anthropic/claude-sonnet-4';
       role = 'image'
       break;
     }
     case ['image'].includes(extraOption?.aiRole): {
-      model = 'anthropic/claude-3.7-sonnet';
+      model = 'anthropic/claude-sonnet-4';
       role = 'image'
       break
     }
     case ['architect'].includes(extraOption.aiRole): {
-      model = 'openai/gpt-4o-2024-11-20';
+      model = 'google/gemini-2.5-pro-preview';
+      // model = 'deepseek/deepseek-r1-0528'
       role = 'architect'
+      break
+    }
+    case ['expert'].includes(extraOption.aiRole): {
+      model = 'anthropic/claude-sonnet-4';
+      role = 'expert'
       break
     }
     default: {
@@ -1271,6 +1280,7 @@ const getAiView = (enableAI, option) => {
 
   if (enableAI) {
     return {
+      getDSLPrompts,
       getNewDSL,
       async requestAsStream(messages, ...args) {
         const { context, tools, model, role } = getDesignerParams(args);
@@ -1283,6 +1293,24 @@ const getAiView = (enableAI, option) => {
         cancel?.(() => {
           cancelControl?.abort?.();
         });
+
+
+        // const isFirstOne = messages.length === 2
+        // if (isFirstOne) {
+        //   write(mock1Res);
+        //   complete();
+        //   return 
+        // }
+
+        // const _message = JSON.parse(JSON.stringify(messages))
+        
+        // // 图生页面第二轮
+        // if (_message.length > 2 && Array.isArray(_message?.[1]?.content) && _message[0]?.role === 'system') {
+        //   _message[0].content = systemPrompts
+        // }
+        // if (_message.length > 2 && _message[0]?.role === 'system' && _message[0]?.content.indexOf('page.dsl') > -1) {
+        //   _message[0].content = systemPrompts
+        // }
 
         try {
           // messages[0].content = require('./promte.md').default;
@@ -1385,6 +1413,12 @@ const getAiView = (enableAI, option) => {
                 } : {})
               },
               signal: cancelControl?.signal,
+              // body: JSON.stringify({
+              //   model,
+              //   messages: _message,
+              //   tools,
+              //   tool_choice: 'auto',
+              // })
               body: JSON.stringify(
                 APP_ENV === 'production' ? getAiEncryptData({
                   model,
