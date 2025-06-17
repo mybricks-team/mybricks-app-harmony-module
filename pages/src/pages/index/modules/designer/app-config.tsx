@@ -27,7 +27,7 @@ import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
 
-// import { mock1Res, mock2Messages, systemPrompts } from './mock'
+// import { mock2Res, systemPrompts } from './mock'
 
 // import  AICom  from "../../../../../public/ai-com"
 // import typeConfig from "./configs/type";
@@ -1294,6 +1294,13 @@ const getAiView = (enableAI, option) => {
           cancelControl?.abort?.();
         });
 
+
+        // const isScenond = messages.length > 2
+        // if (isScenond) {
+        //   write(mock2Res);
+        //   complete();
+        //   return 
+        // }
 
         // const isFirstOne = messages.length === 2
         // if (isFirstOne) {
