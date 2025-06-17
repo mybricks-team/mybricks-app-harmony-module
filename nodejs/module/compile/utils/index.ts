@@ -227,3 +227,4 @@ function getContentHash (fileContent, len = 8) {
 
 export * from "./pinyin"
 export * from "./string"
+export * from "./download"

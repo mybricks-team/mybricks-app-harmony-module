@@ -1,8 +1,9 @@
 import toHarmonyCode from "@mybricks/to-code-react/dist/cjs/toHarmonyCode"
 import * as path from "path";
 import * as fse from "fs-extra";
+import * as AdmZip from "adm-zip";
 import { COMPONENT_PACKAGE_NAME } from "./hm/constant";
-import { pinyin, cleanAndSplitString, firstCharToUpperCase } from "../utils";
+import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip } from "../utils";
 
 /**
  * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
@@ -368,7 +369,21 @@ const compilerHarmonyModule = async (params, config) => {
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
   // 拷贝comlib
-  await fse.copy(path.join(__dirname, "./hm/comlib"), path.join(targetPath, "comlib"), { overwrite: true })
+  if (data.comlibs?.url) {
+    // 配置组件库，使用远程组件库源码
+    const comlibZipPath = path.join(targetPath, "comlib.zip");
+    await downloadZip({
+      url: data.comlibs.url.replace("edit.js", "comlib.zip"),
+      targetPath: comlibZipPath
+    })
+    const zip = new AdmZip(comlibZipPath);
+    const comlibPath = path.join(path.join(targetPath, "comlib"), "comlib");
+    zip.extractAllTo(comlibPath, true);
+    // 删除下载的zip包
+    fse.removeSync(comlibZipPath);
+  } else {
+    await fse.copy(path.join(__dirname, "./hm/comlib"), path.join(targetPath, "comlib"), { overwrite: true })
+  }
   // 拷贝utils
   await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
   // 拷贝_proxy
