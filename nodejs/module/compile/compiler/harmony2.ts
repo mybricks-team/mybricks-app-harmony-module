@@ -377,7 +377,7 @@ const compilerHarmonyModule = async (params, config) => {
       targetPath: comlibZipPath
     })
     const zip = new AdmZip(comlibZipPath);
-    const comlibPath = path.join(path.join(targetPath, "comlib"), "comlib");
+    const comlibPath = path.join(targetPath, "comlib");
     zip.extractAllTo(comlibPath, true);
     // 删除下载的zip包
     fse.removeSync(comlibZipPath);
