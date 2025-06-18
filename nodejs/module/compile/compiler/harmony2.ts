@@ -356,7 +356,7 @@ const generatePageCodeWithMetadata = (params) => {
 
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId } = params;
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName } = params;
   const { Logger } = config;
   const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata({
     toJson: data.toJson,
@@ -369,11 +369,11 @@ const compilerHarmonyModule = async (params, config) => {
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
   // 拷贝comlib
-  if (data.comlibs?.url) {
+  if (data.comlibs?.[0].hmCode) {
     // 配置组件库，使用远程组件库源码
     const comlibZipPath = path.join(targetPath, "comlib.zip");
     await downloadZip({
-      url: data.comlibs.url.replace("edit.js", "comlib.zip"),
+      url: `${domainName}${data.comlibs?.[0].hmCode}`,
       targetPath: comlibZipPath
     })
     const zip = new AdmZip(comlibZipPath);
