@@ -226,6 +226,33 @@ const handleGlobalCode = (page) => {
   ${page.content}`
 }
 
+const handleReadMeCode = (params) => {
+  const { toJson, fileName } = params;
+  // 当前默认有且只有一个extension
+  const extension = toJson.frames.find((frame) => frame.type === "extension");
+  const { outputs } = extension;
+
+  const outputsCode = outputs.reduce((pre, cur) => {
+    return pre + (pre ? "\n\n" : "") +
+      "/**\n" + 
+      ` * 注册${cur.title}回调\n` +
+      " */\n" + 
+      `api.on("${cur.id}", (value) => {\n\n})`
+  }, "")
+
+  return `# ${fileName}\n` + 
+    "模块基于@hadss/hmrouter实现\n\n" + 
+    "## 使用\n" + 
+    "```javascript\n" + 
+    'import api from "./api"\n\n' + 
+    "/**\n" + 
+    " * 打开模块\n" + 
+    " */\n" + 
+    "api.open({})" + (outputsCode ? "\n\n" : "") +
+    outputsCode + 
+    "\n```"
+}
+
 export const compilerHarmony2 = async (params, config) => {
   await compilerHarmonyModule(params, config)
 }
@@ -368,6 +395,15 @@ const compilerHarmonyModule = async (params, config) => {
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
+  // 写入README.md
+  await fse.writeFile(
+    path.join(targetPath, "README.md"),
+    handleReadMeCode({
+      toJson: data.toJson,
+      fileName
+    }),
+    { encoding: "utf8" }
+  );
   // 拷贝comlib
   if (data.comlibs?.[0].hmCode) {
     // 配置组件库，使用远程组件库源码
