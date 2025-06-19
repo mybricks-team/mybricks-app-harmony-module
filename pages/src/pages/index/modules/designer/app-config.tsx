@@ -18,8 +18,8 @@ import { editorAppenderFn } from "./editorAppender";
 import { showAIPageModal, HarmonyPrompts, HarmonyDefinitions } from '@mybricks/sdk-for-ai'
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
-import { getAiEncryptData } from "./utils/get-ai-encrypt-data";
-import { getNewDSL, getDSLPrompts, getExamplePrompts } from './utils/get-new-dsl'
+import { aiUtils } from "./utils/get-ai-encrypt-data";
+import { getNewDSL, getDSLPrompts, getExamplePrompts, getSystemPrompts } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
 import { message } from "antd";
@@ -251,6 +251,9 @@ export default function ({
       return contentModel.getMetaContent();
     },
     // comLibAdder: appData.comLibAdder(ctx),
+    // comLibLoader: () => {
+    //   return Promise.resolve(['https://127.0.0.1:8000/libEdt.js'])
+    // },
     comLibLoader: appData.comLibLoader({
       comlibs: ctx.comlibs,
       cleanStyles: false,
@@ -1281,6 +1284,7 @@ const getAiView = (enableAI, option) => {
 
   if (enableAI) {
     return {
+      getSystemPrompts,
       getDSLPrompts,
       getExamplePrompts,
       getNewDSL,
@@ -1434,7 +1438,7 @@ const getAiView = (enableAI, option) => {
               //   tool_choice: 'auto',
               // })
               body: JSON.stringify(
-                APP_ENV === 'production' ? getAiEncryptData({
+                APP_ENV === 'production' ? aiUtils.getAiEncryptData({
                   model,
                   role,
                   messages,
