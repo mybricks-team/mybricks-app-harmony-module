@@ -170,6 +170,7 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
           }
           .hideTitleBar(true)
           .mode(NavDestinationMode.DIALOG)
+          .systemTransition(NavigationSystemTransitionType.NONE)
         }
       }
   
@@ -224,6 +225,33 @@ const handleGlobalCode = (page) => {
   return `${page.importManager.toCode()}
   
   ${page.content}`
+}
+
+const handleReadMeCode = (params) => {
+  const { toJson, fileName } = params;
+  // 当前默认有且只有一个extension
+  const extension = toJson.frames.find((frame) => frame.type === "extension");
+  const { outputs } = extension;
+
+  const outputsCode = outputs.reduce((pre, cur) => {
+    return pre + (pre ? "\n\n" : "") +
+      "/**\n" + 
+      ` * 注册${cur.title}回调\n` +
+      " */\n" + 
+      `api.on("${cur.id}", (value) => {\n\n})`
+  }, "")
+
+  return `# ${fileName}\n` + 
+    "模块基于@hadss/hmrouter实现\n\n" + 
+    "## 使用\n" + 
+    "```javascript\n" + 
+    'import api from "./api"\n\n' + 
+    "/**\n" + 
+    " * 打开模块\n" + 
+    " */\n" + 
+    "api.open({})" + (outputsCode ? "\n\n" : "") +
+    outputsCode + 
+    "\n```"
 }
 
 export const compilerHarmony2 = async (params, config) => {
@@ -356,7 +384,7 @@ const generatePageCodeWithMetadata = (params) => {
 
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId } = params;
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName } = params;
   const { Logger } = config;
   const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata({
     toJson: data.toJson,
@@ -368,12 +396,21 @@ const compilerHarmonyModule = async (params, config) => {
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
+  // 写入README.md
+  await fse.writeFile(
+    path.join(targetPath, "README.md"),
+    handleReadMeCode({
+      toJson: data.toJson,
+      fileName
+    }),
+    { encoding: "utf8" }
+  );
   // 拷贝comlib
-  if (data.comlibs?.url) {
+  if (data.comlibs?.[0].hmCode) {
     // 配置组件库，使用远程组件库源码
     const comlibZipPath = path.join(targetPath, "comlib.zip");
     await downloadZip({
-      url: data.comlibs.url.replace("edit.js", "comlib.zip"),
+      url: `${domainName}${data.comlibs?.[0].hmCode}`,
       targetPath: comlibZipPath
     })
     const zip = new AdmZip(comlibZipPath);
