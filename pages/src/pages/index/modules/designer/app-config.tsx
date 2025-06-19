@@ -19,7 +19,7 @@ import { showAIPageModal, HarmonyPrompts, HarmonyDefinitions } from '@mybricks/s
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { getAiEncryptData } from "./utils/get-ai-encrypt-data";
-import { getNewDSL, getDSLPrompts } from './utils/get-new-dsl'
+import { getNewDSL, getDSLPrompts, getExamplePrompts } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
 import { message } from "antd";
@@ -27,7 +27,7 @@ import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
 
-// import { mock2Res, systemPrompts } from './mock'
+// import { mock2Res, mock1Res, systemPrompts } from './mock'
 
 // import  AICom  from "../../../../../public/ai-com"
 // import typeConfig from "./configs/type";
@@ -1252,6 +1252,7 @@ function getDesignerParams(args) {
     }
     case ['architect'].includes(extraOption.aiRole): {
       model = 'google/gemini-2.5-pro-preview';
+      // model = 'openai/gpt-4.1'
       // model = 'deepseek/deepseek-r1-0528'
       role = 'architect'
       break
@@ -1281,9 +1282,10 @@ const getAiView = (enableAI, option) => {
   if (enableAI) {
     return {
       getDSLPrompts,
+      getExamplePrompts,
       getNewDSL,
       async requestAsStream(messages, ...args) {
-        const { context, tools, model, role } = getDesignerParams(args);
+        let { context, tools, model, role } = getDesignerParams(args);
         const { write, complete, error, cancel } = context ?? {};
         // 用于debug用户当前使用的模型
         window._ai_use_model_ = model;
@@ -1297,8 +1299,10 @@ const getAiView = (enableAI, option) => {
 
         // const isScenond = messages.length > 2
         // if (isScenond) {
-        //   write(mock2Res);
-        //   complete();
+        //   setTimeout(() => {
+        //     write(mock2Res);
+        //     complete();
+        //   }, 1000)
         //   return 
         // }
 
@@ -1313,7 +1317,10 @@ const getAiView = (enableAI, option) => {
         
         // // 图生页面第二轮
         // if (_message.length > 2 && Array.isArray(_message?.[1]?.content) && _message[0]?.role === 'system') {
-        //   _message[0].content = systemPrompts
+        //   // _message[0].content = systemPrompts
+        //   _message.splice(2, 1)
+        //   // _message[1].content[0].text = '这是参考图片'
+        //   _message[_message.length - 1].content = `(知识库有更新) 请关注之前的沟通，重试一次。 注意：如果有图片附件，参考附件中的图片进行开发，要求最大程度还原图片中的各项功能要素与视觉设计要素、可以做适度的创作发挥，要求考虑到功能一致完整与合理性、注意外观视觉美观大方、富有现代感。`
         // }
         // if (_message.length > 2 && _message[0]?.role === 'system' && _message[0]?.content.indexOf('page.dsl') > -1) {
         //   _message[0].content = systemPrompts
