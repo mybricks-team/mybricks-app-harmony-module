@@ -1,5 +1,0 @@
-export { default as handleModuleCode } from "./handleModuleCode"
-export { default as handlePageCode } from "./handlePageCode"
-export { default as handlePopupCode } from "./handlePopupCode"
-export { default as handleEntryCode } from "./handleEntryCode"
-export { default as handleGlobalCode } from "./handleGlobalCode"
