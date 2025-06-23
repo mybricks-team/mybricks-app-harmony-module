@@ -50,7 +50,7 @@ export default struct EntryView {
             .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
             .animationMode(AnimationMode.NO_ANIMATION)
           } else if (appRouter.entryPageId) {
-            this.renderScenes(appRouter.entryPageId)
+            this.renderMainScenes(appRouter.entryPageId)
           }
         } else {
           SplashPage({

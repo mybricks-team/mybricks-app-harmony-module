@@ -1,4 +1,3 @@
-import { HMRouterMgr } from '@hadss/hmrouter'
 type UnknownJson = Record<string, string | number | boolean | Object> | string | number | boolean
 
 export interface TabBarConfig {
@@ -25,7 +24,7 @@ export class AppRouter {
 
   @Trace activeTabIndex?: number = 0
   @Trace entryPageId?: string
-  @Trace entryMode?: 'tab' | 'page' = 'tab'
+  @Trace entryMode?: 'tab' | 'page'
 
   pageParams?: Map<string, UnknownJson | undefined> = new Map()
 
@@ -35,7 +34,7 @@ export class AppRouter {
   }
 
   public registEntryPage(name: string) {
-    const targetIndex = this.tabList.findIndex(t => t?.id === name)
+    const targetIndex = this.tabList.findIndex(t => name.indexOf(t?.id) > -1)
     if (this.hasTabs() && targetIndex > -1) {
       this.entryMode = 'tab'
       this.activeTabIndex = targetIndex
@@ -63,14 +62,22 @@ export class AppRouter {
 
   public push(name: string, params: UnknownJson | undefined = undefined,
     callback: Callback<PopInfo> | undefined = undefined) {
-     if (!this.routerStack.length) {
-      this.registEntryPage(name)
-      this.routerStack.push(name)
-    } else {
+    if (this.entryMode === 'page') { // for application 导出，注册非tabbar首页
+      this.routerStack.push(name);
+      this.navPathStack.pushPathByName(name, params, callback, true)
+    } else if (this.entryMode === 'tab') {  // for application 导出，注册非tabbar首页
       if (this.isTabbarPage(name)) {
         this.clear(); // 一般来说回到tabbar再物理返回就是直接退出APP了，不会到启动页，也不会有历史页，所以清空
         this.activeTabIndex = this.tabList.findIndex(t => t.id === name);
         this.pageParams?.set(name, params)
+        return
+      }
+      this.routerStack.push(name);
+      this.navPathStack.pushPathByName(name, params, callback, true)
+    } else { // for module 单独导出，没有 registEntryPage，所以需要先 registEntryPage
+      if (!this.routerStack.length) {
+        this.registEntryPage(name)
+        this.routerStack.push(name)
         return
       }
       this.routerStack.push(name);
@@ -92,19 +99,11 @@ export class AppRouter {
 
   /** 返回上一页 */
   public pop(result?: Object) {
-    if (this.routerStack.length === 0) {
-      return
-    }
-    if (this.routerStack.length === 1) {
-      HMRouterMgr.pop()
+    if (result !== undefined) {
+      this.navPathStack.pop(result, true)
     } else {
-      if (result !== undefined) {
-        this.navPathStack.pop(result, true)
-      } else {
-        this.navPathStack.pop(true)
-      }
+      this.navPathStack.pop(true)
     }
-    this.routerStack.pop();
   }
 
   /** 返回到堆栈中最近的页面 */
@@ -113,7 +112,7 @@ export class AppRouter {
       // TODO
       return
     }
-    // 如果是要回到首页，直接清楚所有堆栈即可
+    // 如果是要回到首页，直接清除所有堆栈即可
     if (this.entryPageId === name) {
       this.clear();
       return
