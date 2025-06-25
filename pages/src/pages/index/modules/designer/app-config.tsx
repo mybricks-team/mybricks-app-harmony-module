@@ -1288,6 +1288,20 @@ const getAiView = (enableAI, option) => {
       getDSLPrompts,
       getExamplePrompts,
       getNewDSL,
+      getAvailable(){
+        return new Promise((resolve, reject) => {
+          fetch('//ai.mybricks.world/api/rate-limit/mine').then((res) => {
+            return res.json()
+          }).then(res => {
+            if (res?.roles?.common?.total) {
+              return resolve({
+                times: res.roles.common.remaining
+              })
+            }
+            reject()
+          }).catch(reject)
+        })
+      },
       async requestAsStream(messages, ...args) {
         let { context, tools, model, role } = getDesignerParams(args);
         const { write, complete, error, cancel } = context ?? {};
