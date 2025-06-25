@@ -8,6 +8,8 @@ import css from "./web.less";
 import help from "./icons/help"
 import { showHarmonyDownloadConfig } from "./model/downloadModel"
 import { CompileType } from "@/types";
+import { Export } from "./icons/export";
+import { publish } from "./icons/publish";
 
 interface WebToolbarProps {
   operable: boolean;
@@ -67,7 +69,7 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
     <>
       <Toolbar
         title={pageModel.file?.name}
-        updateInfo={<Toolbar.LastUpdate onClick={handleSwitch2SaveVersion} />}
+        updateInfo={<Toolbar.LastUpdate onClick={handleSwitch2SaveVersion} isModify={isModify} />}
       >
         <Locker
           statusChange={statusChange}
@@ -123,8 +125,27 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
           </Tooltip>
         ) : null}
         <Toolbar.Save disabled={!operable} onClick={onSave} dotTip={isModify} />
-        <Toolbar.Button disabled={!operable} onClick={publishHandle}>发布</Toolbar.Button>
-        <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>导出模块源码</Toolbar.Button>
+
+
+        {/* <Toolbar.Button disabled={!operable} onClick={publishHandle}>发布</Toolbar.Button> */}
+        <Tooltip
+          placement="bottom"
+          title={"发布"}
+        >
+          <div className={css.publish_btn} onClick={publishHandle}>
+            {publish}
+          </div>
+        </Tooltip>
+
+        <Tooltip
+          placement="bottom"
+          title={"下载源码"}
+        >
+          <div className={css.export_btn} onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>
+            {Export}
+          </div>
+        </Tooltip>
+        {/* <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>导出模块源码</Toolbar.Button> */}
         {/* <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyApplication })}>下载源码(应用)</Toolbar.Button> */}
       </Toolbar>
     </>
