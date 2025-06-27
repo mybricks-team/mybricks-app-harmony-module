@@ -406,7 +406,7 @@ const compilerHarmonyModule = async (params, config) => {
     { encoding: "utf8" }
   );
   // 拷贝comlib
-  if (data.comlibs?.[0].hmCode) {
+  if (data.comlibs?.[0]?.hmCode) {
     // 配置组件库，使用远程组件库源码
     const comlibZipPath = path.join(targetPath, "comlib.zip");
     await downloadZip({
