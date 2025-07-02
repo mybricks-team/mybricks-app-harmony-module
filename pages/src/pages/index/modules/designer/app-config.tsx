@@ -1291,7 +1291,9 @@ const getAiView = (enableAI, option) => {
       getNewDSL,
       getAvailable(){
         return new Promise((resolve, reject) => {
-          fetch('//ai.mybricks.world/api/rate-limit/mine').then((res) => {
+          fetch('//ai.mybricks.world/api/rate-limit/mine', {
+            credentials: 'include',
+          }).then((res) => {
             return res.json()
           }).then(res => {
             if (res?.roles?.common?.total) {
@@ -1446,6 +1448,7 @@ const getAiView = (enableAI, option) => {
                 } : {})
               },
               signal: cancelControl?.signal,
+              credentials: 'include',
               // body: JSON.stringify({
               //   model,
               //   messages: _message,
