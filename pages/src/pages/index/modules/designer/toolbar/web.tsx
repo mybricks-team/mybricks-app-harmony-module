@@ -130,7 +130,7 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
         {/* <Toolbar.Button disabled={!operable} onClick={publishHandle}>发布</Toolbar.Button> */}
         <Tooltip
           placement="bottom"
-          title={"发布"}
+          title={"发布到物料中心"}
         >
           <div className={css.publish_btn} onClick={publishHandle}>
             {publish}
@@ -139,7 +139,7 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
 
         <Tooltip
           placement="bottom"
-          title={"下载源码"}
+          title={"导出模块源码"}
         >
           <div className={css.export_btn} onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>
             {Export}
