@@ -20,7 +20,7 @@ import {
   getRealDomain,
 } from "./utils";
 import { Logger } from "@mybricks/rocker-commons";
-import { compilerHarmony2 } from "./compiler";
+import { compilerHarmony } from "./compiler";
 import publish from "./publish";
 import getModule from "./getModule";
 import loadPage from "./loadPage";
@@ -90,7 +90,7 @@ export default class CompileController {
 
       Logger.info("[compile] init harmony template start");
 
-      await compilerHarmony2(
+      await compilerHarmony(
         {
           data,
           projectPath,

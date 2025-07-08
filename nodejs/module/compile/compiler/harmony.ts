@@ -1,337 +1,556 @@
+import toHarmonyCode from "@mybricks/to-code-react/dist/cjs/toHarmonyCode"
 import * as path from "path";
-import * as fs from "fs";
 import * as fse from "fs-extra";
-import { BaseCompiler } from "./base";
+import * as AdmZip from "adm-zip";
+import { COMPONENT_PACKAGE_NAME } from "./hm/constant";
+import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip } from "../utils";
 
-import { CompileType, DepModules } from "./types";
+/**
+ * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
+ */
 
-class HarmonyCompiler extends BaseCompiler {
-  validateData = (data) => {
-    this.transformData({ data });
-  };
+function convertNamespaceToComponentName(namespace: string) {
+  return namespace
+    .split(".")
+    .map((text) => {
+      if (text.toUpperCase() === "MYBRICKS") {
+        return "MyBricks";
+      } else {
+        return text[0].toUpperCase() + text.slice(1);
+      }
+    })
+    .join("");
+}
 
-  get pagesPath () {
-    return path.join(this.projectPath, './entry/src/main/ets/pages')
+const handleEntryCode = (template: string, {
+  tabbarScenes,
+  normalScenes,
+  entryScene,
+  tabbarConfig
+}) => {
+  const allImports = Array.from(new Set([...tabbarScenes, ...normalScenes]))
+    .map(scene => `// ${scene.title} \nimport ${generatePageFileName(scene.title)} from './${generatePageFileName(scene.title)}';`)
+    .join('\n')
+  const generateRoutes = (scenes) => scenes
+    .map((scene, i) => `${i === 0 ? 'if' : '\t\telse if'} (path === '${scene.id}') {\n\t\t\t${generatePageFileName(scene.title)}()\n\t\t}`)
+    .join('\n');
+  const renderMainScenes = generateRoutes(Array.from(new Set([entryScene, ...tabbarScenes])))
+  const renderScenes = generateRoutes(normalScenes)
+
+
+  return template
+    .replace("$r('app.config.imports')", allImports)
+    .replace("$r('app.config.mainScenes')", renderMainScenes)
+    .replace("$r('app.config.scenes')", renderScenes)
+    .replace("$r('app.config.tabbar')", JSON.stringify(tabbarConfig, null, 2))
+    .replace("$r('app.config.entry')", JSON.stringify(entryScene.id))
+}
+
+const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
+  disableScroll = false,
+  statusBarStyle,
+  navigationBarStyle,
+  navigationBarTitleText,
+  navigationStyle = 'default',
+  showBackIcon = false
+}) => {
+  if (page.content.includes("MyBricks.")) {
+    page.importManager.addImport({
+      packageName: "../utils/types",
+      dependencyNames: ["MyBricks"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("controller:")) {
+    page.importManager.addImport({
+      packageName: COMPONENT_PACKAGE_NAME,
+      dependencyNames: ["Controller"],
+      importType: "named",
+    });
   }
 
-  get baseAppPath () {
-    return path.join(this.projectPath, './entry/src/main/ets')
-  }
+  switch (navigationStyle) {
+    case 'default': {
+      page.importManager.addImport({
+        packageName: "../utils",
+        dependencyNames: ["AppCommonHeader"],
+        importType: "named",
+      });
+      return `${page.importManager.toCode()}
 
-  get mainPath () {
-    return path.join(this.projectPath, './entry/src/main')
+/** ${page.meta.title} */
+@ComponentV2
+export default struct Page {
+  build() {
+    NavDestination() {
+      AppCommonHeader({
+        title: ${JSON.stringify(navigationBarTitleText)},
+        titleColor: ${JSON.stringify(navigationBarStyle?.color)},
+        barBackgroundColor: ${JSON.stringify(navigationBarStyle?.backgroundColor)},
+        showBackIcon: ${Boolean(showBackIcon)}
+      })
+      Index()
+    }
+    .hideTitleBar(true)
   }
 }
 
+${page.content}
+`;
+    }
+    case 'custom': {
+      page.importManager.addImport({
+        packageName: "../utils",
+        dependencyNames: ["AppCustomHeader"],
+        importType: "named",
+      });
+      return `${page.importManager.toCode()}
 
-export const compilerHarmony = async (
-  { data, projectPath, projectName, fileName, depModules, origin, type }: any,
-  { Logger }
-) => {
-  const compiler = new HarmonyCompiler({ projectPath });
+/** ${page.meta.title} */
+@ComponentV2
+export default struct Page {
+  build() {
+    NavDestination() {
+      AppCustomHeader({
+        titleColor: ${JSON.stringify(navigationBarStyle?.color)},
+        barBackgroundColor: ${JSON.stringify(navigationBarStyle?.backgroundColor)},
+      })
+      Index()
+    }
+    .hideTitleBar(true)
+  }
+}
 
-  compiler.validateData(data);
+${page.content}
+`;
+    }
+    case 'none': {
+      return `${page.importManager.toCode()}
 
-  // 修正tabbr数据，去除已经不存在的tabbar页面
-  const tabBarJson = (data.tabBarJson || []).filter((t) => {
-    return (
-      (data.appConfig?.pages || []).findIndex((p) => p === t.pagePath) > -1
-    );
+/** ${page.meta.title} */
+@ComponentV2
+export default struct Page {
+  build() {
+    NavDestination() {
+      Index()
+    }
+    .hideTitleBar(true)
+  }
+}
+
+${page.content}
+`;
+    }
+  }
+}
+
+const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
+  if (page.content.includes("MyBricks.")) {
+    page.importManager.addImport({
+      packageName: "../utils/types",
+      dependencyNames: ["MyBricks"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("controller:")) {
+    page.importManager.addImport({
+      packageName: COMPONENT_PACKAGE_NAME,
+      dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  return `${page.importManager.toCode()}
+
+      /** ${page.meta.title} */
+      @ComponentV2
+      export default struct Page {
+        build() {
+          NavDestination() {
+            Index()
+          }
+          .hideTitleBar(true)
+          .mode(NavDestinationMode.DIALOG)
+          .systemTransition(NavigationSystemTransitionType.NONE)
+        }
+      }
+  
+      ${page.content}
+      `;
+}
+
+const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
+  if (page.content.includes("MyBricks.")) {
+    page.importManager.addImport({
+      packageName: "../utils/types",
+      dependencyNames: ["MyBricks"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("controller:")) {
+    page.importManager.addImport({
+      packageName: COMPONENT_PACKAGE_NAME,
+      dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  return `${page.importManager.toCode()}
+
+      ${page.content}
+      `;
+}
+
+const handleGlobalCode = (page) => {
+  if (page.content.includes("MyBricks.")) {
+    page.importManager.addImport({
+      packageName: "../utils/types",
+      dependencyNames: ["MyBricks"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("createVariable")) {
+    page.importManager.addImport({
+      packageName: "../utils/mybricks",
+      dependencyNames: ["createVariable"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("createFx")) {
+    page.importManager.addImport({
+      packageName: "../utils/mybricks",
+      dependencyNames: ["createFx"],
+      importType: "named",
+    });
+  }
+
+  return `${page.importManager.toCode()}
+  
+  ${page.content}`
+}
+
+const handleReadMeCode = (params) => {
+  const { toJson, fileName } = params;
+  // 当前默认有且只有一个extension
+  const extension = toJson.frames.find((frame) => frame.type === "extension");
+  const { outputs } = extension;
+
+  const outputsCode = outputs.reduce((pre, cur) => {
+    return pre + (pre ? "\n\n" : "") +
+      "/**\n" + 
+      ` * 注册${cur.title}回调\n` +
+      " */\n" + 
+      `api.on("${cur.id}", (value) => {\n\n})`
+  }, "")
+
+  return `# ${fileName}\n` + 
+    "模块基于@hadss/hmrouter实现\n\n" + 
+    "## 使用\n" + 
+    "```javascript\n" + 
+    'import api from "./api"\n\n' + 
+    "/**\n" + 
+    " * 打开模块\n" + 
+    " */\n" + 
+    "api.open({})" + (outputsCode ? "\n\n" : "") +
+    outputsCode + 
+    "\n```"
+}
+
+export const compilerHarmony = async (params, config) => {
+  await compilerHarmonyModule(params, config)
+}
+
+const generatePageFileName = (text: string) => {
+  const splits = cleanAndSplitString(text);
+  
+  return splits.reduce((pre, cur) => {
+    return pre + firstCharToUpperCase(pinyin.convertToPinyin(cur, "", true))
+  }, "") + "Page"
+}
+
+const generatePageCodeWithMetadata = (params) => {
+  const { toJson, componentMetaMap } = params;
+  const usedComponentsMap = {};
+  const pageCode = toHarmonyCode(toJson, {
+    getComponentMetaByNamespace(namespace, config) {
+      if (!usedComponentsMap[namespace]) {
+        usedComponentsMap[namespace] = config;
+      }
+
+      let componentName = convertNamespaceToComponentName(namespace);
+      const dependencyNames: string[] = [];
+
+      if (config.type === "js") {
+        componentName = componentName[0].toLowerCase() + componentName.slice(1);
+      }
+
+      dependencyNames.push(componentName);
+  
+      return {
+        dependencyImport: {
+          packageName: COMPONENT_PACKAGE_NAME,
+          dependencyNames,
+          importType: "named",
+        },
+        componentName: componentName,
+      };
+    },
+    getComponentPackageName() {
+      return COMPONENT_PACKAGE_NAME
+    }
   });
 
-  // list被赋值的话，必须要大于2的数组
-  if (Array.isArray(tabBarJson) && tabBarJson.length > 1) {
-    data.appConfig.tabBar = data.appConfig.tabBar || {};
-    data.appConfig.tabBar.list = (tabBarJson || []).map((c) => ({
-      pagePath: c.pagePath,
-    }));
-  }
+  let importComponentCode = "";
+  let declaredComponentCode = "";
 
-  //写入口文件
-  await writeAppEntryFile(compiler.baseAppPath, { entryPagePath: data.appConfig.entryPagePath })
+  Object.entries(usedComponentsMap).forEach(([namespace, config]: any) => {
+    const namespaceSplit = namespace.split(".")
 
-  //写入APP配置
-  await writeAppConfigFile(compiler.mainPath, data.appConfig)
-
-  // 定义路由跳转的map，分包后
-  let routeMap = {};
-
-  const pagesPath = compiler.pagesPath
-
-  // 创建页面文件夹
-  for (let i = 0; i < data.pages.length; i++) {
-    let page = data.pages[i];
-    const pageId = page.pagePath.split("/")[1];
-
-    routeMap[pageId] = {
-      path: `/${page.pagePath}`,
-      isTabbar: (tabBarJson || []).some(
-        (b) => b?.pagePath?.indexOf(pageId) > -1
-      ),
-    };
-
-    const indexPath = path.join(pagesPath, `./index`);
-    const target = path.join(pagesPath, `./${pageId}`);
-    await fse.copy(indexPath, target, { overwrite: true })
-
-    // 写入页面Json
-    await writePageJsonFile(target, page.pageToJson);
-
-    // 注入页面级JS
-    writePageJs(target, data.allModules?.pages?.[pageId])
-
-    // 替换
-    await modifyFileContent(path.join(target, 'index.ets'), (str) => {
-      return str.replace('pages/index/index', page.pagePath)
-    })
-
-    // 写入页面配置
-    await writePageConfigFile(target, page.pageConfig)
-    // 替换页面配置内容
-    await modifyFileContent(path.join(target, 'index_taro_comp.js'), (str) => {
-      return str.replace('pages/index/index', page.pagePath)
-    })
-
-    // // 写入特殊的 fxFrame
-    // let pageOnLoadFx = data.fxFrames.find((fxFrame) => {
-    //   return fxFrame.name === "pageOnLoad";
-    // });
-    // writePageFx(
-    //   target,
-    //   pageId,
-    //   JSON.stringify({
-    //     pageOnLoad: pageOnLoadFx,
-    //   })
-    // );
-
-    // // 注入页面级JS
-    // writePageJs(target, pageId, data.allModules?.pages?.[pageId])
-
-    // //注入页面级CSS，主要是Style声明的部分
-    // let targetStylePath = path.resolve(
-    //   target,
-    //   `./index${getExtName(FileType.css, type)}`
-    // );
-    // fse.writeFileSync(targetStylePath, page.cssContent || "", "utf-8");
-  }
-
-
-  /** 注入所有动态JS */
-  writeProjectJs(compiler.baseAppPath, data.allModules?.all)
-  delete data.allModules;
-
-  // 删除 index 和 404 页面
-  fse.removeSync(path.resolve(pagesPath, "./index"));
-  fse.removeSync(path.resolve(pagesPath, "./404"));
-
-  // //注入全局配置
-  let cloneStatus = JSON.parse(JSON.stringify(data.status));
-  delete cloneStatus.appsecret;
-
-  // 注入全局的域名配置
-  if (!cloneStatus.serviceDomain) {
-    cloneStatus.serviceDomain = data.status?.callServiceHost || origin;
-  }
-
-  // 服务
-  cloneStatus.serviceFx = {
-    url: data.serviceFxUrl,
-    env: data.status.apiEnv,
-  };
-
-  writeRootConfig(
-    compiler.baseAppPath,
-    {
-      status: cloneStatus,
-      routeMap,
-      scenes: data.scenes, // 用于给render-taro创建全局多场景的交互
-      fxFrames: data.fxFrames, // 用于给render-taro创建全局Fx的实现
-      globalVarMap: data.globalVarMap, // 全局变量默认值
-    }
-  );
-
-};
-
-async function writeAppConfigFile(mainPath, appConfig) {
-  const content = `import { initPxTransform } from './npm/@tarojs/taro';
-import { createReactApp } from './npm/@tarojs/plugin-framework-react/dist/runtime';
-import App from './app_comp.js';
-import * as React from './npm/react';
-import ReactDom from './npm/@tarojs/react';
-
-const config = ${JSON.stringify(appConfig, null, 2)};
-initPxTransform({
-  designWidth: 375,
-  deviceRatio: {
-    "375": 1
-  },
-  baseFontSize: undefined,
-  unitPrecision: undefined,
-  targetUnit: undefined
-});
-const app = () => createReactApp(App, React, ReactDom, config);
-
-export { config, app as default };
-//# sourceMappingURL=app_taro_comp.js.map
-`
-  await fse.writeFile(path.join(mainPath, 'ets', 'app_taro_comp.js'), content, { encoding: "utf8" });
-
-  const mainPageJson = {
-    src: appConfig.pages,
-    window: {
-      designWidth: 375,
-      autoDesignWidth: false
-    }
-  }
-  await fse.writeJSON(path.join(mainPath, 'resources', 'base', 'profile', 'main_pages.json'), mainPageJson, { encoding: "utf8" });
-}
-
-async function writeAppEntryFile(appPath, {
-  entryPagePath
-}) {
-  const content = `import type Want from "@ohos.app.ability.Want"
-import type ohWindow from "@ohos.window"
-import type { AppInstance } from "./npm/@tarojs/runtime"
-
-
-import UIAbility from "@ohos.app.ability.UIAbility"
-import AbilityConstant from "@ohos.app.ability.AbilityConstant"
-import { callFn, context, Current, ObjectAssign, TaroAny, window } from "./npm/@tarojs/runtime"
-import { initHarmonyElement, hooks } from "./npm/@tarojs/runtime"
-import createComponent, { config } from "./app_taro_comp"
-
-
-window.__taroAppConfig = config
-export default class EntryAbility extends UIAbility {
-  app?: AppInstance
-
-  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
-    AppStorage.setOrCreate('__TARO_ENTRY_PAGE_PATH', '${entryPagePath}')
-    AppStorage.setOrCreate('__TARO_PAGE_STACK', [])
-    // 引入
-    initHarmonyElement()
-    this.app = createComponent()
-    callFn(this.app?.onLaunch, this, ObjectAssign(want, launchParam))
-  }
-
-  onDestroy() {}
-
-  onWindowStageCreate(stage: ohWindow.WindowStage) {
-    context.resolver(this.context)
-
-    this.context.getApplicationContext().on('environment', {
-      onConfigurationUpdated(config) {
-        AppStorage.setOrCreate('__TARO_APP_CONFIG', config)
-      },
-      onMemoryLevel(level) {
-        hooks.call('getMemoryLevel', { level })
+    const importName = namespaceSplit.join("_");
+    const asImportName = (config.type === "ui" ? "Basic" : "basic") + namespaceSplit.map((text) => {
+      if (text.toUpperCase() === "MYBRICKS") {
+        return "MyBricks";
       }
-    })
 
-    stage.loadContent('${entryPagePath}', (err, data) => {
-      const windowClass = stage.getMainWindowSync()
-      Current.uiContext = windowClass.getUIContext()
-      windowClass.setWindowLayoutFullScreen(true)
+      return text[0].toUpperCase() + text.slice(1);
+    }).join("")
 
-      if (err.code) {
-        return callFn(this.app?.onError, this, err)
+    importComponentCode += `${importName} as ${asImportName},`
+
+    if (config.type === "ui") {
+      const importData = importName + "_Data";
+      importComponentCode += `${importData},`
+      const componentName = asImportName.replace("Basic", "");
+      const { hasSlots } = componentMetaMap[namespace]
+      declaredComponentCode += `@Builder
+      function ${componentName}Builder (params: MyBricksComponentBuilderParams) {
+        ${asImportName}({
+          uid: params.uid,
+          data: new ${importData}(params.data as MyBricks.Any),
+          inputs: createInputsHandle(params),
+          outputs: createEventsHandle(params),
+          styles: createStyles(params),
+          ${hasSlots ? "slots: params.slots," : ""}
+          ${hasSlots ? "slotsIO: params.slotsIO," : ""}
+          parentSlot: params.parentSlot
+        })
       }
-    })
-  }
+      
+      @ComponentV2
+      export struct ${componentName} {
+        @Param @Require uid: string;
+        @Param controller: MyBricks.Controller = Controller();
+        @Param @Require data: MyBricks.Data
+        @Param events: MyBricks.Events = {}
+        @Param styles: Styles = {};
+        @Local columnVisibilityController: ColumnVisibilityController = new ColumnVisibilityController()
+        ${hasSlots ? "@BuilderParam slots : (params: MyBricks.SlotParams) => void = Slot;" : ""}
+        ${hasSlots ? "@Local slotsIO: MyBricks.Any = createSlotsIO();" : ""}
+        @Param parentSlot?: MyBricks.SlotParams = undefined
 
-  onForeground() {
-    callFn(this.app?.onShow, this)
-  }
+        myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
 
-  onBackground() {
-    callFn(this.app?.onHide, this)
-  }
-
-  onMemoryLevel(level: AbilityConstant.MemoryLevel) {
-    let levelRes: number
-
-    switch (level) {
-      case AbilityConstant.MemoryLevel.MEMORY_LEVEL_MODERATE:
-        levelRes = 5
-        break
-      case AbilityConstant.MemoryLevel.MEMORY_LEVEL_LOW:
-        levelRes = 10
-        break
-      case AbilityConstant.MemoryLevel.MEMORY_LEVEL_CRITICAL:
-        levelRes = 15
-        break
+        build() {
+          Column() {
+            if (this.parentSlot?.itemWrap) {
+              this.parentSlot.itemWrap({
+                id: this.uid,
+                inputs: this.controller._inputEvents
+              }).wrap.builder(wrapBuilder(${componentName}Builder), this, this.parentSlot.itemWrap({
+                id: this.uid,
+                inputs: this.controller._inputEvents
+              }).params)
+            } else {
+              ${componentName}Builder(this)
+            }
+          }
+          .attributeModifier(this.myBricksColumnModifier)
+          .visibility(this.columnVisibilityController.visibility)
+        }
+      }\n`
+    } else {
+      let componentName = asImportName.replace("basic", "");
+      componentName = componentName[0].toLowerCase() + componentName.slice(1);
+      declaredComponentCode += `export const ${componentName} = (props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {
+        return createJSHandle(${asImportName}, { props, env });
+      }\n`
     }
+  })
 
-    if (levelRes) {
-      hooks.call('getMemoryLevel', { level: levelRes })
-    }
+  return {
+    pageCode,
+    declaredComponentCode,
+    importComponentCode
   }
-}`
-
-  await fse.writeFile(path.join(appPath, 'app.ets'), content, { encoding: "utf8" });
 }
 
-async function modifyFileContent(path, callback) {
-  let str = await fse.readFile(path, "utf8");
-  str = callback?.(str);
-  await fse.writeFile(path, str, { encoding: "utf8" });
-}
+/** 下载模块 */
+const compilerHarmonyModule = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName } = params;
+  const { Logger } = config;
+  const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata({
+    toJson: data.toJson,
+    componentMetaMap: data.componentMetaMap
+  });
 
-/** 写app级，config文件 */
-async function writeRootConfig(dir, config) {
-  const filePath = path.resolve(dir, "mybricks/root-config.js");
-  await fse.ensureDir(path.resolve(dir, "mybricks"));
+  // 目标项目路径
+  const targetPath = path.join(projectPath, "module");
 
-  await fse.writeFile(filePath, `export default ${JSON.stringify(config, null, 2)}`, { encoding: "utf8" });
-}
-
-async function writePageJsonFile (dir, toJson) {
-  const pageJsonFilePath = path.join(dir, 'mybricks/page-config.js')
-  await fse.writeFile(pageJsonFilePath, `
-export default ${JSON.stringify({
-  toJson
-}, null, 2)}`, { encoding: 'utf-8' })
-}
-
-async function writePageConfigFile(dir, pageConfig: {
-  navigationBarBackgroundColor: string,
-  navigationBarTextStyle: string,
-  navigationBarTitleText: string,
-  backgroundColor: string,
-}) {
-  const content = `import { createPageConfig } from '../../npm/@tarojs/plugin-framework-react/dist/runtime';
-import component from './index_comp.js';
-import '../../npm/react';
-import '../../npm/@tarojs/react';
-
-const config = ${JSON.stringify(pageConfig, null, 2)};
-const index = () => createPageConfig(component, 'pages/index/index', config);
-
-export { config, index as default };
-//# sourceMappingURL=index_taro_comp.js.map
-`
-  await fse.writeFile(path.join(dir, 'index_taro_comp.js'), content, 'utf-8')
-}
-
-function writeProjectJs(dir, str) {
-  const injectCodePath = path.resolve(dir, "mybricks/inject-code.js");
-  fse.ensureDirSync(path.resolve(dir, "mybricks"));
-  fse.writeFileSync(injectCodePath, `module.exports = (function(comModules) {
-    ${decodeURIComponent(str)};
-    return comModules;
-  })({})`,
+  // 拷贝项目
+  await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
+  // 写入README.md
+  await fse.writeFile(
+    path.join(targetPath, "README.md"),
+    handleReadMeCode({
+      toJson: data.toJson,
+      fileName
+    }),
     { encoding: "utf8" }
   );
-}
+  // 拷贝comlib
+  if (data.comlibs?.[0]?.hmCode) {
+    // 配置组件库，使用远程组件库源码
+    const comlibZipPath = path.join(targetPath, "comlib.zip");
+    await downloadZip({
+      url: `${domainName}${data.comlibs?.[0].hmCode}`,
+      targetPath: comlibZipPath
+    })
+    const zip = new AdmZip(comlibZipPath);
+    const comlibPath = path.join(targetPath, "comlib");
+    zip.extractAllTo(comlibPath, true);
+    // 删除下载的zip包
+    fse.removeSync(comlibZipPath);
+  } else {
+    await fse.copy(path.join(__dirname, "./hm/comlib"), path.join(targetPath, "comlib"), { overwrite: true })
+  }
+  // 拷贝utils
+  await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
+  // 拷贝_proxy
+  await fse.copy(path.join(__dirname, "./hm/_proxy"), path.join(targetPath, "_proxy"), { overwrite: true })
+  let _proxyIndexCode = await fse.readFile(path.join(__dirname, "./hm/_proxy/Index.ets"), 'utf-8')
 
-function writePageJs(dir, str) {
-  const filePath = path.resolve(dir, `mybricks/page-code.js`);
-  fse.ensureDirSync(path.resolve(dir, "mybricks"));
+  let apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
+  apiCode = apiCode.replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`);
 
-  fse.writeFileSync(filePath, `module.exports = (function(comModules) {
-    ${decodeURIComponent(str)};
-    return comModules;
-  })({})`, {
-    encoding: "utf8",
+  const sceneMap = {};
+  const moduleNames = new Set<string>();
+
+  pageCode.forEach((page) => {
+    if (page.type === "extensionEvent") {
+      // 业务模块
+      apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
+      return
+    }
+
+    if (page.type === "global") {
+      // 全局变量、全局Fx
+      fse.outputFileSync(path.join(targetPath, `_proxy/global.ets`), handleGlobalCode(page), { encoding: "utf8" })
+      return
+    }
+
+    if (page.type === "module") {
+      moduleNames.add(page.name);
+      fse.outputFileSync(path.join(targetPath, `sections/${page.name}.ets`), handleModuleCode(page), { encoding: "utf8" })
+      return
+    }
+
+
+    if (page.meta) {
+      sceneMap[page.meta.id] = page.meta;
+    }
+
+    let content = "";
+    if (page.type === "normal") {
+      const { pageConfig } = data.pages.find(p => p.id === page.meta?.id) ?? {}
+      // 页面
+      content = handlePageCode(page, pageConfig);
+    } else if (page.type === "popup") {
+      // 弹窗
+      content = handlePopupCode(page);
+    }
+
+    fse.outputFileSync(path.join(targetPath, `pages/${page.name}Page.ets`), content, { encoding: "utf8" })
   });
+
+  if (moduleNames.size) {
+    // 有区块，补充区块的入口文件
+    fse.outputFileSync(
+      path.join(targetPath, `sections/index.ets`),
+      Array.from(moduleNames).reduce((pre, cur) => {
+        return pre + `export { default as ${cur} } from "./${cur}"\n`
+      }, ""),
+      { encoding: "utf8" })
+  }
+
+  await fse.writeFile(
+    path.join(targetPath, "_proxy/Index.ets"),
+    _proxyIndexCode
+      .replace(
+        "{ domain: undefined }",
+        `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+      )
+      .replace(
+        "{ domain: undefined}",
+        `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+      )
+      .replace("$r('app._proxy.component.import')", importComponentCode ? `import { ${importComponentCode} } from "../comlib/Index"` : "")
+      .replace("$r('app._proxy.component.declared')", declaredComponentCode)
+  );
+  await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
+
+  // 写入搭建Js
+  const jsCodePath = path.join(targetPath, "_proxy/codes.js");
+  await fse.ensureFile(jsCodePath)
+  await fse.writeFile(jsCodePath, `export default (function(comModules) {
+    ${decodeURIComponent(data.allModules?.all)};
+    return comModules;
+  })({})`, { encoding: "utf8" })
+
+  // tabbar配置
+  const tabbarConfig = (data.tabBarJson ?? []).map(item => {
+    const { pagePath, ...others } = item
+    return {
+      id: item.pagePath.split('/')[1],
+      ...others,
+    }
+  })
+
+  // 入口场景
+  const entryScene = sceneMap[data.entryPageId]
+
+  // tabbar场景
+  const tabbarScenes: string[] = data.pages.filter(p => 
+    (data.tabBarJson || []).some(
+      (b) => b?.id === p?.id
+    )
+  ).map(p => {
+    return sceneMap[p.id]
+  })
+
+  // 普通场景
+  const normalScenes: string[] = data.pages.filter(p => 
+    !(data.tabBarJson || []).some(
+      (b) => b?.id === p?.id
+    )
+  ).map(p => {
+    return sceneMap[p.id]
+  })
+
+  // 弹窗也写入普通场景判断中
+  data.toJson.scenes.forEach((scene) => {
+    if (scene.type === "popup") {
+      normalScenes.push(sceneMap[scene.id])
+    }
+  })
+
+  const entryPath = path.join(targetPath, "./pages/Index.ets");
+  await fse.copy(path.join(__dirname, "./hm/pages/Index.ets"), entryPath, { overwrite: true });
+  
+  let entryFileContent = await fse.readFile(entryPath, 'utf-8')
+
+  entryFileContent = handleEntryCode(entryFileContent, {
+    normalScenes,
+    tabbarScenes,
+    tabbarConfig,
+    entryScene
+  })
+  await fse.writeFile(entryPath, entryFileContent, 'utf-8')
 }
