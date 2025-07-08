@@ -1,9 +1,8 @@
 import toHarmonyCode from "@mybricks/to-code-react/dist/cjs/toHarmonyCode"
 import * as path from "path";
 import * as fse from "fs-extra";
-import * as AdmZip from "adm-zip";
 import { COMPONENT_PACKAGE_NAME } from "./hm/constant";
-import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip } from "../utils";
+import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip } from "../utils";
 
 /**
  * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符

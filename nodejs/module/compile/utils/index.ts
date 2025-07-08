@@ -1,11 +1,8 @@
-import * as fs from "fs";
 import * as fse from 'fs-extra';
-import * as AdmZip from 'adm-zip';
 import axios from "axios";
 import * as path from "path";
 import * as crypto from "crypto";
-
-const JSZip = require('jszip');
+import { AdmZip } from './admZip';
 
 export enum PublishErrCode {
   /** 普通错误，仅提示，就当没有errCode这个字段好了 */
@@ -18,7 +15,6 @@ export enum PublishErrCode {
   InvalidAppSecret = '10003'
 }
 
-
 export class PublishError extends Error {
   constructor(errCode: PublishErrCode, ...args) {
     super(...args)
@@ -29,41 +25,7 @@ export class PublishError extends Error {
   errCode: PublishErrCode = PublishErrCode.None
 }
 
-async function zipDirectory(zip, dirPath) {
-  const files = await fse.readdir(dirPath);
-
-  for (let index = 0; index < files.length; index++) {
-    const fileName = files[index];
-    const fullPath = path.join(dirPath, fileName);
-    const file = fse.statSync(fullPath);
-    if (file.isDirectory()) {
-      const childDir = zip.folder(fileName);
-      await zipDirectory(childDir, fullPath);
-    } else {
-      zip.file(fileName, fs.readFileSync(fullPath));
-    }
-  }
-}
-
 const DOWNLOAD_TEMP_FOLDER = path.resolve(__dirname, './../../.download-assets');
-
-// export const downloadAssetsFromPath = async (folderPath, assetsZipName) => {
-//   await fse.ensureDir(DOWNLOAD_TEMP_FOLDER);
-
-//   if (!await fse.exists(folderPath)) {
-//     throw new Error('no exist folderPath need zip')
-//   }
-
-//   const zip = new JSZip();
-
-//   await zipDirectory(zip, folderPath);
-
-//   const zipResult = await zip.generateAsync({ type: 'nodebuffer' });
-
-//   await fse.writeFile(path.resolve(DOWNLOAD_TEMP_FOLDER, `./${assetsZipName}.zip`), zipResult);
-
-//   return path.resolve(DOWNLOAD_TEMP_FOLDER, `./${assetsZipName}.zip`)
-// }
 
 export const downloadAssetsFromPath = async (folderPath, assetsZipName) => {
   await fse.ensureDir(DOWNLOAD_TEMP_FOLDER);
@@ -213,7 +175,7 @@ export const localizeFile = async (projectPath, files) => {
 
   return Promise.all(files.map(async file => {
     let content = await fse.readFile(file.filePath, 'utf-8');
-    assets.forEach(asset => {
+    assets.forEach((asset: any) => {
       const regexp = new RegExp(asset.url, 'g');
       content = content.replace(regexp, `${file.assetRelativePath}${asset.assetName}`);
     })
@@ -248,3 +210,4 @@ export function getRealDomain(request) {
 export * from "./pinyin"
 export * from "./string"
 export * from "./download"
+export * from "./admZip"
