@@ -391,7 +391,7 @@ const compilerHarmonyModule = async (params, config) => {
   });
 
   // 目标项目路径
-  const targetPath = path.join(projectPath, "module");
+  const targetPath = path.join(projectPath, data.download.fileName || "module");
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })

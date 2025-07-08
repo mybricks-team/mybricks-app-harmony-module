@@ -1155,23 +1155,19 @@ const Designer = ({ appData }) => {
   }, []);
 
   const onCompile = useCallback(
-    async ({
-      type = CompileType.weapp,
-      version = "1.0.0",
-      description = "版本说明",
-    }: {
-      type: CompileType;
-      version: string;
-      description: string;
-    }) => {
-      if (pageModel?.publishLoading) {
-        return;
-      }
-      await showPublishLoading();
+    async (params) => {
+      const close = message.loading({
+        key: 'download',
+        content: '导出中...',
+        duration: 0,
+      })
+
+      await sleep(300);
+
+      const type = "harmonyModule"
 
       try {
-        const isHarmony = [CompileType.harmonyModule, CompileType.harmonyApplication].includes(type)
-        const toJson = await contentModel.toJSON(isHarmony ? { withDiagrams: true } : null);
+        const toJson = await contentModel.toJSON({ withDiagrams: true });
 
         let comlibs = [...ctx.comlibs];
         if (window.__DEBUG_COMLIB__) {
@@ -1189,44 +1185,15 @@ const Designer = ({ appData }) => {
           }
         }
 
-        let json: any
-
-        if (isHarmony) {
-          json = await getHarmonyJson({
-            toJson: {
-              ...toJson,
-            },
-            comlibs: comlibs,
-            appConfig: {
-              defaultCallServiceHost:  pageModel.appConfig?.defaultCallServiceHost,
-            }
-          })
-        } else {
-          json = await getMiniappJson({
-            toJson: {
-              ...toJson,
-              tabbar: window.__tabbar__.get(),
-            },
-            ci: {
-              appid: pageModel.wxConfig.appid,
-              privateKey: decodeURIComponent(pageModel.wxConfig.privateKey || ""),
-              type: "miniProgram",
-              version,
-              desc: description,
-            },
-            status: {
-              projectId: pageModel.sdk.projectId,
-              fileId: pageModel.fileId,
-              apiEnv: "prod",
-              ...pageModel.appConfig,
-              appid: pageModel.wxConfig.appid,
-              appsecret: pageModel.wxConfig.appsecret,
-            },
-            comlibs: comlibs,
-          })
-        }
-
-        const url = isHarmony ? "/api/harmony-module/harmony/compile" : "/api/harmony-module/miniapp/compile"
+        const json = await getHarmonyJson({
+          toJson: {
+            ...toJson,
+          },
+          comlibs: comlibs,
+          appConfig: {
+            defaultCallServiceHost:  pageModel.appConfig?.defaultCallServiceHost,
+          }
+        })
 
         const getComponentMetaMap = () => {
           const componentMetaMap = {};
@@ -1253,7 +1220,7 @@ const Designer = ({ appData }) => {
         }
 
         const res = await axios({
-          url,
+          url: "/api/harmony-module/harmony/compile",
           method: "POST",
           data: {
             userId: userModel.user?.id,
@@ -1268,55 +1235,32 @@ const Designer = ({ appData }) => {
               services: toJson.services,
               serviceFxUrl: pageModel.appConfig.serviceFxUrl,
               database: pageModel.appConfig.datasource,
-              toJson: isHarmony ? toJson : undefined,
+              toJson,
               componentMetaMap: getComponentMetaMap(),
-              installedModules: designerRef.current.getInstalledModules()
+              installedModules: designerRef.current.getInstalledModules(),
+              download: params
             },
           },
           withCredentials: false,
         });
         let data = res.data;
         pageModel.publishLoading = false;
+        close()
         if (data.code !== 1) {
-          handlePublishErrCode(data);
-
           if (data.innerMessage) {
             message.error(data.innerMessage);
           }
           return;
         }
-        // if (supportFSAccess && false) {
-        //   // 临时关闭 fs access API 的下载，文件多了后太慢了
-
-        //   // 支持 fs acess API 的浏览器走直接下载
-        //   message.loading({
-        //     key: "compile",
-        //     content: "正在构建到本地文件夹",
-        //   });
-        //   await downloadProjectToLocal({ type });
-        //   message.success({
-        //     key: "compile",
-        //     content: "已构建至本地文件夹",
-        //   });
-        // } else {
         download({
           type,
           backEndProjectPath: data?.data?.backEndProjectPath,
         })
-          // showCompileSuccess({
-          //   type,
-          //   onDownload: () =>
-          //     download({
-          //       type,
-          //       backEndProjectPath: data?.data?.backEndProjectPath,
-          //     }),
-          // });
-        // }
       } catch (e) {
-        pageModel.publishLoading = false;
         console.error(e);
-        message.error(e?.message ?? "构建小程序失败，请重试");
-        console.error(e?.message ?? "构建小程序失败，请重试");
+        message.error(e?.message ?? "导出失败，请重试");
+        console.error(e?.message ?? "导出失败，请重试");
+        close();
       }
     },
     []

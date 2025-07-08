@@ -7,6 +7,7 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 import css from "./web.less";
 import help from "./icons/help"
 import { showHarmonyDownloadConfig } from "./model/downloadModel"
+import { showHarmonyRequireModal } from "../../designer/modals"
 import { CompileType } from "@/types";
 import { Export } from "./icons/export";
 import { publish } from "./icons/publish";
@@ -141,7 +142,15 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
           placement="bottom"
           title={"导出模块源码"}
         >
-          <div className={css.export_btn} onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>
+          <div
+            className={css.export_btn}
+            onClick={() => {
+              showHarmonyRequireModal({ onSubmit: (params) => {
+                pageModel.appConfig.download.fileName = params.fileName;
+                onCompile(params)
+              }})
+            }}
+          >
             {Export}
           </div>
         </Tooltip>
