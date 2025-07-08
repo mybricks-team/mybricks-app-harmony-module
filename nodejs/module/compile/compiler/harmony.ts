@@ -234,21 +234,23 @@ const handleReadMeCode = (params) => {
 
   const outputsCode = outputs.reduce((pre, cur) => {
     return pre + (pre ? "\n\n" : "") +
-      "/**\n" + 
-      ` * 注册${cur.title}回调\n` +
-      " */\n" + 
-      `api.on("${cur.id}", (value) => {\n\n})`
+      `/** 注册${cur.title}回调 */\n` +
+      `api.on<P, R>("${cur.id}", (value) => {\n\n})`
   }, "")
 
   return `# ${fileName}\n` + 
-    "模块基于@hadss/hmrouter实现\n\n" + 
+    "模块打开基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" + 
+    "## 安装依赖\n" + 
+    "[@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)、[dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" + 
+    "``` bash\n" + 
+    "ohpm i dayjs\n" +
+    "ohpm i @ohos/axios\n" + 
+    "```\n\n" +
     "## 使用\n" + 
-    "```javascript\n" + 
+    "```typescript\n" + 
     'import api from "./api"\n\n' + 
-    "/**\n" + 
-    " * 打开模块\n" + 
-    " */\n" + 
-    "api.open({})" + (outputsCode ? "\n\n" : "") +
+    "/** 打开模块，支持输入参数 */\n" +
+    "api.open(params)" + (outputsCode ? "\n\n" : "") +
     outputsCode + 
     "\n```"
 }
