@@ -117,6 +117,9 @@ const Application = () => {
     pageModel.projectId = data.projectId;
 
     pageModel.appConfig = data.fileContent.content?.appConfig || {};
+    if (!pageModel.appConfig.download) {
+      pageModel.appConfig.download = {}
+    }
     pageModel.wxConfig = data.fileContent.content?.wxConfig || {};
     pageModel.debug = data.fileContent.content?.debug || {};
 

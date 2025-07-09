@@ -128,6 +128,11 @@ export class AppRouter {
     if (this.routerStack.length) {
       this.routerStack = new Array();
       this.navPathStack.clear();
+      this.tabList = [];
+      this.activeTabIndex = 0;
+      this.entryPageId = undefined;
+      this.entryMode = undefined;
+      this.pageParams = new Map();
     }
   }
 }
