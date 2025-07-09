@@ -1130,30 +1130,6 @@ const Designer = ({ appData }) => {
     });
   }, []);
 
-  const downloadProjectToLocal = useCallback(async ({ type = "weapp" }) => {
-    const res = await axios({
-      url: "/api/harmony-module/queryFiles",
-      method: "GET",
-      params: {
-        userId: userModel.user?.id,
-        fileId: pageModel.fileId,
-        type,
-      },
-      withCredentials: false,
-    });
-
-    let data = res.data;
-
-    if (data.code !== 1) {
-      return;
-    }
-
-    await writeLocalProject(data.data, {
-      fileId: pageModel.fileId,
-      type,
-    });
-  }, []);
-
   const onCompile = useCallback(
     async (params) => {
       const close = message.loading({
@@ -1167,7 +1143,36 @@ const Designer = ({ appData }) => {
       const type = "harmonyModule"
 
       try {
-        const toJson = await contentModel.toJSON({ withDiagrams: true });
+        const toJson = await contentModel.toJSON({
+          withDiagrams: true,
+           getNewJSON(json) {
+            json.scenes.forEach((scene) => {
+              if (scene.type) {
+                return
+              }
+              const { slot, coms } = scene;
+              const { comAry } = slot;
+              if (comAry?.[0]?.def.namespace !== "mybricks.harmony.systemPage") {
+                return
+              }
+              const systemPageComAry = []
+              const fixedComAry = []
+              comAry[0].slots?.content?.comAry?.forEach((com) => {
+                const comInfo = coms[com.id]
+                if (comInfo.model.style.position === "fixed") {
+                  fixedComAry.push(com)
+                } else {
+                  systemPageComAry.push(com)
+                }
+              })
+              if (fixedComAry.length) {
+                slot.comAry.push(...fixedComAry)
+                comAry[0].slots.content.comAry = systemPageComAry
+              }
+            })
+            return json
+          }
+        });
 
         let comlibs = [...ctx.comlibs];
         if (window.__DEBUG_COMLIB__) {
