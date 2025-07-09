@@ -1467,6 +1467,7 @@ const Designer = ({ appData }) => {
         onH5Preview={onH5Preview}
         onAlipayPreview={onAlipayPreview}
         designerRef={designerRef}
+        setBeforeunload={setBeforeunload}
       />
       <div className={styles.designer}>
         {SPADesigner && latestComlibs && window?.mybricks?.createObservable && (

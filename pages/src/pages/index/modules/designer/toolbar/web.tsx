@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useComputed } from "rxui-t";
 import { Locker, Toolbar } from "@mybricks/sdk-for-app/ui";
-import { pageModel, versionModel } from "@/stores";
+import { pageModel, versionModel, contentModel } from "@/stores";
 import { message, Tooltip } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import css from "./web.less";
@@ -11,6 +12,7 @@ import { showHarmonyRequireModal } from "../../designer/modals"
 import { CompileType } from "@/types";
 import { Export } from "./icons/export";
 import { publish } from "./icons/publish";
+import { ExportPanel } from "./components";
 
 interface WebToolbarProps {
   operable: boolean;
@@ -24,6 +26,7 @@ interface WebToolbarProps {
   onPublish: () => void;
   onH5Publish?: any;
   onH5Preview?: any;
+  setBeforeunload: (bool: boolean) => void
 }
 
 export const WebToolbar: React.FC<WebToolbarProps> = ({
@@ -35,7 +38,10 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
   onSave,
   onCompile,
   onPublish,
+  setBeforeunload,
 }) => {
+  const [showExportPanel, setShowExportPanel] = useState(false);
+
   const handleSwitch2SaveVersion = useCallback(() => {
     designerRef.current?.switchActivity?.("@mybricks/plugins/version");
     setTimeout(() => {
@@ -65,6 +71,19 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
     }
     onPublish()
   };
+
+  // const closeExportPanel = useCallback((e) => {
+  //   setShowExportPanel(false);
+  // }, [])
+
+  // useEffect(() => {
+
+  //   if (showExportPanel) {
+  //     window.addEventListener('click', closeExportPanel, true);
+  //   } else {
+  //     window.removeEventListener('click', closeExportPanel, true);
+  //   }
+  // }, [showExportPanel])
 
   return (
     <>
@@ -139,24 +158,31 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
         </Tooltip>
 
         <Tooltip
-          placement="bottom"
+          placement="bottomLeft"
           title={"导出模块源码"}
         >
           <div
-            className={css.export_btn}
-            onClick={() => {
-              showHarmonyRequireModal({ onSubmit: (params) => {
-                pageModel.appConfig.download.fileName = params.fileName;
-                onCompile(params)
-              }})
-            }}
+            className={`${css.export_btn} ${showExportPanel ? css.active_btn : ""}`}
+            onClick={() => setShowExportPanel(true)}
           >
             {Export}
           </div>
         </Tooltip>
-        {/* <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyModule })}>导出模块源码</Toolbar.Button> */}
-        {/* <Toolbar.Button onClick={() => showHarmonyDownloadConfig({ onCompile, type: CompileType.harmonyApplication })}>下载源码(应用)</Toolbar.Button> */}
       </Toolbar>
+      <ExportPanel
+        visible={showExportPanel}
+        onOk={(values) => {
+          // @ts-ignore
+          pageModel.appConfig.download.fileName = values.fileName;
+          onCompile(values);
+          setShowExportPanel(false);
+          contentModel.editRecord.global = true;
+          setBeforeunload(true);
+        }}
+        onCancel={() => {
+          setShowExportPanel(false);
+        }}
+      />
     </>
   );
 };

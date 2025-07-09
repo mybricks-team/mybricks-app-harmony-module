@@ -10,9 +10,13 @@
   margin-right: 5px;
   transition: background-color 0.3s ease;
 
-  &:hover{
+  &:not(.active_btn):hover{
     background-color: #eeeeee;
   }
+}
+
+.active_btn {
+  background-color: rgb(229, 229, 229);
 }
 
 .publish_btn{
