@@ -827,7 +827,36 @@ const Designer = ({ appData }) => {
       const type = "publishModule";
 
       try {
-        const toJson = await contentModel.toJSON({ withDiagrams: true });
+        const toJson = await contentModel.toJSON({
+          withDiagrams: true,
+          getNewJSON(json) {
+            json.scenes.forEach((scene) => {
+              if (scene.type) {
+                return
+              }
+              const { slot, coms } = scene;
+              const { comAry } = slot;
+              if (comAry?.[0]?.def.namespace !== "mybricks.harmony.systemPage") {
+                return
+              }
+              const systemPageComAry = []
+              const fixedComAry = []
+              comAry[0].slots?.content?.comAry?.forEach((com) => {
+                const comInfo = coms[com.id]
+                if (comInfo.model.style.position === "fixed") {
+                  fixedComAry.push(com)
+                } else {
+                  systemPageComAry.push(com)
+                }
+              })
+              if (fixedComAry.length) {
+                slot.comAry.push(...fixedComAry)
+                comAry[0].slots.content.comAry = systemPageComAry
+              }
+            })
+            return json
+          }
+        });
 
         const json = await getHarmonyJson({
           toJson: cloneDeep(toJson),
@@ -1145,7 +1174,7 @@ const Designer = ({ appData }) => {
       try {
         const toJson = await contentModel.toJSON({
           withDiagrams: true,
-           getNewJSON(json) {
+          getNewJSON(json) {
             json.scenes.forEach((scene) => {
               if (scene.type) {
                 return
