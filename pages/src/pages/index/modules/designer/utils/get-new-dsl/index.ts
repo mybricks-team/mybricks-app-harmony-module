@@ -68,10 +68,8 @@ class DslJsonTraversal {
       slot.comAry.forEach(component => this.traverseComponent(component));
     }
 
-    if (!slot._slot_donot_modifier_) {
-      const modifier = this.modifiers.get('slot');
-      modifier?.(slot);
-    }
+    const modifier = this.modifiers.get('slot');
+    modifier?.(slot);
   }
 }
 
