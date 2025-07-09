@@ -252,7 +252,7 @@ export default function ({
     },
     // comLibAdder: appData.comLibAdder(ctx),
     // comLibLoader: () => {
-    //   return Promise.resolve(['https://127.0.0.1:8000/libEdt.js'])
+    //   return Promise.resolve(['http://127.0.0.1:8000/libEdt.js'])
     // },
     comLibLoader: appData.comLibLoader({
       comlibs: ctx.comlibs,
