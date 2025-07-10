@@ -264,7 +264,7 @@ const Designer = ({ appData }) => {
     }
   }, [beforeunload]);
 
-  const download = useCallback(({ type, backEndProjectPath, localize = 0 }) => {
+  const download = useCallback(({ type, filename = undefined, backEndProjectPath, localize = 0 }) => {
     // const loadingKey = 'donwload'
     // message.loading({
     //   content: '下载中...',
@@ -274,7 +274,7 @@ const Designer = ({ appData }) => {
     const urls = [
       {
         url: `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`,
-        filename: `${pageModel.fileId}-${type}.zip`,
+        filename: filename || `${pageModel.fileId}-${type}.zip`,
       },
       // {
       //   url: `/paas/api/project/download?fileId=${pageModel.fileId}&target=prod`,
@@ -1289,6 +1289,7 @@ const Designer = ({ appData }) => {
         download({
           type,
           backEndProjectPath: data?.data?.backEndProjectPath,
+          filename: `${params.fileName}.zip`
         })
       } catch (e) {
         console.error(e);

@@ -80,7 +80,7 @@ const HarmonyRequireForm = ({ onCancel, onOk }) => {
               .then((values) => {
                 onOk?.({
                   ...values,
-                  fileName: values.fileName || pageModel.appConfig.download.fileName,
+                  fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
                 });
               })
           }}

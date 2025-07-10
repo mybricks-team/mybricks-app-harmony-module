@@ -33,7 +33,7 @@ const handleEntryCode = (template: string, {
   const generateRoutes = (scenes) => scenes
     .map((scene, i) => `${i === 0 ? 'if' : '\t\telse if'} (path === '${scene.id}') {\n\t\t\t${generatePageFileName(scene.title)}()\n\t\t}`)
     .join('\n');
-  const renderMainScenes = generateRoutes(Array.from(new Set([entryScene, ...tabbarScenes])))
+  const renderMainScenes = generateRoutes(Array.from(new Set([entryScene, ...tabbarScenes, ...normalScenes])))
   const renderScenes = generateRoutes(normalScenes)
 
 
