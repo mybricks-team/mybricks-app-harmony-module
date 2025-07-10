@@ -3,6 +3,7 @@ import * as path from "path";
 import * as fse from "fs-extra";
 import { COMPONENT_PACKAGE_NAME } from "./hm/constant";
 import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip } from "../utils";
+import createUtilsMybricks from "./createUtilsMybricks";
 
 /**
  * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
@@ -268,7 +269,7 @@ const generatePageFileName = (text: string) => {
 }
 
 const generatePageCodeWithMetadata = (params) => {
-  const { toJson, componentMetaMap } = params;
+  const { toJson, componentMetaMap, verbose } = params;
   const usedComponentsMap = {};
   const pageCode = toHarmonyCode(toJson, {
     getComponentMetaByNamespace(namespace, config) {
@@ -296,7 +297,8 @@ const generatePageCodeWithMetadata = (params) => {
     },
     getComponentPackageName() {
       return COMPONENT_PACKAGE_NAME
-    }
+    },
+    verbose
   });
 
   let importComponentCode = "";
@@ -338,6 +340,7 @@ const generatePageCodeWithMetadata = (params) => {
       @ComponentV2
       export struct ${componentName} {
         @Param @Require uid: string;
+        ${verbose ? "@Param @Require title: string;" : ""}
         @Param controller: MyBricks.Controller = Controller();
         @Param @Require data: MyBricks.Data
         @Param events: MyBricks.Events = {}
@@ -385,11 +388,12 @@ const generatePageCodeWithMetadata = (params) => {
 
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName } = params;
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
   const { Logger } = config;
   const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata({
     toJson: data.toJson,
-    componentMetaMap: data.componentMetaMap
+    componentMetaMap: data.componentMetaMap,
+    verbose: useLog
   });
 
   // 目标项目路径
@@ -424,6 +428,12 @@ const compilerHarmonyModule = async (params, config) => {
   }
   // 拷贝utils
   await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
+  // 写utils/mybricks.js
+  await fse.writeFile(
+    path.join(targetPath, "utils/mybricks.js"),
+    createUtilsMybricks({ useLog }),
+    'utf-8'
+  )
   // 拷贝_proxy
   await fse.copy(path.join(__dirname, "./hm/_proxy"), path.join(targetPath, "_proxy"), { overwrite: true })
   let _proxyIndexCode = await fse.readFile(path.join(__dirname, "./hm/_proxy/Index.ets"), 'utf-8')
