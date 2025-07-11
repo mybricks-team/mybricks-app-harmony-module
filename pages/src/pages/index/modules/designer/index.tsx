@@ -1272,7 +1272,15 @@ const Designer = ({ appData }) => {
               toJson,
               componentMetaMap: getComponentMetaMap(),
               installedModules: designerRef.current.getInstalledModules(),
-              download: params
+              download: params,
+              basic: {
+                name: pageModel.file.name,
+                version: versionModel.file.version,
+                link: location.href,
+                author: pageModel.file.creatorName,
+                updateTime: dayjs(pageModel.file.updateTime || pageModel.file._updateTime || pageModel.file.createTime || pageModel.file._createTime).format("YYYY-MM-DD HH:mm:ss"),
+                updater: pageModel.file.updatorName || pageModel.file.creatorName
+              }
             },
           },
           withCredentials: false,
@@ -1351,6 +1359,7 @@ const Designer = ({ appData }) => {
           pageModel.globalOperable = status === 1;
           pageModel.extraFiles = extraFiles;
           pageModel.isNew = isNew;
+          pageModel.file = file;
           versionModel.compare(file);
 
           if (!isNew || window.__type__ === "spa") {

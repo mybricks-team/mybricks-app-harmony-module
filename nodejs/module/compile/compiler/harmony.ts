@@ -228,7 +228,7 @@ const handleGlobalCode = (page) => {
 }
 
 const handleReadMeCode = (params) => {
-  const { toJson, fileName } = params;
+  const { toJson, fileName, basic } = params;
   // 当前默认有且只有一个extension
   const extension = toJson.frames.find((frame) => frame.type === "extension");
   const { outputs } = extension;
@@ -239,15 +239,22 @@ const handleReadMeCode = (params) => {
       `api.on<P, R>("${cur.id}", (value) => {\n\n})`
   }, "")
 
-  return `# ${fileName}\n` + 
-    "模块打开基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" + 
-    "## 安装依赖\n" + 
-    "[@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)、[dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" + 
+  return `# ${basic.name}\n\n` + 
+    "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" + 
+    "## 📋 基本信息\n\n" +
+    `- **作者**：${basic.author}\n` +
+    `- **版本**：${basic.version}\n` +
+    `- **更新时间**：${basic.updateTime}\n` +
+    `- **最后更新人**：${basic.updater}\n` +
+    `- **搭建地址**：[点击访问](${basic.link})\n\n` +
+    "## 📦 安装依赖\n\n" + 
+    "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
+    "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n\n" +  
     "``` bash\n" + 
     "ohpm i dayjs\n" +
     "ohpm i @ohos/axios\n" + 
     "```\n\n" +
-    "## 使用\n" + 
+    "## 🚀 使用\n" + 
     "```typescript\n" + 
     'import api from "./api"\n\n' + 
     "/** 打开模块，支持输入参数 */\n" +
@@ -406,7 +413,8 @@ const compilerHarmonyModule = async (params, config) => {
     path.join(targetPath, "README.md"),
     handleReadMeCode({
       toJson: data.toJson,
-      fileName
+      fileName,
+      basic: data.basic
     }),
     { encoding: "utf8" }
   );
