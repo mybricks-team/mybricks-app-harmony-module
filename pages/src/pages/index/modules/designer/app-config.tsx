@@ -15,7 +15,6 @@ import versionPlugin from "mybricks-plugin-version";
 
 import { editorAppenderFn } from "./editorAppender";
 
-import { showAIPageModal, HarmonyPrompts, HarmonyDefinitions } from '@mybricks/sdk-for-ai'
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { aiUtils } from "./utils/get-ai-encrypt-data";
