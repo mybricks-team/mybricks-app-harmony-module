@@ -265,42 +265,40 @@ const Designer = ({ appData }) => {
   }, [beforeunload]);
 
   const download = useCallback(({ type, filename = undefined, backEndProjectPath, localize = 0 }) => {
-    // const loadingKey = 'donwload'
-    // message.loading({
-    //   content: '下载中...',
-    //   key: loadingKey,
-    // })
+    return new Promise((resolve, reject) => {
+      axios.get(`/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`, {
+        responseType: 'blob'
+      })
+        .then(response => {
+          const url = window.URL.createObjectURL(response.data);
+          const a = document.createElement('a');
+          a.style = "display: none"; 
+          a.href = url;
+          a.download = filename || `${pageModel.fileId}-${type}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          resolve(true)
+        })
+        .catch(error => {
+          console.error('导出失败:', error);
+          reject();
+        });
+    })
 
-    const urls = [
-      {
-        url: `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`,
-        filename: filename || `${pageModel.fileId}-${type}.zip`,
-      },
-      // {
-      //   url: `/paas/api/project/download?fileId=${pageModel.fileId}&target=prod`,
-      //   filename: `node-app-${pageModel.fileId}-prod.zip`,
-      // },
-    ];
+    // const urls = [
+    //   {
+    //     url: `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`,
+    //     filename: filename || `${pageModel.fileId}-${type}.zip`,
+    //   },
+    // ];
 
-    urls.forEach((item) => {
-      let a = document.createElement("a");
-      a.style = "display: none"; // 创建一个隐藏的a标签
-      a.download = item.filename;
-      a.href = item.url;
-      document.body.appendChild(a);
-      a.click(); // 触发a标签的click事件
-      a.onload = () => {};
-      a.onerror = (err) => {
-        console.error(err);
-      };
-      document.body.removeChild(a);
-    });
-
-    // (() => {
+    // urls.forEach((item) => {
     //   let a = document.createElement("a");
     //   a.style = "display: none"; // 创建一个隐藏的a标签
-    //   a.download = filename;
-    //   a.href = `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`;
+    //   a.download = item.filename;
+    //   a.href = item.url;
     //   document.body.appendChild(a);
     //   a.click(); // 触发a标签的click事件
     //   a.onload = () => {};
@@ -308,13 +306,7 @@ const Designer = ({ appData }) => {
     //     console.error(err);
     //   };
     //   document.body.removeChild(a);
-    // })()
-    //   .catch((err) => {
-    //     message.error(err?.message ?? "下载失败");
-    //   })
-    //   .finally(() => {
-    //     // message.destroy(loadingKey)
-    //   });
+    // });
   }, []);
 
   const showPublishLoading = useCallback(async () => {
@@ -1287,22 +1279,34 @@ const Designer = ({ appData }) => {
         });
         let data = res.data;
         pageModel.publishLoading = false;
-        close()
+        
         if (data.code !== 1) {
           if (data.innerMessage) {
             message.error(data.innerMessage);
+          } else {
+            message.error("导出失败")
+            console.error("导出失败:", data);
           }
+          close()
           return;
         }
         download({
           type,
           backEndProjectPath: data?.data?.backEndProjectPath,
-          filename: `${params.fileName}.zip`
+          filename: `${params.fileName}.zip`,
         })
+          .then(() => {
+            message.success("导出完成")
+          })
+          .catch(() => {
+            message.error("导出失败")
+          })
+          .finally(() => {
+            close()
+          })
       } catch (e) {
-        console.error(e);
-        message.error(e?.message ?? "导出失败，请重试");
-        console.error(e?.message ?? "导出失败，请重试");
+        message.error("导出失败")
+        console.error("导出失败:", e);
         close();
       }
     },
