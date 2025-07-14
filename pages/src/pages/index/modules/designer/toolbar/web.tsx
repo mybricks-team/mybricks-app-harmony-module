@@ -132,18 +132,21 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
         {pageModel.isNew &&
           window.__type__ === "mpa" &&
           (globalOperable || operable) ? (
-          <Tooltip
-            placement="bottom"
-            title={
-              globalOperable
-                ? "当前保存包含应用内容以及上锁画布"
-                : "当前保存仅包含上锁画布"
-            }
-          >
+          // <Tooltip
+          //   placement="bottom"
+          //   title={
+          //     globalOperable
+          //       ? "当前保存包含应用内容以及上锁画布"
+          //       : "当前保存仅包含上锁画布"
+          //   }
+          // >
             <ExclamationCircleOutlined
               style={{ color: isModify ? "#FA6400" : "inherit", opacity: 0.5 }}
+              data-mybricks-tip={`{content:'${globalOperable
+                ? "当前保存包含应用内容以及上锁画布"
+                : "当前保存仅包含上锁画布"}',position:'bottom'}`}
             />
-          </Tooltip>
+          // </Tooltip>
         ) : null}
         <Toolbar.Save disabled={!operable} onClick={onSave} dotTip={isModify} />
 
