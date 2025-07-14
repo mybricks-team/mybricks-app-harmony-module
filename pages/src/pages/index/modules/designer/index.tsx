@@ -805,10 +805,11 @@ const Designer = ({ appData }) => {
 
   const onPublish = useCallback(
     async () => {
-      if (!pageModel.operable) {
-        // 没有页面级权限
-        return true;
-      }
+      // 没上锁也要能发布
+      // if (!pageModel.operable) {
+      //   // 没有页面级权限
+      //   return true;
+      // }
       if (pageModel?.publishLoading) {
         return;
       }

@@ -66,9 +66,9 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
   }, [publishLoading]);
 
   const publishHandle = () => {
-    if (!globalOperable) {
-      return;
-    }
+    // if (!globalOperable) {
+    //   return;
+    // }
     onPublish()
   };
 
@@ -109,10 +109,10 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
               : null
           }
         />
-        <Tooltip
+        {/* <Tooltip
           placement="bottom"
           title={"查看教程文档"}
-        >
+        > */}
           <div
             className={css.help_btn}
             onClick={() => {
@@ -120,13 +120,14 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
                 "https://docs.mybricks.world/docs/miniprogram/basic/addComponent/"
               );
             }}
+            data-mybricks-tip={`{content:'查看教程文档',position:'bottom'}`}
           >
             <img
               src={help}
               alt=""
             />
           </div>
-        </Tooltip>
+        {/* </Tooltip> */}
 
         {pageModel.isNew &&
           window.__type__ === "mpa" &&
@@ -148,26 +149,31 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
 
 
         {/* <Toolbar.Button disabled={!operable} onClick={publishHandle}>发布</Toolbar.Button> */}
-        <Tooltip
+        {/* <Tooltip
+          style={{
+              borderRadius:12
+          }
+          }
           placement="bottom"
           title={"发布到物料中心"}
-        >
-          <div className={css.publish_btn} onClick={publishHandle}>
+        > */}
+          <div className={css.publish_btn} onClick={publishHandle} data-mybricks-tip={`{content:'发布到物料中心',position:'bottom'}`}>
             {publish}
           </div>
-        </Tooltip>
+        {/* </Tooltip> */}
 
-        <Tooltip
+        {/* <Tooltip
           placement="bottomLeft"
           title={"导出模块源码"}
-        >
+        > */}
           <div
             className={`${css.export_btn} ${showExportPanel ? css.active_btn : ""}`}
             onClick={() => setShowExportPanel(true)}
+            data-mybricks-tip={`{content:'导出模块源码',position:'left'}`}
           >
             {Export}
           </div>
-        </Tooltip>
+        {/* </Tooltip> */}
       </Toolbar>
       <ExportPanel
         visible={showExportPanel}
