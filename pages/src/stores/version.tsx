@@ -112,6 +112,7 @@ class Version {
         notification.open({
           key: this.compareNotificationKey,
           message: '',
+          style: { borderRadius: "8px", padding: "4px" },
           description: (
             <>
               {updateTip({ versions: file.version, updatorName: file.updatorName || file.updatorId || file.creatorName || file.creatorId, description, isglobalUpdate: false })}
