@@ -180,15 +180,24 @@ traversal.registerModifier('root', (root) => {
 
 // 添加对插槽的处理
 traversal.registerModifier('slot', (slot) => {
+  console.log("[slot - 关注layout==='smart']", window._.clone(slot));
   if (!slot.style) {
     slot.style = {}
   }
-  slot.style = {
-    ...slot.style,
-    layout: slot.style?.flexDirection === 'row' ? 'flex-row' : 'flex-column',
-    flexDirection: slot.style?.flexDirection === 'row' ? 'row' : 'column',
-    width: slot.style?.width,
-    height: slot.style?.height
+  if (slot.style.layout === "smart") {
+    slot.style = {
+      ...slot.style,
+      width: slot.style?.width,
+      height: slot.style?.height
+    }
+  } else {
+    slot.style = {
+      ...slot.style,
+      layout: slot.style?.flexDirection === 'row' ? 'flex-row' : 'flex-column',
+      flexDirection: slot.style?.flexDirection === 'row' ? 'row' : 'column',
+      width: slot.style?.width,
+      height: slot.style?.height
+    }
   }
 })
 
@@ -482,8 +491,13 @@ traversal.registerModifier('flex', (component) => {
 
 // 添加对根结点的处理
 traversal.registerModifier('system.page', (component) => {
+  console.log("[system.page]", window._.clone(component))
   component.namespace = 'mybricks.harmony.systemPage'
-  component.data = {
+  component.data = component.slots?.content?.style?.layout === "smart" ? {
+    layout: {
+      position: "smart"
+    }
+  } : {
     layout: getValidSlotStyle(component.style)
   }
 

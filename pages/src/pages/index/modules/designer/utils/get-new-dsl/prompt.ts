@@ -1,13 +1,11 @@
 export const getDSLPrompts = () => {
   return `
-  1、page.dsl文件，为页面界面的结构描述，如下为一个卡片中有一个文本：
+  1、page.dsl文件，为页面界面的结构描述，如下为页面中有一个居中的文本：
   \`\`\`dsl file="page.dsl"
   <page title="你好世界">
     <system.page title="你好世界" styleAry={[{selector:":root",css:{background:"#F2F2F7"}}]}>
-      <slots.content title="页面内容">
-        <flex title="主体卡片" layout={{ width: '100%', marginTop: 10, marginLeft: 12, marginRight: 12, justifyContent: 'center' }}>
-          <mybricks.harmony.text title="文本" layout={{ width: 'fit-content', marginTop: 20 }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
-        </flex>
+      <slots.content title="页面内容" layout={{ layout: "smart" }}>
+        <mybricks.harmony.text title="文本" layout={{ width: 'fit-content', top: 20, xCenter: true }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
       </slots.content>
     </system.page>
   </page>
@@ -15,10 +13,10 @@ export const getDSLPrompts = () => {
   
   注意：
   **page.dsl文件**
-    page.dsl文件为页面的结构文件，以<root/>作为根节点，通过组件、插槽、布局(flex row 或 flex column）等元素构成页面的UI结构。
+    page.dsl文件为页面的结构文件，以<root/>作为根节点，通过组件、插槽等元素构成页面的UI结构。
 
     嵌套规则
-    1. page标签、flex标签可以直接嵌套子组件，无需slots插槽即可渲染子组件；
+    1. page标签可以直接嵌套子组件，无需slots插槽即可渲染子组件；
     2. 所有组件的子组件必须由插槽来渲染，没有插槽不可渲染子组件；
 
     注意：
@@ -29,25 +27,12 @@ export const getDSLPrompts = () => {
       - title:页面的标题
       - styleAry:
         - selector为 :root ，可以配置 background 属性
-    4、对于flex标签：
-      4.1、flex可以直接渲染子组件；
-      4.2、flex只能使用title、layout、styleAry、column、row五个属性:
-        - title:必填，搭建的别名；
-        - layout:
-          - width：百分比、数字、fit-content三者其一，默认值为fit-content；
-          - height：数字、fit-content二者其一，不得使用100%；
-          - flex：可选，数字，仅可以配置flex=1（只有flex组件可以使用）；
-          - flex排版：可选，align-items、justify-content、flex，默认值为flex-start；
-          - margin：可选，仅允许配置marginLeft、marginRight、marginTop、marginBottom，不可合并；
-          - position：当需要绝对定位的时候使用，仅可以声明absolute，相对父元素定位，top、left、right、bottom属性仅可以使用数字；
-        - styleAry:
-          - selector为 :root ，可以配置 background、border 属性
-        - column 和 row
     5、对于组件中的slots插槽：
-      5.1、除flex标签外，所有子组件必须由插槽来渲染，没有插槽不可渲染子组件；
+      5.1、所有子组件必须由插槽来渲染，没有插槽不可渲染子组件；
       5.2、插槽只能使用title、layout两个属性:
         - title:搭建的别名；
         - layout 只能使用以下属性: 
+          - layout：smart（智能布局），flex-column（纵向布局），flex-row（纵向布局），默认值为smart，当值为smart时，禁止使用其它任何属性；
           - flexDirection：仅可配置row和column，默认值为column；
 			    - flex相关属性：alignItems、justifyContent，默认值为flex-start；
     6、对于其中的组件元素：
@@ -59,8 +44,22 @@ export const getDSLPrompts = () => {
           - height:数字、fit-content二者其一，不得使用100%；
           - margin:仅允许配置marginLeft、marginRight、marginTop、marginBottom，不可合并；
           - position：当需要绝对定位的时候使用，仅可以声明absolute，相对父元素定位，top、left、right、bottom属性仅可以使用数字；
+          - 当父容器插槽layout设置为smart时，需要使用top、left、right来设置组件的定位信息，仅可以使用数字；
         - styleAry:组件的样式，以选择器(selector）的形式表现组件各组成部分的样式，这里要严格遵循<允许使用的组件/>和「知识库」中各组件定义的样式规范；
         - data:组件的数据，用于描述组件的状态、属性等信息；
+    7、对于智能布局：
+      7.1、智能布局是指在插槽layout设置为smart时，组件会自动根据内容进行布局；
+      7.2、智能布局下的组件layout，必须要设置left、top值，如果组件是右对齐，则需要设置right值，如果组件是居中对齐，则需要设置xCenter值；
+      7.3、组件间不允许覆盖和嵌套；
+      7.4、需要注重美观度，组件间间距、组件与插槽之间的间距需要合理设置；
+      7.5、基于智能布局的分组原则
+        - 行列拆分，对散落在各处的绝对定位组件做分组处理，根据组件的位置信息，计算组件是否可以合并为一组展示，同时计算组件与组件间的间距；
+        - 水平方向上投影没有相交的组件，不参与行列的拆分；
+        - 就近成组原则，当组件横向和纵向投影均有相交时，优先考虑就近成组；
+        - 同向成组原则，当横向有多个组件时，分为一组；
+        - 组件间距，组件间的间距根据组件的width、height、top、left属性进行计算；
+        - 居中，当设置xCenter时且横向没有投影相交的组件，组件会自动居中对齐；
+        - 当一行中有多个横向填充的组件，将根据搭建画布中的组件宽度计算比例；
 
   <语法限制>
   - 所有标签的props和模板语法中禁止使用javascript中的动态语法，比如函数、模板字符串、多元表达式等等，仅可以使用基本的数据类型，包括数组和对象；
@@ -87,7 +86,7 @@ export const getDSLPrompts = () => {
   </搭建画布信息>
 
   <组件使用建议>
-  1. 基础布局必须使用flex组件，禁止使用容器(mybricks.harmony.containerBasic)；
+  1. 优先考虑使用智能布局模式，减少布局组件的嵌套，但是需要用布局组件对功能区块做划分；
   2. 文本、图片、图标、按钮组件属于基础组件，任何情况下都可以优先使用，即使不在允许使用的组件里；
   3. 关于图标，图标禁止使用emoji或者特殊符号，必须使用用图标(mybricks.harmony.icon)组件来搭建；
   4. 关于图片，注意区分什么时候应该用图片，什么时候应该用图标；
@@ -97,47 +96,7 @@ export const getDSLPrompts = () => {
   6. 注意margin和padding的结合使用，如果可以则建议用margin；
   7. 仔细是否需要用到绝对定位，是相对于父元素的；
   8. system.page下方元素注意配置左右margin，特殊情况比如导航栏这类通栏效果，和背景通栏效果不要配置margin；
-  </组件使用建议>
-
-  <组件特殊声明>
-  1. 对于flex组件，有以下使用案例可参考：
-  使用案例
-  - 基础使用
-	<flex column title="边距和背景色配置" layout={{width: '100%', height: 20, marginTop: 20, marginLeft: 12, marginRight: 12}} styleAry={[{ selector: ':root', css: { backgroundColor: '#ffffff' } }]}>
-	</flex>
-  - 水平布局，左右两端对齐，垂直居中
-  <flex row title="水平布局" layout={{width: '100%', height: 60, justifyContent: 'space-between', alignItems: 'center'}}>
-		<A />
-		<B />
-	</flex>
-  - 水平布局，左边固定宽度，右边自适应，10px分隔，flex=1仅flex组件可使用
-  <flex row title="水平布局" layout={{width: '100%'}}>
-		<flex column title="固定宽度" layout={{width: 300，marginRight: 10}}>
-			<A />
-		</flex>
-		<flex column title="自适应宽度" layout={{flex: 1}}>
-			<B />
-		</flex>
-	</flex>
-  - 垂直布局，高度固定的情况下，可以通过justifyContent调整子组件布局
-   <flex column title="布局调整Demo" layout={{width: '100%', height: 100, justifyContent:'center'}}>
-    <flex column title="居中" layout={{width: 300，height: 30}}>
-			<A />
-		</flex>
-		<flex column title="居中" layout={{flex: 1, height: 20}}>
-			<B />
-		</flex>
-   </flex>
-  - 绝对定位
-   <flex column title="绝对定位Demo" layout={{width: '100%', height: 100}}>
-    <flex column title="右上角的小角标" layout={{width: 30，height: 10, position: 'absolute', right: 0, top: 0}}>
-			<A />
-		</flex>
-    <flex column title="左上角的小角标" layout={{width: 30，height: 10, position: 'absolute', left: 0, top: 0}}>
-			<A />
-		</flex>
-   </flex>
-  </组件特殊声明>`
+  </组件使用建议>`
 }
 
 export const getSystemPrompts = (p) => {
