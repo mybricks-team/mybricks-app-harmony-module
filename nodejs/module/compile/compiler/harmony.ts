@@ -1,7 +1,7 @@
 import toHarmonyCode from "@mybricks/to-code-react/dist/cjs/toHarmonyCode"
 import * as path from "path";
 import * as fse from "fs-extra";
-import { COMPONENT_PACKAGE_NAME } from "./hm/constant";
+import { COMPONENT_PACKAGE_NAME, RENDER_UTILS_PACKAGE_NAME } from "./hm/constant";
 import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip } from "../utils";
 import createUtilsMybricks from "./createUtilsMybricks";
 
@@ -47,23 +47,29 @@ const handleEntryCode = (template: string, {
 }
 
 const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
-  disableScroll = false,
-  statusBarStyle,
-  navigationBarStyle,
-  navigationBarTitleText,
-  navigationStyle = 'default',
-  showBackIcon = false
+  params,
+  pageConfig: {
+    disableScroll = false,
+    statusBarStyle,
+    navigationBarStyle,
+    navigationBarTitleText,
+    navigationStyle = 'default',
+    showBackIcon = false
+  }
 }) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
+
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: "../utils/types",
+      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("controller:")) {
     page.importManager.addImport({
-      packageName: COMPONENT_PACKAGE_NAME,
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
@@ -144,17 +150,19 @@ ${page.content}
   }
 }
 
-const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
+const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: "../utils/types",
+      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("controller:")) {
     page.importManager.addImport({
-      packageName: COMPONENT_PACKAGE_NAME,
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
@@ -178,17 +186,19 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
       `;
 }
 
-const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
+const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: "../utils/types",
+      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("controller:")) {
     page.importManager.addImport({
-      packageName: COMPONENT_PACKAGE_NAME,
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
@@ -199,24 +209,26 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0]) => {
       `;
 }
 
-const handleGlobalCode = (page) => {
+const handleGlobalCode = (page, { params }) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: "../utils/types",
+      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("createVariable")) {
     page.importManager.addImport({
-      packageName: "../utils/mybricks",
+      packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createVariable"],
       importType: "named",
     });
   }
   if (page.content.includes("createFx")) {
     page.importManager.addImport({
-      packageName: "../utils/mybricks",
+      packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createFx"],
       importType: "named",
     });
@@ -228,7 +240,10 @@ const handleGlobalCode = (page) => {
 }
 
 const handleReadMeCode = (params) => {
-  const { toJson, fileName, basic } = params;
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { toJson, componentMetaMap, download, basic } = data;
+  const { source } = download;
+
   // 当前默认有且只有一个extension
   const extension = toJson.frames.find((frame) => frame.type === "extension");
   const { outputs } = extension;
@@ -239,27 +254,35 @@ const handleReadMeCode = (params) => {
       `api.on<P, R>("${cur.id}", (value) => {\n\n})`
   }, "")
 
-  return `# ${basic.name}\n\n` + 
-    "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" + 
+  return `# ${basic.name}\n\n` +
+    "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" +
     "## 📋 基本信息\n\n" +
     `- **作者**：${basic.author}\n` +
     `- **版本**：${basic.version}\n` +
     `- **更新时间**：${basic.updateTime}\n` +
     `- **最后更新人**：${basic.updater}\n` +
     `- **搭建地址**：[点击访问](${basic.link})\n\n` +
-    "## 📦 安装依赖\n\n" + 
+    "## 📦 安装依赖\n\n" +
     "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-    "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n\n" +  
-    "``` bash\n" + 
+    "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
+    (source === "ohpmLibrary" ? (
+      "- [@mybricks/comlib-harmony-normal](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Fcomlib-harmony-normal)\n" +
+      "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
+    ) : "\n") +
+    "``` bash\n" +
     "ohpm i dayjs\n" +
-    "ohpm i @ohos/axios\n" + 
+    "ohpm i @ohos/axios\n" +
+    (source === "ohpmLibrary" ? (
+      "ohpm i @mybricks/comlib-harmony-normal\n" +
+      "ohpm i @mybricks/render-utils\n"
+    ) : "") +
     "```\n\n" +
-    "## 🚀 使用\n" + 
-    "```typescript\n" + 
-    'import api from "./api"\n\n' + 
+    "## 🚀 使用\n" +
+    "```typescript\n" +
+    'import api from "./api"\n\n' +
     "/** 打开模块，支持输入参数 */\n" +
     "api.open(params)" + (outputsCode ? "\n\n" : "") +
-    outputsCode + 
+    outputsCode +
     "\n```"
 }
 
@@ -269,14 +292,16 @@ export const compilerHarmony = async (params, config) => {
 
 const generatePageFileName = (text: string) => {
   const splits = cleanAndSplitString(text);
-  
+
   return splits.reduce((pre, cur) => {
     return pre + firstCharToUpperCase(pinyin.convertToPinyin(cur, "", true))
   }, "") + "Page"
 }
 
 const generatePageCodeWithMetadata = (params) => {
-  const { toJson, componentMetaMap, verbose } = params;
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { toJson, componentMetaMap, download } = data;
+  const verbose = useLog;
   const usedComponentsMap = {};
   const pageCode = toHarmonyCode(toJson, {
     getComponentMetaByNamespace(namespace, config) {
@@ -292,18 +317,24 @@ const generatePageCodeWithMetadata = (params) => {
       }
 
       dependencyNames.push(componentName);
-  
+
       return {
         dependencyImport: {
-          packageName: COMPONENT_PACKAGE_NAME,
+          packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/comlib-harmony-normal",
           dependencyNames,
           importType: "named",
         },
         componentName: componentName,
       };
     },
-    getComponentPackageName() {
-      return COMPONENT_PACKAGE_NAME
+    getComponentPackageName(params) {
+      if (params?.type === "extensionEvent") {
+        return download.source === "sourceCode" ? "./components/Index" : "./components"
+      }
+      return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "../components"
+    },
+    getUtilsPackageName() {
+      return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/render-utils"
     },
     verbose
   });
@@ -393,61 +424,153 @@ const generatePageCodeWithMetadata = (params) => {
   }
 }
 
+const copyComlib = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
+  const { targetPath } = config;
+
+  if (download.source !== "ohpmLibrary") {
+    // 拷贝comlib
+    if (data.comlibs?.[0]?.hmCode) {
+      // 配置组件库，使用远程组件库源码
+      const comlibZipPath = path.join(targetPath, "comlib.zip");
+      await downloadZip({
+        url: `${domainName}${data.comlibs?.[0].hmCode}`,
+        targetPath: comlibZipPath
+      })
+      const zip = new AdmZip(comlibZipPath);
+      const comlibPath = path.join(targetPath, "comlib");
+      zip.extractAllTo(comlibPath, true);
+      // 删除下载的zip包
+      fse.removeSync(comlibZipPath);
+    } else {
+      await fse.copy(path.join(__dirname, "./hm/comlib"), path.join(targetPath, "comlib"), { overwrite: true })
+    }
+  }
+}
+
+const copyUtils = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
+  const { targetPath } = config;
+
+  if (download.source !== "ohpmLibrary") {
+    // 拷贝utils
+    await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
+    // 写utils/mybricks.js
+    await fse.writeFile(
+      path.join(targetPath, "utils/mybricks.js"),
+      createUtilsMybricks({ useLog }),
+      'utf-8'
+    )
+  } else {
+    await fse.copy(path.join(__dirname, "./hm/utils/AppRouter.ets"), path.join(targetPath, "utils/AppRouter.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/utils/AppWindow.ets"), path.join(targetPath, "utils/AppWindow.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/utils/index.ets"), path.join(targetPath, "utils/index.ets"), { overwrite: true })
+  }
+}
+
+const copyComponents = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
+  const { targetPath, importComponentCode, declaredComponentCode } = config;
+
+  // 拷贝components
+  if (download.source === "ohpmLibrary") {
+    await fse.copy(path.join(__dirname, "./hm/components/IndexOhpmLibrary.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
+    await fse.writeFile(
+      path.join(targetPath, "components/index.ets"),
+      (await fse.readFile(path.join(__dirname, "./hm/components/IndexOhpmLibrary.ets"), 'utf-8'))
+        .replace(
+          "{ domain: undefined }",
+          `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+        )
+    );
+  } else {
+    await fse.copy(path.join(__dirname, "./hm/components/Index.ets"), path.join(targetPath, "components/Index.ets"), { overwrite: true })
+    await fse.writeFile(
+      path.join(targetPath, "components/Index.ets"),
+      (await fse.readFile(path.join(__dirname, "./hm/components/Index.ets"), 'utf-8'))
+        .replace(
+          "{ domain: undefined }",
+          `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+        )
+        .replace("$r('app.components.component.import')", importComponentCode ? `import { ${importComponentCode} } from "../comlib/Index"` : "")
+        .replace("$r('app.components.component.declared')", declaredComponentCode)
+    );
+  }
+}
+
+const copyJs = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
+  const { targetPath, importComponentCode, declaredComponentCode } = config;
+
+  const jsCodePath = path.join(targetPath, download.source === "ohpmLibrary" ? "components/codes.ts" : "components/codes.js");
+  await fse.ensureFile(jsCodePath)
+  await fse.writeFile(jsCodePath, download.source === "ohpmLibrary" ? `export default function({ createJSHandle, context }) {
+      const comModules = {};
+      ${decodeURIComponent(data.allModules?.all)};
+      return comModules;
+    }` : `export default (function(comModules) {
+      ${decodeURIComponent(data.allModules?.all)};
+      return comModules;
+    })({})`, { encoding: "utf8" })
+}
+
+const getApiCode = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
+  const { targetPath } = config;
+
+  const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
+  return apiCode
+    .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
+    .replace("$r('app.api.import.utils')",
+      download.source === "sourceCode" ?
+        'import { MyBricks } from "./utils/types";\nimport { Subject, emit } from "./utils/mybricks"\n;' :
+        'import { MyBricks, Subject, emit } from "@mybricks/render-utils";'
+    );
+}
+
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { download } = data;
   const { Logger } = config;
-  const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata({
-    toJson: data.toJson,
-    componentMetaMap: data.componentMetaMap,
-    verbose: useLog
-  });
+  const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata(params);
 
   // 目标项目路径
-  const targetPath = path.join(projectPath, data.download.fileName || "module");
+  const targetPath = path.join(projectPath, download.fileName || "module");
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
   // 写入README.md
   await fse.writeFile(
     path.join(targetPath, "README.md"),
-    handleReadMeCode({
-      toJson: data.toJson,
-      fileName,
-      basic: data.basic
-    }),
+    handleReadMeCode(params),
     { encoding: "utf8" }
   );
-  // 拷贝comlib
-  if (data.comlibs?.[0]?.hmCode) {
-    // 配置组件库，使用远程组件库源码
-    const comlibZipPath = path.join(targetPath, "comlib.zip");
-    await downloadZip({
-      url: `${domainName}${data.comlibs?.[0].hmCode}`,
-      targetPath: comlibZipPath
-    })
-    const zip = new AdmZip(comlibZipPath);
-    const comlibPath = path.join(targetPath, "comlib");
-    zip.extractAllTo(comlibPath, true);
-    // 删除下载的zip包
-    fse.removeSync(comlibZipPath);
-  } else {
-    await fse.copy(path.join(__dirname, "./hm/comlib"), path.join(targetPath, "comlib"), { overwrite: true })
-  }
-  // 拷贝utils
-  await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
-  // 写utils/mybricks.js
-  await fse.writeFile(
-    path.join(targetPath, "utils/mybricks.js"),
-    createUtilsMybricks({ useLog }),
-    'utf-8'
-  )
-  // 拷贝_proxy
-  await fse.copy(path.join(__dirname, "./hm/_proxy"), path.join(targetPath, "_proxy"), { overwrite: true })
-  let _proxyIndexCode = await fse.readFile(path.join(__dirname, "./hm/_proxy/Index.ets"), 'utf-8')
 
-  let apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
-  apiCode = apiCode.replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`);
+  // 拷贝组件库
+  await copyComlib(params, {
+    targetPath
+  })
+
+  // 拷贝utils
+  await copyUtils(params, {
+    targetPath
+  })
+
+  await copyComponents(params, {
+    targetPath,
+    importComponentCode,
+    declaredComponentCode
+  })
+
+  let apiCode = await getApiCode(params, {
+    targetPath
+  })
 
   const sceneMap = {};
   const moduleNames = new Set<string>();
@@ -461,16 +584,15 @@ const compilerHarmonyModule = async (params, config) => {
 
     if (page.type === "global") {
       // 全局变量、全局Fx
-      fse.outputFileSync(path.join(targetPath, `_proxy/global.ets`), handleGlobalCode(page), { encoding: "utf8" })
+      fse.outputFileSync(path.join(targetPath, `components/global.ets`), handleGlobalCode(page, { params }), { encoding: "utf8" })
       return
     }
 
     if (page.type === "module") {
       moduleNames.add(page.name);
-      fse.outputFileSync(path.join(targetPath, `sections/${page.name}.ets`), handleModuleCode(page), { encoding: "utf8" })
+      fse.outputFileSync(path.join(targetPath, `sections/${page.name}.ets`), handleModuleCode(page, { params }), { encoding: "utf8" })
       return
     }
-
 
     if (page.meta) {
       sceneMap[page.meta.id] = page.meta;
@@ -480,10 +602,12 @@ const compilerHarmonyModule = async (params, config) => {
     if (page.type === "normal") {
       const { pageConfig } = data.pages.find(p => p.id === page.meta?.id) ?? {}
       // 页面
-      content = handlePageCode(page, pageConfig);
+      content = handlePageCode(page, {
+        params, pageConfig
+      });
     } else if (page.type === "popup") {
       // 弹窗
-      content = handlePopupCode(page);
+      content = handlePopupCode(page, { params });
     }
 
     fse.outputFileSync(path.join(targetPath, `pages/${page.name}Page.ets`), content, { encoding: "utf8" })
@@ -499,29 +623,12 @@ const compilerHarmonyModule = async (params, config) => {
       { encoding: "utf8" })
   }
 
-  await fse.writeFile(
-    path.join(targetPath, "_proxy/Index.ets"),
-    _proxyIndexCode
-      .replace(
-        "{ domain: undefined }",
-        `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
-      )
-      .replace(
-        "{ domain: undefined}",
-        `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
-      )
-      .replace("$r('app._proxy.component.import')", importComponentCode ? `import { ${importComponentCode} } from "../comlib/Index"` : "")
-      .replace("$r('app._proxy.component.declared')", declaredComponentCode)
-  );
   await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
 
   // 写入搭建Js
-  const jsCodePath = path.join(targetPath, "_proxy/codes.js");
-  await fse.ensureFile(jsCodePath)
-  await fse.writeFile(jsCodePath, `export default (function(comModules) {
-    ${decodeURIComponent(data.allModules?.all)};
-    return comModules;
-  })({})`, { encoding: "utf8" })
+  await copyJs(params, {
+    targetPath
+  })
 
   // tabbar配置
   const tabbarConfig = (data.tabBarJson ?? []).map(item => {
@@ -536,7 +643,7 @@ const compilerHarmonyModule = async (params, config) => {
   const entryScene = sceneMap[data.entryPageId]
 
   // tabbar场景
-  const tabbarScenes: string[] = data.pages.filter(p => 
+  const tabbarScenes: string[] = data.pages.filter(p =>
     (data.tabBarJson || []).some(
       (b) => b?.id === p?.id
     )
@@ -545,7 +652,7 @@ const compilerHarmonyModule = async (params, config) => {
   })
 
   // 普通场景
-  const normalScenes: string[] = data.pages.filter(p => 
+  const normalScenes: string[] = data.pages.filter(p =>
     !(data.tabBarJson || []).some(
       (b) => b?.id === p?.id
     )
@@ -562,7 +669,7 @@ const compilerHarmonyModule = async (params, config) => {
 
   const entryPath = path.join(targetPath, "./pages/Index.ets");
   await fse.copy(path.join(__dirname, "./hm/pages/Index.ets"), entryPath, { overwrite: true });
-  
+
   let entryFileContent = await fse.readFile(entryPath, 'utf-8')
 
   entryFileContent = handleEntryCode(entryFileContent, {

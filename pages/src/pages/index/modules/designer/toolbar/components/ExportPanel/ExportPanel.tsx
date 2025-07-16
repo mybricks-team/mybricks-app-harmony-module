@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Form, Input, Button } from "antd";
+import { Form, Input, Button, Select } from "antd";
 import { pageModel } from "@/stores";
 import css from "./ExportPanel.less";
 
@@ -36,18 +36,20 @@ const ExportPanel = (props: ExportPanelProps) => {
       <HarmonyRequireForm
         onCancel={props.onCancel}
         onOk={props.onOk}
+        getPopupContainer={() => ref.current}
       />
     </div>,
     document.body
   )
 }
 
-const HarmonyRequireForm = ({ onCancel, onOk }) => {
+const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
   const [form] = Form.useForm();
 
   useLayoutEffect(() => {
     form.setFieldsValue({
       fileName: pageModel.appConfig.download.fileName,
+      source: pageModel.appConfig.download.source || "ohpmLibrary"
     })
   }, [])
 
@@ -59,6 +61,25 @@ const HarmonyRequireForm = ({ onCancel, onOk }) => {
           label="模块名称"
         >
           <Input placeholder="请输入模块名称" />
+        </Form.Item>
+        <Form.Item
+          name="source"
+          label="模块依赖"
+        >
+          <Select
+            placeholder="请选择模块依赖"
+            options={[
+              {
+                label: "ohpm三方库",
+                value: "ohpmLibrary"
+              },
+              {
+                label: "源码",
+                value: "sourceCode"
+              }
+            ]}
+            getPopupContainer={getPopupContainer}
+          />
         </Form.Item>
       </Form>
 

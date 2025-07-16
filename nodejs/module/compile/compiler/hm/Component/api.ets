@@ -1,6 +1,5 @@
 import { HMRouterMgr } from "@hadss/hmrouter"
-import { MyBricks } from "./utils/types"
-import { Subject, emit } from "./utils/mybricks"
+$r('app.api.import.utils')
 $r('app.api.import')
 
 type Callback<P, R> = (value: P) => R

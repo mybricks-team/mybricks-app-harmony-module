@@ -1219,7 +1219,8 @@ const Designer = ({ appData }) => {
           comlibs: comlibs,
           appConfig: {
             defaultCallServiceHost:  pageModel.appConfig?.defaultCallServiceHost,
-          }
+          },
+          download: params,
         })
 
         const getComponentMetaMap = () => {
