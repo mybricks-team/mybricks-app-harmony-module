@@ -5,7 +5,7 @@ export const getDSLPrompts = () => {
   <page title="你好世界">
     <system.page title="你好世界" styleAry={[{selector:":root",css:{background:"#F2F2F7"}}]}>
       <slots.content title="页面内容" layout={{ layout: "smart" }}>
-        <mybricks.harmony.text title="文本" layout={{ width: 'fit-content', top: 20, xCenter: true }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
+        <mybricks.harmony.text title="文本" layout={{ height: 'fit-content', width:  top: 20, xCenter: true }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
       </slots.content>
     </system.page>
   </page>
@@ -16,7 +16,7 @@ export const getDSLPrompts = () => {
     page.dsl文件为页面的结构文件，以<root/>作为根节点，通过组件、插槽等元素构成页面的UI结构。
 
     嵌套规则
-    1. page标签可以直接嵌套子组件，无需slots插槽即可渲染子组件；
+    1. page标签、group标签可以直接嵌套子组件，无需slots插槽即可渲染子组件；
     2. 所有组件的子组件必须由插槽来渲染，没有插槽不可渲染子组件；
 
     注意：
@@ -27,14 +27,31 @@ export const getDSLPrompts = () => {
       - title:页面的标题
       - styleAry:
         - selector为 :root ，可以配置 background 属性
+    4.对于group组件，可以作为智能布局的分组容器使用，也可以作为部分样式的承载者，支持配置样式信息
+      4.1、group可以直接渲染子组件；
+      4.2、group只能使用title、layout、styleAry三个属性:
+        - title: 必填，搭建的别名；
+        - layout 只能使用以下属性: 
+          - width: 数字、100%两者其一；
+          - height: 数字，必须配置数字，计算出合理的高度；
+          - heightFit: 布尔值，代表运行时是否会根据内容动态适应高度；
+          - left、right、top、left值，用于智能布局的对齐和排版；
+        - styleAry:
+          - selector为 :root ，可以配置background、border、boxShadow属性，不允许使用padding；
+      4.3、使用left + 固定数字的width，是一种实现左右间距的最佳实践，而不是使用margin；
+      4.4、对于group的使用要克制，仅在以下情况使用：
+        - 需要配置背景色和间距；
+        - 需要子元素基于此组件进行布局，例如居中等情况；
+        - 在插槽内用于指定宽高；
     5、对于组件中的slots插槽：
-      5.1、所有子组件必须由插槽来渲染，没有插槽不可渲染子组件；
+      5.1、除group组件外，子组件必须由插槽来渲染，没有插槽不可渲染子组件；
       5.2、插槽只能使用title、layout两个属性:
         - title:搭建的别名；
         - layout 只能使用以下属性: 
-          - layout：smart（智能布局），flex-column（纵向布局），flex-row（纵向布局），默认值为smart，当值为smart时，禁止使用其它任何属性；
+          - layout：flex-column（纵向布局），flex-row（纵向布局），默认值为smart，当值为smart时，禁止使用其它任何属性；
           - flexDirection：仅可配置row和column，默认值为column；
 			    - flex相关属性：alignItems、justifyContent，默认值为flex-start；
+      5.3、插槽中如果需要使用智能布局，需要嵌套一个group标签；
     6、对于其中的组件元素：
       6.1、组件只能使用<允许使用的组件/>中声明的组件；
       6.2、组件只能使用title、layout、styleAry、data四个属性，以及其slots用来包含其他的组件:
@@ -80,23 +97,57 @@ export const getDSLPrompts = () => {
   <搭建画布信息>
   当前搭建画布的宽度为375，所有元素的尺寸需要关注此信息，且尽可能自适应布局。
     比如：
-      1.system.page下方元素考虑是否需要配置宽度100%且配置左右margin，效果更好；
-      2.布局需要自适应画布宽度；
+      1.布局需要自适应画布宽度，避免width=375（画布宽度）的配置方式，要么100%通栏，要么配置宽度+间距；
+      2.配置上下左右和宽度高度时，一定要基于画布尺寸进行合理的计算；
   特殊地，系统已经内置了底部导航栏和顶部导航栏，仅关注页面内容即可，不用实现此部分内容。
   </搭建画布信息>
 
   <组件使用建议>
   1. 优先考虑使用智能布局模式，减少布局组件的嵌套，但是需要用布局组件对功能区块做划分；
   2. 文本、图片、图标、按钮组件属于基础组件，任何情况下都可以优先使用，即使不在允许使用的组件里；
-  3. 关于图标，图标禁止使用emoji或者特殊符号，必须使用用图标(mybricks.harmony.icon)组件来搭建；
-  4. 关于图片，注意区分什么时候应该用图片，什么时候应该用图标；
-    4.1 如果是常规图片，使用https://ai.mybricks.world/image-search?term=dog&w=100&h=200，其中term代表搜索词，w和h可以配置图片宽高；
-    4.2 如果是Logo，可以使用https://placehold.co来配置一个带文本和颜色的图标，其中text需要为图标的英文搜索词，禁止使用emoji或者特殊符号；
-  5. 图标禁止使用emoji或者特殊符号，使用图标(mybricks.harmony.icon)组件来替代；
-  6. 注意margin和padding的结合使用，如果可以则建议用margin；
-  7. 仔细是否需要用到绝对定位，是相对于父元素的；
-  8. system.page下方元素注意配置左右margin，特殊情况比如导航栏这类通栏效果，和背景通栏效果不要配置margin；
-  </组件使用建议>`
+  3. 关于图片和图标，首先明确我们会在发现图标的时候使用图标组件，发现图片、Logo的时候使用图片组件；
+    - 如果是图标，必须使用图标组件（mybricks.harmony.icon），并且建议对图标组件配置圆角；
+    - 如果是Logo，使用https://placehold.co?text=Logo来配置一个带文本和颜色的图标；
+    - 如果是图片，使用https://ai.mybricks.world/image-search?term=dog&w=100&h=200，其中term代表搜索词，w和h可以配置图片宽高；
+    注意参数：
+      - 对于https://placehold.co的text参数的值，必须为英文字符，不允许为中文字符，如果是中文可以用拼音首字母；
+      - 对于https://placehold.co的颜色，背景颜色和文颜色要区分开；
+  4. 关于图标，图标禁止使用emoji或者特殊符号，使用图标组件（mybricks.harmony.icon）来实现；
+  5. 仔细是否需要用到绝对定位，是相对于父元素的；
+  6. 计算width和height时，多考虑文字可能会换行，或者动态文字会变长，可以通过fontSize等样式来计算，预留更多的空间；
+  </组件使用建议>
+  
+  <组件使用案例>
+    对于group组件，有一些使用案例可以参考:
+    1. 基础使用：一个在375画布下，左右间距为12，背景色为白色的卡片
+    要点：通过合理的width + left来实现左右间距
+    <group title="基础使用" layout={{width: 351, height: 20, left: 12}} styleAry={[{ selector: ':root', css: { backgroundColor: '#ffffff' } }]}>
+    </group>
+    2. 水平布局，左右两端对齐，垂直居中
+    要点：通过left、right来实现对齐，通过合理的top来实现垂直居中
+    <group title="左右两端对齐+垂直居中" layout={{width: 351, height: 40, left: 12}}>
+      <A title="左对齐" layout={{left: 0, height: 12, top: 14 }} />
+      <B title="右对齐" layout={{right: 0, height: 12, top: 14}} />
+    </group>
+    3. 左右居中
+    要点：通过left + width 将组件挪到水平中间的位置，并标记xCenter（标记xCenter，代表相对父组件居中，但是同时也要计算能够居中的left值）
+    <group title="布局" layout={{width: '100%', height: 40, left: 0}}>
+      <A title="左右居中" layout={{height: 12, top: 0, left: 50, width: 32, xCenter: true }} />
+    </group>
+    4. 水平布局，左侧固定宽度，右侧自适应宽度，10px进行分隔
+    要点：通过left + width将组件挪到合适的位置，自适应的话需要width的数值正好占满剩余宽度，同时需要标记widthMode=auto
+    <group title="布局" layout={{width: 300, height: 120, left: 0}}>
+      <A title="固定宽度" layout={{ height: 60, top: 0, left: 0, width: 100 }} />
+      <B title="自适应宽度" layout={{ height: 60, top: 0, left: 110, width: 190, widthMode: 'auto' }} />
+    </group>
+    5. 间距使用
+    要点：通过自元素和group的尺寸和位置保证，上下左右都留有16的间距
+    <group title="间距使用" layout={{width: 300, height: 120, left: 0}}>
+      <A title="调整16间距的尺寸和位置" layout={{ width: 268, height: 88, top: 16, left: 16 }} />
+    </group>
+  </组件使用案例>
+  
+  `
 }
 
 export const getSystemPrompts = (p) => {

@@ -515,6 +515,38 @@ traversal.registerModifier('flex', (component) => {
   }
 })
 
+traversal.registerModifier('group', (component) => {
+  component.namespace = 'mybricks.harmony.containerBasic'
+  if (!component.data) {
+    component.data = {}
+  }
+
+  // 转换成containerBasic的类名
+  if (component.style?.styleAry) {
+    component.style?.styleAry.forEach(s => {
+      if (s.selector === ':root') {
+        s.selector = '> .mybricks-container'
+      }
+    })
+  }
+
+  // component.data.layout = 'smart'
+  component.slots = {
+    content: {
+      id: 'content',
+      title: component.title ? `${component.title}插槽` : '内容',
+      style: {
+        width: '100%',
+        height: '100%',
+        layout: `smart`,
+      },
+      comAry: component?.comAry
+    }
+  }
+  component.comAry = undefined
+  // delete component.comAry
+})
+
 // 添加对根结点的处理
 traversal.registerModifier('system.page', (component) => {
   console.log("[system.page]", window._.clone(component))
