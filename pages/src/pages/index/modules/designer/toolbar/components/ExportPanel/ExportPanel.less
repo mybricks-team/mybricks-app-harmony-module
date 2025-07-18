@@ -53,12 +53,38 @@
   }
   .footer {
     padding-top: 12px;
-
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    button {
-      margin-left: 10px;
+
+    .button {
+      outline: 0;
+      border: 1px solid rgba(0, 0, 0, 0.10196);
+      letter-spacing: 0;
+      padding: 3px 13px;
+      margin: 0 5px;
+      font-size: 12px;
+      line-height: 12px;
+      height: 24px;
+      position: relative;
+      background-color: #fff;
+      border-radius: 6px;
+      color: rgba(0, 0, 0, 0.9);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    .mainButton {
+      background: var(--mybricks-color-primary);
+      border: var(--mybricks-color-primary) solid 1px;
+      color: #FFF;
+      font-weight: bold;
+      transition: transform 0.3s ease;
     }
   }
 

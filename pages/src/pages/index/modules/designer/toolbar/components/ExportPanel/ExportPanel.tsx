@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Form, Input, Button, Select } from "antd";
+import { Form, Input, Select } from "antd";
 import { pageModel } from "@/stores";
 import css from "./ExportPanel.less";
 
@@ -91,23 +91,17 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
       </div>
 
       <div className={css.footer}>
-        <Button onClick={onCancel} size="small">取消</Button>
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => {
-            form
-              .validateFields()
-              .then((values) => {
-                onOk?.({
-                  ...values,
-                  fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
-                });
-              })
-          }}
-        >
-          确认
-        </Button>
+        <button className={css.button} onClick={onCancel}>取消</button>
+        <button className={`${css.button} ${css.mainButton}`} onClick={() => {
+          form
+            .validateFields()
+            .then((values) => {
+              onOk?.({
+                ...values,
+                fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
+              });
+            })
+        }}>确认</button>
       </div>
     </div>
   );
