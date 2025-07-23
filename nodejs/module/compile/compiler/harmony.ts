@@ -239,20 +239,70 @@ const handleGlobalCode = (page, { params }) => {
   ${page.content}`
 }
 
+// const handleReadMeCode = (params) => {
+//   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+//   const { toJson, componentMetaMap, download, basic } = data;
+//   const { source } = download;
+
+//   // 当前默认有且只有一个extension
+//   const extension = toJson.frames.find((frame) => frame.type === "extension");
+//   const { outputs } = extension;
+
+//   const outputsCode = outputs.reduce((pre, cur) => {
+//     return pre + (pre ? "\n\n" : "") +
+//       `/** 注册${cur.title}回调 */\n` +
+//       `api.on<P, R>("${cur.id}", (value) => {\n\n})`
+//   }, "")
+
+//   return `# ${basic.name}\n\n` +
+//     "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" +
+//     "## 📋 基本信息\n\n" +
+//     `- **作者**：${basic.author}\n` +
+//     `- **版本**：${basic.version}\n` +
+//     `- **更新时间**：${basic.updateTime}\n` +
+//     `- **最后更新人**：${basic.updater}\n` +
+//     `- **搭建地址**：[点击访问](${basic.link})\n\n` +
+//     "## 📦 安装依赖\n\n" +
+//     "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
+//     "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
+//     (source === "ohpmLibrary" ? (
+//       "- [@mybricks/comlib-harmony-normal](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Fcomlib-harmony-normal)\n" +
+//       "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
+//     ) : "\n") +
+//     "``` bash\n" +
+//     "ohpm i dayjs\n" +
+//     "ohpm i @ohos/axios\n" +
+//     (source === "ohpmLibrary" ? (
+//       "ohpm i @mybricks/comlib-harmony-normal\n" +
+//       "ohpm i @mybricks/render-utils\n"
+//     ) : "") +
+//     "```\n\n" +
+//     "## 🚀 使用\n" +
+//     "```typescript\n" +
+//     'import api from "./api"\n\n' +
+//     "/** 打开模块，支持输入参数 */\n" +
+//     "api.open(params)" + (outputsCode ? "\n\n" : "") +
+//     outputsCode +
+//     "\n```"
+// }
+
 const handleReadMeCode = (params) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
   const { toJson, componentMetaMap, download, basic } = data;
   const { source } = download;
 
-  // 当前默认有且只有一个extension
-  const extension = toJson.frames.find((frame) => frame.type === "extension");
-  const { outputs } = extension;
+  let config = null
+  let apis = []
 
-  const outputsCode = outputs.reduce((pre, cur) => {
-    return pre + (pre ? "\n\n" : "") +
-      `/** 注册${cur.title}回调 */\n` +
-      `api.on<P, R>("${cur.id}", (value) => {\n\n})`
-  }, "")
+  toJson.frames.forEach((frame) => {
+    if (frame.type === "extension-config") {
+      // 只有一个配置
+      config = frame
+    } else if (frame.type === "extension-api") {
+      // 0或多个api
+      apis.push(frame)
+    }
+  })
 
   return `# ${basic.name}\n\n` +
     "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" +
@@ -279,10 +329,24 @@ const handleReadMeCode = (params) => {
     "```\n\n" +
     "## 🚀 使用\n" +
     "```typescript\n" +
-    'import api from "./api"\n\n' +
-    "/** 打开模块，支持输入参数 */\n" +
-    "api.open(params)" + (outputsCode ? "\n\n" : "") +
-    outputsCode +
+    'import { api, config } from "./api"\n\n' +
+    (config ? (
+      `/** 模块配置 */\n` +
+      `config(${config.inputs?.length ? "{\n": ""}` + 
+      (config.inputs?.length ? config.inputs.reduce((pre, cur) => {
+        return pre + `  ${cur.pinId}: value,\n`
+      }, "") : "") +
+      `${config.inputs?.length ? "}": ""})`
+    ) : "") +
+    `${apis.length ? "\n\n/** 调用api */\n" + apis.reduce((pre, cur, index) => {
+      return pre + `api.${cur.title}(value${cur.outputs?.length ? (
+        ", {\n" +
+        (cur.outputs.reduce((pre, cur) => {
+          return pre + `  ${cur.id}(value) {\n    // ${cur.title}\n  },\n`
+        }, "")) +
+        "}"
+      ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
+    }, "") : ""}` + 
     "\n```"
 }
 
@@ -320,7 +384,7 @@ const generatePageCodeWithMetadata = (params) => {
 
       return {
         dependencyImport: {
-          packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/comlib-harmony-normal",
+          packageName: download.source === "sourceCode" ? (config.source === "extensionEvent" ? "./components/Index" : COMPONENT_PACKAGE_NAME) : "@mybricks/comlib-harmony-normal",
           dependencyNames,
           importType: "named",
         },
@@ -458,11 +522,11 @@ const copyUtils = async (params, config) => {
     // 拷贝utils
     await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
     // 写utils/mybricks.js
-    await fse.writeFile(
-      path.join(targetPath, "utils/mybricks.js"),
-      createUtilsMybricks({ useLog }),
-      'utf-8'
-    )
+    // await fse.writeFile(
+    //   path.join(targetPath, "utils/mybricks.js"),
+    //   createUtilsMybricks({ useLog }),
+    //   'utf-8'
+    // )
   } else {
     await fse.copy(path.join(__dirname, "./hm/utils/AppRouter.ets"), path.join(targetPath, "utils/AppRouter.ets"), { overwrite: true })
     await fse.copy(path.join(__dirname, "./hm/utils/AppWindow.ets"), path.join(targetPath, "utils/AppWindow.ets"), { overwrite: true })
@@ -528,9 +592,14 @@ const getApiCode = async (params, config) => {
     .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
     .replace("$r('app.api.import.utils')",
       download.source === "sourceCode" ?
-        'import { MyBricks } from "./utils/types";\nimport { Subject, emit } from "./utils/mybricks"\n;' :
-        'import { MyBricks, Subject, emit } from "@mybricks/render-utils";'
+        'import { MyBricks } from "./utils/types";\nimport { api as transformApi } from "./utils/mybricks"\n;' :
+        'import { MyBricks, api as transformApi } from "@mybricks/render-utils";'
     );
+    // .replace("$r('app.api.import.utils')",
+    //   download.source === "sourceCode" ?
+    //     'import { MyBricks } from "./utils/types";\nimport { Subject, emit } from "./utils/mybricks"\n;' :
+    //     'import { MyBricks, Subject, emit } from "@mybricks/render-utils";'
+    // );
 }
 
 /** 下载模块 */
@@ -545,7 +614,7 @@ const compilerHarmonyModule = async (params, config) => {
 
   // 拷贝项目
   await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
-  // 写入README.md
+  // 写入README.md [TODO] 放最后处理
   await fse.writeFile(
     path.join(targetPath, "README.md"),
     handleReadMeCode(params),
@@ -575,12 +644,30 @@ const compilerHarmonyModule = async (params, config) => {
   const sceneMap = {};
   const moduleNames = new Set<string>();
 
+  let extensionApiCode = "";
+
   pageCode.forEach((page) => {
-    if (page.type === "extensionEvent") {
-      // 业务模块
-      apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
+    if (page.type === "extension-config") {
+      // 配置
+      apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.config')", `(${page.meta.inputs?.length ? "value: MyBricks.Any" : ""}) => {
+  ${page.content}
+}`);
       return
     }
+
+    if (page.type === "extension-api") {
+      // API
+      extensionApiCode = extensionApiCode + `${page.name}: MyBricks.Api = transformApi((value: MyBricks.Any${page.meta.outputs?.length ? ", callBack: MyBricks.Any" : ""}) => {
+        ${page.content}
+      })\n`
+      return
+    }
+
+    // if (page.type === "extensionEvent") {
+    //   // 业务模块
+    //   apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
+    //   return
+    // }
 
     if (page.type === "global") {
       // 全局变量、全局Fx
@@ -612,6 +699,8 @@ const compilerHarmonyModule = async (params, config) => {
 
     fse.outputFileSync(path.join(targetPath, `pages/${page.name}Page.ets`), content, { encoding: "utf8" })
   });
+
+  apiCode = apiCode.replace("$r('app.api.apis')", extensionApiCode).replace("$r('app.api.import')", "").replace("$r('app.api.config')", "() => {}");
 
   if (moduleNames.size) {
     // 有区块，补充区块的入口文件
