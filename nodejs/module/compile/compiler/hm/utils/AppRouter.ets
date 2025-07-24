@@ -1,3 +1,4 @@
+import { open } from "../api"
 type UnknownJson = Record<string, string | number | boolean | Object> | string | number | boolean
 
 export interface TabBarConfig {
@@ -76,6 +77,7 @@ export class AppRouter {
       this.navPathStack.pushPathByName(name, params, callback, true)
     } else { // for module 单独导出，没有 registEntryPage，所以需要先 registEntryPage
       if (!this.routerStack.length) {
+        open()
         this.registEntryPage(name)
         this.routerStack.push(name)
         return

@@ -183,6 +183,8 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
         onOk={(values) => {
           // @ts-ignore
           pageModel.appConfig.download.fileName = values.fileName;
+          // @ts-ignore
+          pageModel.appConfig.download.source = values.source;
           onCompile(values);
           setShowExportPanel(false);
           contentModel.editRecord.global = true;

@@ -92,9 +92,9 @@ class Version {
             if (extraFile.fileContentId !== value.fileContentId) {
               // 有更新
               if (!description.length) {
-                description.push(<b style={tipStyle}>{value.title}</b>)
+                description.push(<span>{value.title}</span>)
               } else {
-                description.push(<>，<b style={tipStyle}>{value.title}</b></>)
+                description.push(<>，<span>{value.title}</span></>)
               }
 
               value.fileContentId = extraFile.fileContentId // 更新本地信息

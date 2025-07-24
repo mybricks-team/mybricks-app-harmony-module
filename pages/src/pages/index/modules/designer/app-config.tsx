@@ -209,41 +209,41 @@ export default function ({
     //     resolve([ctx.comlibs[0].editJs])
     //   })
     // },
-    moduleLoader(desc) {
-      return new Promise(async (resolve, reject) => {
-        console.log('[appConfig - moduleLoader]', desc)
-        const { cmd, moduleId, moduleVersion } = desc;
+    // moduleLoader(desc) {
+    //   return new Promise(async (resolve, reject) => {
+    //     console.log('[appConfig - moduleLoader]', desc)
+    //     const { cmd, moduleId, moduleVersion } = desc;
 
-        switch (cmd) {
-          case "addModule":
-            ctx.sdk.openUrl({
-              url: 'MYBRICKS://mybricks-material/materialSelectorPage',
-              params: {
-                // defaultSelected // [TODO] 已经选择的模块，交互优化
-                title: '选择业务模块',
-                type: 'harmony-module',
-                limit: 1, // 临时限制选择数量
-              },
-              onSuccess: async (params) => {
-                const { content, version } = params.materials[0];
-                await myRequire([`/api/harmony-module/getModule?moduleId=${content.moduleId}&version=${version}&origin=${location.origin}`], () => {})
-                resolve(window[`module_${content.moduleId}`])
-              }
-            }) 
-            break;
-          case "getModule":
-            await myRequire([`/api/harmony-module/getModule?moduleId=${moduleId}&version=${moduleVersion}&origin=${location.origin}`], () => {})
-            resolve(window[`module_${moduleId}`])
-            break;
-          case "getPage":
-            const res = await axios(`/api/harmony-module/loadPage?moduleId=${moduleId}&version=${moduleVersion}&pageId=${desc.pageId}`)
-            resolve(res.data.data)
-            break;
-          default:
-            break;
-        }
-      })
-    },
+    //     switch (cmd) {
+    //       case "addModule":
+    //         ctx.sdk.openUrl({
+    //           url: 'MYBRICKS://mybricks-material/materialSelectorPage',
+    //           params: {
+    //             // defaultSelected // [TODO] 已经选择的模块，交互优化
+    //             title: '选择业务模块',
+    //             type: 'harmony-module',
+    //             limit: 1, // 临时限制选择数量
+    //           },
+    //           onSuccess: async (params) => {
+    //             const { content, version } = params.materials[0];
+    //             await myRequire([`/api/harmony-module/getModule?moduleId=${content.moduleId}&version=${version}&origin=${location.origin}`], () => {})
+    //             resolve(window[`module_${content.moduleId}`])
+    //           }
+    //         }) 
+    //         break;
+    //       case "getModule":
+    //         await myRequire([`/api/harmony-module/getModule?moduleId=${moduleId}&version=${moduleVersion}&origin=${location.origin}`], () => {})
+    //         resolve(window[`module_${moduleId}`])
+    //         break;
+    //       case "getPage":
+    //         const res = await axios(`/api/harmony-module/loadPage?moduleId=${moduleId}&version=${moduleVersion}&pageId=${desc.pageId}`)
+    //         resolve(res.data.data)
+    //         break;
+    //       default:
+    //         break;
+    //     }
+    //   })
+    // },
     pageMetaLoader(...args) {
       //加载页面元数据
       // return Promise.resolve(undefined)
