@@ -17,7 +17,11 @@ export function checkValueType(value) {
 
 /** 获取tptJson中合法的slot中的style */
 export function getValidSlotStyle(style = undefined) {
-  console.log("[getValidSlotStyle - style]", window._.clone(style));
+  if (style?.smart) {
+    return {
+      position: "smart"
+    }
+  }
   return {
     display: 'flex',
     position: 'inherit',

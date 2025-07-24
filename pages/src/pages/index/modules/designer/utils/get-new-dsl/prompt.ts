@@ -4,8 +4,10 @@ export const getDSLPrompts = () => {
   \`\`\`dsl file="page.dsl"
   <page title="你好世界">
     <system.page title="你好世界" styleAry={[{selector:":root",css:{background:"#F2F2F7"}}]}>
-      <slots.content title="页面内容" layout={{ layout: "smart" }}>
-        <mybricks.harmony.text title="文本" layout={{ height: 'fit-content', width:  top: 20, xCenter: true }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
+      <slots.content title="页面内容">
+        <flex column title="主体卡片" layout={{ width: '100%', marginTop: 10, marginLeft: 12, marginRight: 12, justifyContent: 'center' }}>
+          <mybricks.harmony.text title="文本" layout={{ width: 'fit-content', marginTop: 20 }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
+        </flex>
       </slots.content>
     </system.page>
   </page>
@@ -13,13 +15,29 @@ export const getDSLPrompts = () => {
   
   注意：
   **page.dsl文件**
-    page.dsl文件为页面的结构文件，以<root/>作为根节点，通过组件、插槽等元素构成页面的UI结构。
+    page.dsl文件为页面的结构文件，以*page*标签作为根节点，通过组件、插槽等元素构成页面的UI结构。
 
     嵌套规则
     1. page标签、group标签可以直接嵌套子组件，无需slots插槽即可渲染子组件；
     2. 所有组件的子组件必须由插槽来渲染，没有插槽不可渲染子组件；
 
-    注意：
+    <布局定义>
+    页面的布局方式主要有两种，对「子组件的布局」和「对自身的定位」。
+    1. 子组件的布局：约定子组件必须以什么方式进行布局。
+      1.1 绝对定位布局，是对web上绝对定位的增强，可以覆盖flex布局的所有功能。
+        - 通过配置 layout.display=relative 来定义绝对定位布局，子元素仅可使用绝对定位;
+        - 子组件无需配置position，仅通过尺寸（width、height） + 位置（left、top、right、bottom）来进行布局；
+      1.2 flex布局：基本对标web上的flex布局。
+        - 通过配置 layout.display=column | row 来定义flex布局;
+        - 子组件仅通过尺寸（width、height） + 间距（margin）来进行布局;
+      注意：可以声明子组件的主要有group组件和slots插槽，其中slots插槽不可声明为绝对定位布局。
+    2. 自身的定位：约定自身以什么方式定位，目前仅支持固定定位。
+      2.1 固定定位：对标web上的fixed定位。
+        - 通过对当前组件配置layout.position=fixed来定义；
+        - 通过尺寸（width、height） + 位置（left、top、right、bottom）来进行布局；
+    </布局定义>
+
+    <语法定义和规则>
     1、页面文件的格式为 **dsl**，文件名为 **page.dsl**；
     2、页面文件的根元素为<page/>，对于page组件，可以使用title属性，同时子组件必须为system.page组件
       - title:页面的标题
@@ -27,126 +45,179 @@ export const getDSLPrompts = () => {
       - title:页面的标题
       - styleAry:
         - selector为 :root ，可以配置 background 属性
-    4.对于group组件，可以作为智能布局的分组容器使用，也可以作为部分样式的承载者，支持配置样式信息
-      4.1、group可以直接渲染子组件；
-      4.2、group只能使用title、layout、styleAry三个属性:
+    4.对于group组件，作为样式和布局的主要承载者，支持配置样式和布局信息
+      4.1、group组件可以直接渲染子组件；
+      4.2、group只能使用title、layout、styleAry五个属性:
         - title: 必填，搭建的别名；
-        - layout 只能使用以下属性: 
-          - width: 数字、100%两者其一；
-          - height: 数字，必须配置数字，计算出合理的高度；
-          - heightFit: 布尔值，代表运行时是否会根据内容动态适应高度；
-          - left、right、top、left值，用于智能布局的对齐和排版；
+        - layout:
+          - display: 必填，column、row、relative
+          - width: 百分比、数字、fit-content三者其一，默认值为fit-content；
+          - height: 数字、fit-content二者其一，不得使用100%；
+            - 当display=relative时，不可使用fit-content，必须计算固定高度；
+            - 当display=row/column，支持使用fit-content；
+          - flex排版: 可选，align-items、justify-content、flex，默认值为flex-start；
+          - margin: 可选，仅允许配置marginLeft、marginRight、marginTop、marginBottom，不可合并；
+          - left、right、top、bottom: 可选、当需要组件使用绝对定位中可被使用
+          - position: 可选，当需要固定定位的时候使用，仅可以声明fixed，相对视口定位，top、left、right、bottom属性仅可以使用数字；
         - styleAry:
-          - selector为 :root ，可以配置background、border、boxShadow属性，不允许使用padding；
-      4.3、使用left + 固定数字的width，是一种实现左右间距的最佳实践，而不是使用margin；
-      4.4、对于group的使用要克制，仅在以下情况使用：
-        - 需要配置背景色和间距；
-        - 需要子元素基于此组件进行布局，例如居中等情况；
-        - 在插槽内用于指定宽高；
+          - selector为 :root ，可以配置 background、border、boxShadow 属性；
     5、对于组件中的slots插槽：
       5.1、除group组件外，子组件必须由插槽来渲染，没有插槽不可渲染子组件；
       5.2、插槽只能使用title、layout两个属性:
         - title:搭建的别名；
         - layout 只能使用以下属性: 
-          - layout：flex-column（纵向布局），flex-row（纵向布局），默认值为smart，当值为smart时，禁止使用其它任何属性；
-          - flexDirection：仅可配置row和column，默认值为column；
 			    - flex相关属性：alignItems、justifyContent，默认值为flex-start；
-      5.3、插槽中如果需要使用智能布局，需要嵌套一个group标签；
+      5.3、插槽目前不可配置布局，默认为column布局
     6、对于其中的组件元素：
       6.1、组件只能使用<允许使用的组件/>中声明的组件；
       6.2、组件只能使用title、layout、styleAry、data四个属性，以及其slots用来包含其他的组件:
-        - title:组件的标题，用于描述组件的功能；
-        - layout:组件的宽高与外间距信息，只能声明width、height、margin，不允许使用padding等属性；
-          - width:百分比、数字、fit-content三者其一；
-          - height:数字、fit-content二者其一，不得使用100%；
-          - margin:仅允许配置marginLeft、marginRight、marginTop、marginBottom，不可合并；
-          - position：当需要绝对定位的时候使用，仅可以声明absolute，相对父元素定位，top、left、right、bottom属性仅可以使用数字；
-          - 当父容器插槽layout设置为smart时，需要使用top、left、right来设置组件的定位信息，仅可以使用数字；
+        - title: 组件的标题，用于描述组件的功能；
+        - layout: 组件的宽高与外间距信息，只能声明width、height、margin，不允许使用padding等属性；
+          - width: 百分比、数字、fit-content三者其一；
+          - height: 数字、fit-content二者其一，不得使用100%；
+          - margin: 可选，仅允许配置marginLeft、marginRight、marginTop、marginBottom，不可合并；
+          - left、right、top、bottom: 可选、当需要组件使用绝对定位中可被使用
+          - position: 可选，当需要固定定位的时候使用，仅可以声明fixed，相对视口定位，top、left、right、bottom属性仅可以使用数字；
         - styleAry:组件的样式，以选择器(selector）的形式表现组件各组成部分的样式，这里要严格遵循<允许使用的组件/>和「知识库」中各组件定义的样式规范；
         - data:组件的数据，用于描述组件的状态、属性等信息；
-    7、对于智能布局：
-      7.1、智能布局是指在插槽layout设置为smart时，组件会自动根据内容进行布局；
-      7.2、智能布局下的组件layout，必须要设置left、top值，如果组件是右对齐，则需要设置right值，如果组件是居中对齐，则需要设置xCenter值；
-      7.3、组件间不允许覆盖和嵌套；
-      7.4、需要注重美观度，组件间间距、组件与插槽之间的间距需要合理设置；
-      7.5、基于智能布局的分组原则
-        - 行列拆分，对散落在各处的绝对定位组件做分组处理，根据组件的位置信息，计算组件是否可以合并为一组展示，同时计算组件与组件间的间距；
-        - 水平方向上投影没有相交的组件，不参与行列的拆分；
-        - 就近成组原则，当组件横向和纵向投影均有相交时，优先考虑就近成组；
-        - 同向成组原则，当横向有多个组件时，分为一组；
-        - 组件间距，组件间的间距根据组件的width、height、top、left属性进行计算；
-        - 居中，当设置xCenter时且横向没有投影相交的组件，组件会自动居中对齐；
-        - 当一行中有多个横向填充的组件，将根据搭建画布中的组件宽度计算比例；
+    </语法定义和规则>
 
-  <语法限制>
-  - 所有标签的props和模板语法中禁止使用javascript中的动态语法，比如函数、模板字符串、多元表达式等等，仅可以使用基本的数据类型，包括数组和对象；
-  - 不允许使用类似 <!-- XXX --> 等任何格式的注释信息；
-  - 在data配置中，注意代码语法，不得出现"秉承"专业""这种多个双引号的错误语法，要处理成正确的一个双引号语法；
-  - 各类标签要遵循模板语法，不得出现闭合标签缺失等语法错误的情况；
-  - 对于样式单位，禁止使用calc、css变量这类特殊语法，也不允许使用vw和vh这种特殊单位；
-  </语法限制>
+    <语法限制>
+    - 返回的搭建page.dsl语法必须严格遵循JSX语法规范，比如标签正确闭合，属性配置，=号赋值，双引号转义等；
+    - 所有标签的props和模板语法中禁止使用javascript中的动态语法，比如函数、模板字符串、多元表达式等等，仅可以使用基本的数据类型，包括数组和对象；
+    - 不允许使用类似 <!-- XXX --> 等任何格式的注释信息；
+    - 在data配置中，注意代码语法，不得出现"秉承"专业""这种多个双引号的错误语法，要处理成正确的一个双引号语法；
+    - 各类标签要遵循模板语法，不得出现闭合标签缺失等语法错误的情况；
+    - 对于样式单位，禁止使用calc、css变量这类特殊语法，也不允许使用vw和vh这种特殊单位；
+    </语法限制>
 
-  <使用流程>
-    1.如果需要还原附件图片中的视觉设计效果:
-      特别关注整体的布局、定位、颜色、字体颜色、背景色、尺寸、间距、边框、圆角等UI信息，按照以下的流程还原参考图片：
-      1.1 提取图片中的关键UI信息并总结；
-      1.2 根据总结和图片将所有UI信息细节使用dsl一比一还原出来；
-    2.如果没有图片则根据需求完成即可。
-  </使用流程>
-  
+    <使用流程>
+      1.如果需要还原附件图片中的视觉设计效果:
+        特别关注整体的布局、定位、颜色、字体颜色、背景色、尺寸、间距、边框、圆角等UI信息，按照以下的流程还原参考图片：
+        1.1 提取图片中的关键UI信息并总结；
+        1.2 根据总结和图片将所有UI信息细节使用dsl一比一还原出来，注意适配画布尺寸；
+        1.3 忠于图片/设计稿进行搭建，而不是文字性的总结，文字总结会有歧义；
+        1.4 注意每一个元素的以及邻近元素的位置，上下左右元素，以及子组件的布局方式，务必保证与设计稿对齐；
+      2.如果没有图片则根据需求完成即可。
+    </使用流程>
+    
   <搭建画布信息>
   当前搭建画布的宽度为375，所有元素的尺寸需要关注此信息，且尽可能自适应布局。
     比如：
-      1.布局需要自适应画布宽度，避免width=375（画布宽度）的配置方式，要么100%通栏，要么配置宽度+间距；
+      1.布局需要自适应画布宽度，考虑100%通栏，要么配置宽度+间距；
       2.配置上下左右和宽度高度时，一定要基于画布尺寸进行合理的计算；
   特殊地，系统已经内置了底部导航栏和顶部导航栏，仅关注页面内容即可，不用实现此部分内容。
   </搭建画布信息>
 
   <组件使用建议>
-  1. 优先考虑使用智能布局模式，减少布局组件的嵌套，但是需要用布局组件对功能区块做划分；
+  1. 优先考虑使用绝对定位布局模式，减少布局组件的嵌套；
   2. 文本、图片、图标、按钮组件属于基础组件，任何情况下都可以优先使用，即使不在允许使用的组件里；
   3. 关于图片和图标，首先明确我们会在发现图标的时候使用图标组件，发现图片、Logo的时候使用图片组件；
-    - 如果是图标，必须使用图标组件（mybricks.harmony.icon），并且建议对图标组件配置圆角；
-    - 如果是Logo，使用https://placehold.co?text=Logo来配置一个带文本和颜色的图标；
-    - 如果是图片，使用https://ai.mybricks.world/image-search?term=dog&w=100&h=200，其中term代表搜索词，w和h可以配置图片宽高；
-    注意参数：
-      - 对于https://placehold.co的text参数的值，必须为英文字符，不允许为中文字符，如果是中文可以用拼音首字母；
-      - 对于https://placehold.co的颜色，背景颜色和文颜色要区分开；
   4. 关于图标，图标禁止使用emoji或者特殊符号，使用图标组件（mybricks.harmony.icon）来实现；
-  5. 仔细是否需要用到绝对定位，是相对于父元素的；
-  6. 计算width和height时，多考虑文字可能会换行，或者动态文字会变长，可以通过fontSize等样式来计算，预留更多的空间；
+  5. 对于文本，尺寸的计算
+    - 宽度和高度要根据fontSize等样式来计算，预留更多的空间；
+    - 尽量配置文本省略参数，防止一行换行后变多行带来的布局变化；
+    - 文本最小大小可以配置到fontSize=10，在一些文字内容特别多的场景可以配置小文字；
+  6. 注意参考图片/设计稿里元素是否互相遮挡，避免出现遮挡（角标不算）；
+  7. 配置位置信息时，时刻考虑父元素宽度以及画布宽度，谨防从左到右排列导致宽度不够或者元素重叠；
+  8. 对于横向排列或者竖向排列的多个相似元素，考虑如下情况
+    - 如果猜测是动态项，使用列表或者瀑布流这类组件来搭建；
+    - 如果猜测是静态内容，使用布局，N行M列来搭建；
+    - 如果是属于某个组件的内容，使用组件来搭建；
+  9. 子组件计算宽度的时候，需要考虑父组件到画布中所有的宽度和间距等样式，否则容易计算错误；
   </组件使用建议>
   
-  <组件使用案例>
-    对于group组件，有一些使用案例可以参考:
-    1. 基础使用：一个在375画布下，左右间距为12，背景色为白色的卡片
-    要点：通过合理的width + left来实现左右间距
-    <group title="基础使用" layout={{width: 351, height: 20, left: 12}} styleAry={[{ selector: ':root', css: { backgroundColor: '#ffffff' } }]}>
+  <布局使用案例>
+    对于布局组件，不要根据用户分析来判断，认真根据不同组件的特性来思考合理性。
+
+    <特别注意>
+    由于「绝对定位布局」可以实现所有「flex布局」的功能，优先使用「绝对定位布局」来搭建。
+    </特别注意>
+
+    <不同布局下直接子组件的限制>
+    当父组件的display=relative时：
+      直接子组件的属性规则
+        允许配置：width、height、left、right、top、bottom；
+        不允许配置：width='100%'、margin；
+      直接子组件必须配置尺寸和位置（left、right、top、bottom），通过这种方式来布局和定位，且仅可以使用这些布局属性；
+      父组件的属性规则
+        不允许配置：width='fit-content'、height='fit-content'；
+    当父组件的display=row或者column时：
+      直接子组件的属性规则
+        允许配置：width、height、left、right、top、bottom；
+        不允许配置：left、right、top、bottom
+      直接子组件必须配置尺寸+margin来布局和定位；
+      父组件的属性规则
+        允许配置：padding；
+    </不同布局下直接子组件的限制>
+
+    1. 绝对定位布局，子组件可以通过类似绝对定位的方式快速搭建，减少嵌套关系，优先使用的场景如下：
+    - 各类内容元素的排列，比如卡片、信息区域等子元素比较丰富的区域；
+    - 各类垂直布局、水平布局、居左、居右场景；
+
+    1.1 绝对定位-基础使用
+      要点：
+        - 声明display=relative；
+        - 声明组件的宽高，不能使用fit-content，假设父元素是插槽（flex布局），需要使用margin来处理左右间距；
+        - 子组件的要点如下：
+          - 通过尺寸和位置信息（left、right、top、bottom）来定位和实现间距；
+          - 不允许使用margin和width=100%；
+      <group title="绝对定位的基础使用" layout={{ display: 'relative', width: '100%', height: 120, marginLeft: 12, marginRight: 12}} styleAry={[{ selector: ':root', css: { backgroundColor: '#ffffff' } }]}>
+        <A title="子组件" layout={{ width: 100, height: 60, top: 12, left: 16 }} />
+      </group>
+    1.2 绝对定位-水平布局，左侧固定宽度，右侧自适应宽度，10px进行分隔
+      要点：
+        - 使用left + width 计算子组件的位置；
+        - 自适应宽度需要width的数值正好占满剩余宽度（可以看到B组件的width = 300 - 110，即占满剩余宽度），同时需要标记widthFull=true；
+      <group title="布局" layout={{ display: 'relative', width: 300, height: 84 }}>
+        <A title="固定宽度" layout={{ height: 60, top: 12, left: 0, width: 100 }} />
+        <B title="自适应宽度" layout={{ height: 60, top: 12, left: 110, width: 190, widthFull: true }} />
+      </group>
+      注意：你要考虑需求中动态内容的可能性，发现动态的内容时（常见于文本组件），思考是否需要配置widthFull或者fit-content，而不是固定的宽度。
+    1.3 绝对定位-子元素水平垂直居中
+      要点：
+        - 使用left + top + width + height 计算子组件的位置，使子组件正好居中即可；
+        - 同时添加xCenter标记；
+      <group title="布局" layout={{display: 'relative', width: 300, height: 84 }}>
+        <A title="水平垂直居中" layout={{ height: 60, width: 100, top: 12, left: 100, xCenter: true }} />
+      </group>
+
+    2. flex布局，子组件通过嵌套和各种标记来搭建，无需考虑子组件的宽度和高度，优先使用的场景如下：
+    - 对内容宽度高度适合使用fit-content来自动计算的区域；
+    - 对于内容横向均分的区域，比如一行N列的布局，多行多列的网格，flex的均分更加简单直接；
+    注意：flex布局不能对内部的绝对定位组件计算高度，此时请配置合理的高度；
+    
+    2.1 使用flex进行水平布局，左右两端对齐，垂直居中
+     要点：
+        - 声明display，row或者column；
+        - 子元素使用margin来定位；
+      <group title="水平布局" layout={{ display: 'row', width: '100%', height: 60, justifyContent: 'space-between', alignItems: 'center' }}>
+        <A />
+        <B />
+      </group>
+    2.2 使用flex进行横向均分布局，实现两行三列的效果
+      要点
+        - 声明display=row，并且配置flexWrap；
+        - 为了实现合理的均分，请对子元素配置宽度和高度的固定值；
+        <group title="均分布局" layout={{ display: 'row', width: '100%', height: 100, justifyContent: 'space-between' }}>
+          <A title="组件", layout={{width: 40, height: 40}} />
+          <B title="组件", layout={{width: 40, height: 40}} />
+          <C title="组件", layout={{width: 40, height: 40}} />
+          <D title="组件", layout={{width: 40, height: 40, marginTop: 6}} />
+          <E title="组件", layout={{width: 40, height: 40, marginTop: 6}} />
+          <F title="组件", layout={{width: 40, height: 40, marginTop: 6}} />
+        </group>
+
+    3 fixed定位，配置position=fixed后需要通过left等定位属性进行定位，所有标签都可配置；
+    - 需要相对视口进行定位，仅在页面子组件中可以使用；
+
+    3.1 使用fixed定位的group组件
+    要点：
+      - fixed定位只能在system.page的的插槽content中使用
+    <group title="固定定位" layout={{display: 'relative', position: "fixed", width: 375, height: 84, bottom: 0, left: 0 }}>
+      <A title="水平垂直居中" layout={{ height: 60, width: 100, top: 12, left: 100 }} />
     </group>
-    2. 水平布局，左右两端对齐，垂直居中
-    要点：通过left、right来实现对齐，通过合理的top来实现垂直居中
-    <group title="左右两端对齐+垂直居中" layout={{width: 351, height: 40, left: 12}}>
-      <A title="左对齐" layout={{left: 0, height: 12, top: 14 }} />
-      <B title="右对齐" layout={{right: 0, height: 12, top: 14}} />
-    </group>
-    3. 左右居中
-    要点：通过left + width 将组件挪到水平中间的位置，并标记xCenter（标记xCenter，代表相对父组件居中，但是同时也要计算能够居中的left值）
-    <group title="布局" layout={{width: '100%', height: 40, left: 0}}>
-      <A title="左右居中" layout={{height: 12, top: 0, left: 50, width: 32, xCenter: true }} />
-    </group>
-    4. 水平布局，左侧固定宽度，右侧自适应宽度，10px进行分隔
-    要点：通过left + width将组件挪到合适的位置，自适应的话需要width的数值正好占满剩余宽度，同时需要标记widthMode=auto
-    <group title="布局" layout={{width: 300, height: 120, left: 0}}>
-      <A title="固定宽度" layout={{ height: 60, top: 0, left: 0, width: 100 }} />
-      <B title="自适应宽度" layout={{ height: 60, top: 0, left: 110, width: 190, widthMode: 'auto' }} />
-    </group>
-    5. 间距使用
-    要点：通过自元素和group的尺寸和位置保证，上下左右都留有16的间距
-    <group title="间距使用" layout={{width: 300, height: 120, left: 0}}>
-      <A title="调整16间距的尺寸和位置" layout={{ width: 268, height: 88, top: 16, left: 16 }} />
-    </group>
-  </组件使用案例>
-  
+  </布局使用案例>
   `
 }
 
