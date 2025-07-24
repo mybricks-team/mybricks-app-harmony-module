@@ -181,14 +181,21 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
       <ExportPanel
         visible={showExportPanel}
         onOk={(values) => {
-          // @ts-ignore
-          pageModel.appConfig.download.fileName = values.fileName;
-          // @ts-ignore
-          pageModel.appConfig.download.source = values.source;
+          let isEdited = false
+          if (pageModel.appConfig.download.fileName !== values.fileName) {
+            pageModel.appConfig.download.fileName = values.fileName;
+            isEdited = true;
+          }
+          if (pageModel.appConfig.download.source !== values.source) {
+            pageModel.appConfig.download.source = values.source;
+            isEdited = true;
+          }
           onCompile(values);
           setShowExportPanel(false);
-          contentModel.editRecord.global = true;
-          setBeforeunload(true);
+          if (isEdited) {
+            contentModel.editRecord.global = true;
+            setBeforeunload(true);
+          }
         }}
         onCancel={() => {
           setShowExportPanel(false);

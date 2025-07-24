@@ -129,6 +129,7 @@ const Application = () => {
     if (!pageModel.appConfig.download) {
       pageModel.appConfig.download = {
         fileName: firstCharToLowerCase(transformString(pageModel.file.name || "module")),
+        source: "ohpmLibrary"
       }
     }
     pageModel.wxConfig = data.fileContent.content?.wxConfig || {};

@@ -592,8 +592,8 @@ const getApiCode = async (params, config) => {
     .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
     .replace("$r('app.api.import.utils')",
       download.source === "sourceCode" ?
-        'import { MyBricks } from "./utils/types";\nimport { api as transformApi } from "./utils/mybricks"\n;' :
-        'import { MyBricks, api as transformApi } from "@mybricks/render-utils";'
+        'import { MyBricks } from "./utils/types";\nimport { transformApi } from "./utils/mybricks"\n;' :
+        'import { MyBricks, transformApi } from "@mybricks/render-utils";'
     );
     // .replace("$r('app.api.import.utils')",
     //   download.source === "sourceCode" ?
@@ -657,9 +657,7 @@ const compilerHarmonyModule = async (params, config) => {
 
     if (page.type === "extension-api") {
       // API
-      extensionApiCode = extensionApiCode + `${page.name}: MyBricks.Api = transformApi((value: MyBricks.Any${page.meta.outputs?.length ? ", callBack: MyBricks.Any" : ""}) => {
-        ${page.content}
-      })\n`
+      extensionApiCode = extensionApiCode + page.content
       return
     }
 
