@@ -122,7 +122,7 @@ const jsCodeCollector = () => {
 
 /** 根据Json生成所有页面的Js，并按引用删除数据 */
 export const getAllModulesJsCode = async (pages, plugins, options = {}) => {
-  const { isH5, isHarmony, download } = options;
+  const { isH5, isHarmony, download = {} } = options;
   let allModules = ``;
 
   //解析「连接器」插件并生成到 modules
