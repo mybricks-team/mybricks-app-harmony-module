@@ -612,10 +612,10 @@ export default function ({
                     title: '编辑用户数据',
                     language: "json",
                     width: 500,
+                    height: 150,
                     minimap: {
                       enabled: false,
                     },
-                    displayType: 'button',
                   };
                 },
                 value: {
