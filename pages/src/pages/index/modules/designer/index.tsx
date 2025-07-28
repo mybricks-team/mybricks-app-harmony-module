@@ -890,6 +890,7 @@ const Designer = ({ appData }) => {
           }
           return;
         }
+        message.success("发布成功")
       } catch (e) {
         console.error(e);
         message.error(e?.message ?? "发布失败，请重试");
