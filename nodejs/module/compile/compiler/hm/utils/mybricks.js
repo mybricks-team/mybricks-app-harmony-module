@@ -616,6 +616,12 @@ export const createFx = (fx) => {
   return (value, ...args) => {
     const outputs = {}
 
+    const proxy = new Proxy({}, {
+      get(_, key) {
+        return outputs[key] || (outputs[key] = new Subject())
+      }
+    })
+
     const next = (value) => {
       const res = fx(value, ...args)
       if (res) {
@@ -642,7 +648,7 @@ export const createFx = (fx) => {
       next(value)
     }
 
-    return outputs
+    return proxy
   }
 }
 
