@@ -74,6 +74,13 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
       importType: "named",
     });
   }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
+      importType: "named",
+    });
+  }
 
   switch (navigationStyle) {
     case 'default': {
@@ -167,6 +174,13 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
+      importType: "named",
+    });
+  }
   return `${page.importManager.toCode()}
 
       /** ${page.meta.title} */
@@ -203,6 +217,13 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
+      importType: "named",
+    });
+  }
   return `${page.importManager.toCode()}
 
       ${page.content}
@@ -230,6 +251,13 @@ const handleGlobalCode = (page, { params }) => {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createFx"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
       importType: "named",
     });
   }
@@ -329,7 +357,7 @@ const handleReadMeCode = (params) => {
     "```\n\n" +
     "## 🚀 使用\n" +
     "```typescript\n" +
-    'import { api, config } from "./api"\n\n' +
+    'import { api, config, registerSystemBus } from "./api"\n\n' +
     (config ? (
       `/** 模块配置 */\n` +
       `config(${config.inputs?.length ? "{\n": ""}` + 
@@ -347,6 +375,14 @@ const handleReadMeCode = (params) => {
         "}"
       ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
     }, "") : ""}` + 
+    "\n\n/** 注册系统总线" + 
+    "registerSystemBus({\n" + 
+    "  /** 总线:获取登录用户 */\n" +
+    "  getUser(value, callBack) {\n" +
+    "    // callBack.then(value) // 成功时，返回用户信息\n" +
+    "    // callBack.catch(value) // 发生错误时，返回错误信息\n" +
+    "  }\n" +
+    "})" + 
     "\n```"
 }
 
@@ -367,6 +403,12 @@ const generatePageCodeWithMetadata = (params) => {
   const { toJson, componentMetaMap, download } = data;
   const verbose = useLog;
   const usedComponentsMap = {};
+
+  const busMap = {
+    "mybricks.core-comlib.bus-getUser": {
+      name: "getUser"
+    }
+  }
   const pageCode = toHarmonyCode(toJson, {
     getComponentMetaByNamespace(namespace, config) {
       if (!usedComponentsMap[namespace]) {
@@ -399,6 +441,9 @@ const generatePageCodeWithMetadata = (params) => {
     },
     getUtilsPackageName() {
       return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/render-utils"
+    },
+    getBus(namespace: string) {
+      return busMap[namespace]
     },
     verbose
   });
@@ -592,8 +637,8 @@ const getApiCode = async (params, config) => {
     .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
     .replace("$r('app.api.import.utils')",
       download.source === "sourceCode" ?
-        'import { MyBricks } from "./utils/types";\nimport { transformApi } from "./utils/mybricks"\n;' :
-        'import { MyBricks, transformApi } from "@mybricks/render-utils";'
+        'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
+        'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
     );
     // .replace("$r('app.api.import.utils')",
     //   download.source === "sourceCode" ?
