@@ -67,10 +67,17 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
       importType: "named",
     });
   }
-  if (page.content.includes("controller:")) {
+  if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("ModuleController()")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["ModuleController"],
       importType: "named",
     });
   }
@@ -167,10 +174,17 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
-  if (page.content.includes("controller:")) {
+  if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("ModuleController()")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["ModuleController"],
       importType: "named",
     });
   }
@@ -210,10 +224,17 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
-  if (page.content.includes("controller:")) {
+  if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("ModuleController()")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["ModuleController"],
       importType: "named",
     });
   }
