@@ -396,7 +396,7 @@ const handleReadMeCode = (params) => {
         "}"
       ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
     }, "") : ""}` + 
-    "\n\n/** 注册系统总线" + 
+    "\n\n/** 注册系统总线 */" + 
     "registerSystemBus({\n" + 
     "  /** 总线:获取登录用户 */\n" +
     "  getUser(value, callBack) {\n" +
