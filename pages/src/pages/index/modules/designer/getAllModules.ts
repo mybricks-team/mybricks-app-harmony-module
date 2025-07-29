@@ -76,9 +76,7 @@ function _execJs (script) {
     };
     try {
       if (runImmediate) {
-        if (env.runtime) {
-          script(runJSParams);
-        }
+        script(runJSParams);
       }
       inputs['input']((val) => {
         try {
@@ -180,10 +178,10 @@ export const getAllModulesJsCode = async (pages, plugins, options = {}) => {
 
           let content = `
             ;const js_${key} = ${decodeURIComponent(realJsCode)};
-            ${download.source === "sourceCode" ? `comModules['${key}'] = _execJs(js_${key});` : `const _execJs_${key} = _execJs(js_${key});
+            const _execJs_${key} = _execJs(js_${key});
             comModules['${key}'] = (props) => {
               return createJSHandle(_execJs_${key}, { props, ...context })
-            }`}
+            }
           `;
 
           if (!isH5 && !isHarmony && pageId) {

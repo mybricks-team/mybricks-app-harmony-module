@@ -58,7 +58,7 @@ export class AppRouter {
       return this.pageParams?.get(name)
     }
     const paramsList = this.navPathStack.getParamByName(name) as UnknownJson[]
-    return paramsList[paramsList.length - 1]
+    return paramsList[paramsList.length - 1] || this.pageParams?.get(name)
   }
 
   public push(name: string, params: UnknownJson | undefined = undefined,
@@ -80,6 +80,7 @@ export class AppRouter {
         open()
         this.registEntryPage(name)
         this.routerStack.push(name)
+        this.pageParams?.set(name, params)
         return
       }
       this.routerStack.push(name);

@@ -67,6 +67,13 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
       importType: "named",
     });
   }
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
   if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
@@ -174,6 +181,13 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
   if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
@@ -224,6 +238,13 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
   if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
@@ -263,6 +284,13 @@ const handleGlobalCode = (page, { params }) => {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
       importType: "named",
     });
   }
@@ -643,16 +671,22 @@ const copyJs = async (params, config) => {
   const { download } = data;
   const { targetPath, importComponentCode, declaredComponentCode } = config;
 
-  const jsCodePath = path.join(targetPath, download.source === "ohpmLibrary" ? "components/codes.ts" : "components/codes.js");
+  // const jsCodePath = path.join(targetPath, download.source === "ohpmLibrary" ? "components/codes.ts" : "components/codes.js");
+  const jsCodePath = path.join(targetPath, "components/codes.ts");
   await fse.ensureFile(jsCodePath)
-  await fse.writeFile(jsCodePath, download.source === "ohpmLibrary" ? `export default function({ createJSHandle, context }) {
+  await fse.writeFile(jsCodePath, `export default function({ createJSHandle, context }) {
       const comModules = {};
       ${decodeURIComponent(data.allModules?.all)};
       return comModules;
-    }` : `export default (function(comModules) {
-      ${decodeURIComponent(data.allModules?.all)};
-      return comModules;
-    })({})`, { encoding: "utf8" })
+    }`, { encoding: "utf8" })
+  // await fse.writeFile(jsCodePath, download.source === "ohpmLibrary" ? `export default function({ createJSHandle, context }) {
+  //     const comModules = {};
+  //     ${decodeURIComponent(data.allModules?.all)};
+  //     return comModules;
+  //   }` : `export default (function(comModules) {
+  //     ${decodeURIComponent(data.allModules?.all)};
+  //     return comModules;
+  //   })({})`, { encoding: "utf8" })
 }
 
 const getApiCode = async (params, config) => {
