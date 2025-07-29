@@ -506,7 +506,9 @@ const generatePageCodeWithMetadata = (params) => {
           styles: createStyles(params),
           ${hasSlots ? "slots: params.slots," : ""}
           ${hasSlots ? "slotsIO: params.slotsIO," : ""}
-          parentSlot: params.parentSlot
+          parentSlot: params.parentSlot,
+          env,
+          _env,
         })
       }
       
