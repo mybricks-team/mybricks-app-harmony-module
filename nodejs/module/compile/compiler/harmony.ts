@@ -245,6 +245,11 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
+  page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController"],
+      importType: "named",
+    });
   return `${page.importManager.toCode()}
 
       ${page.content}
@@ -396,7 +401,7 @@ const handleReadMeCode = (params) => {
         "}"
       ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
     }, "") : ""}` + 
-    "\n\n/** 注册系统总线 */" + 
+    "\n\n/** 注册系统总线 */\n" + 
     "registerSystemBus({\n" + 
     "  /** 总线:获取登录用户 */\n" +
     "  getUser(value, callBack) {\n" +
@@ -447,7 +452,7 @@ const generatePageCodeWithMetadata = (params) => {
 
       return {
         dependencyImport: {
-          packageName: download.source === "sourceCode" ? (config.source === "extensionEvent" ? "./components/Index" : COMPONENT_PACKAGE_NAME) : "@mybricks/comlib-harmony-normal",
+          packageName: download.source === "sourceCode" ? (config.source === "extensionEvent" ? "./components" : COMPONENT_PACKAGE_NAME) : "@mybricks/comlib-harmony-normal",
           dependencyNames,
           importType: "named",
         },
@@ -456,7 +461,7 @@ const generatePageCodeWithMetadata = (params) => {
     },
     getComponentPackageName(params) {
       if (params?.type === "extensionEvent") {
-        return download.source === "sourceCode" ? "./components/Index" : "./components"
+        return download.source === "sourceCode" ? "./components" : "./components"
       }
       return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "../components"
     },
@@ -607,20 +612,20 @@ const copyComponents = async (params, config) => {
 
   // 拷贝components
   if (download.source === "ohpmLibrary") {
-    await fse.copy(path.join(__dirname, "./hm/components/IndexOhpmLibrary.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/components/indexOhpmLibrary.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
     await fse.writeFile(
       path.join(targetPath, "components/index.ets"),
-      (await fse.readFile(path.join(__dirname, "./hm/components/IndexOhpmLibrary.ets"), 'utf-8'))
+      (await fse.readFile(path.join(__dirname, "./hm/components/indexOhpmLibrary.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
           `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
         )
     );
   } else {
-    await fse.copy(path.join(__dirname, "./hm/components/Index.ets"), path.join(targetPath, "components/Index.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/components/index.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
     await fse.writeFile(
-      path.join(targetPath, "components/Index.ets"),
-      (await fse.readFile(path.join(__dirname, "./hm/components/Index.ets"), 'utf-8'))
+      path.join(targetPath, "components/index.ets"),
+      (await fse.readFile(path.join(__dirname, "./hm/components/index.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
           `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
