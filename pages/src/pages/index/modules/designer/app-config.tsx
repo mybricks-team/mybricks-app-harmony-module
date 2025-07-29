@@ -1055,6 +1055,8 @@ export default function ({
         callServiceFx(id, params) {
           return FxService.callServiceFx({ id, params });
         },
+        // 区块搭建态，将env.edit设置为true
+        ENABLE_MODULE_EDIT: true
       },
     },
     permission: {
