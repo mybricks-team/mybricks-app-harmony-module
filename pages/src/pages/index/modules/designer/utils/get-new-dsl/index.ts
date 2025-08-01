@@ -1,6 +1,6 @@
 
 import { checkValueType, getValidSlotStyle, getValidSizeValue, transformToValidBackground, transformToValidStyleAry, fixCompileErrorStyle, uuid } from './helper'
-export { getDSLPrompts, getSystemPrompts } from './prompt'
+export { getDSLPrompts, getSystemPrompts, getExamplePromptsAtFirst } from './prompt'
 
 /**
  * @description Json遍历器，支持对不同类型的节点注册修改函数
@@ -204,27 +204,41 @@ traversal.registerModifier('slot', (slot) => {
 // 添加对所有组件的样式兼容
 traversal.registerModifier('component:before', (component) => {
   if (component.namespace === 'group') {
-    // 幻觉处理
+    // 幻觉处理，没有配置display的情况
     if (!component?.style?.display) {
+      // 判断comAry的component.style是不是全部都是绝对定位，是则设置 component?.style?.display = 'relative'
+      if (Array.isArray(component.comAry) && component.comAry.every(comp => {
+        const style = comp?.style || {};
+        const pairs = [
+          ['left', 'top'],
+          ['left', 'right'],
+          ['left', 'bottom'],
+          ['top', 'right'],
+          ['top', 'bottom'],
+          ['right', 'bottom']
+        ];
+        return pairs.some(([prop1, prop2]) => 
+          typeof style[prop1] !== 'undefined' && 
+          typeof style[prop2] !== 'undefined'
+        );
+      })) {
+        delete component.style.display
+      } else {
+        component.namespace = 'flex'
+        component.style.flexDirection = 'column'
+        delete component.style.display
+      }
+    } else if (component.style.display === 'relative') {
+      delete component.style.display
+    } else if (component.style.display === 'column') {
+      delete component.style.display
       component.namespace = 'flex'
       component.style.flexDirection = 'column'
-      delete component.style.display
-    }
-
-    if (component.style.display === 'relative') {
-      delete component.style.display
-    }
-    if (component.style.display === 'column') {
-      delete component.style.display
-      component.namespace = 'flex'
-      component.style.flexDirection = 'column'
-    }
-    if (component.style.display === 'row') {
+    } else if (component.style.display === 'row') {
       delete component.style.display
       component.namespace = 'flex'
       component.style.flexDirection = 'row'
     }
-    
   }
 
   fixCompileErrorStyle(component.style ?? {})

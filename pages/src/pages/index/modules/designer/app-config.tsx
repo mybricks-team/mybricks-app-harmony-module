@@ -18,7 +18,7 @@ import { editorAppenderFn } from "./editorAppender";
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { aiUtils } from "./utils/get-ai-encrypt-data";
-import { getNewDSL, getDSLPrompts, getExamplePrompts, getSystemPrompts } from './utils/get-new-dsl'
+import { getNewDSL, getDSLPrompts, getExamplePrompts, getSystemPrompts, getExamplePromptsAtFirst } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
 import { message } from "antd";
@@ -26,7 +26,7 @@ import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
 
-// import { mock2Res, mock1Res, systemPrompts } from './mock'
+// import { mock2Res, mock1Res, systemPrompts, mock1Prompt } from './mock'
 
 // import  AICom  from "../../../../../public/ai-com"
 // import typeConfig from "./configs/type";
@@ -260,7 +260,6 @@ export default function ({
     pageContentLoader: async (sceneId) => {
       await contentModel.isOpenedPagesContentLoad();
       const cont = await contentModel.getPageContent({ sceneId });
-      // console.log(`load scene ==> ${sceneId}`, cont);
       return cont;
     },
     editView: {
@@ -1285,6 +1284,7 @@ const getAiView = (enableAI, option) => {
   if (enableAI) {
     return {
       getSystemPrompts,
+      getExamplePromptsAtFirst,
       getDSLPrompts,
       getExamplePrompts,
       getNewDSL,
@@ -1316,6 +1316,7 @@ const getAiView = (enableAI, option) => {
           cancelControl?.abort?.();
         });
 
+        const _messages = Array.from(messages)
 
         // const isScenond = messages.length > 2
         // if (isScenond) {
@@ -1328,9 +1329,13 @@ const getAiView = (enableAI, option) => {
 
         // const isFirstOne = messages.length === 2
         // if (isFirstOne) {
+        //   console.log(messages[0].content)
         //   write(mock1Res);
         //   complete();
         //   return 
+
+        //   console.log(messages[0].content)
+        //   _messages[0].content = mock1Prompt
         // }
 
         // const _message = JSON.parse(JSON.stringify(messages))
@@ -1448,23 +1453,17 @@ const getAiView = (enableAI, option) => {
               },
               signal: cancelControl?.signal,
               credentials: 'include',
-              // body: JSON.stringify({
-              //   model,
-              //   messages: _message,
-              //   tools,
-              //   tool_choice: 'auto',
-              // })
               body: JSON.stringify(
                 APP_ENV === 'production' ? aiUtils.getAiEncryptData({
                   model,
                   role,
-                  messages,
+                  messages: _messages,
                   tools,
                   tool_choice: 'auto',
                   // tool_choice: {"type": "function", "function": {"name": "query_knowledges"}},
                 }) : {
                   model,
-                  messages,
+                  messages: _messages,
                   tools,
                   tool_choice: 'auto',
                 }

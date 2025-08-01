@@ -5,9 +5,9 @@ export const getDSLPrompts = () => {
   <page title="你好世界">
     <system.page title="你好世界" styleAry={[{selector:":root",css:{background:"#F2F2F7"}}]}>
       <slots.content title="页面内容">
-        <flex column title="主体卡片" layout={{ width: '100%', marginTop: 10, marginLeft: 12, marginRight: 12, justifyContent: 'center' }}>
+        <group title="主体卡片" layout={{ display: 'column', width: '100%', marginTop: 10, marginLeft: 12, marginRight: 12, justifyContent: 'center' }}>
           <mybricks.harmony.text title="文本" layout={{ width: 'fit-content', marginTop: 20 }} styleAry={[{selector:".mybricks-text",css:{color:'red',fontSize:'20px'}}]} data={{text:"Hello world"}} />
-        </flex>
+        </group>
       </slots.content>
     </system.page>
   </page>
@@ -67,7 +67,7 @@ export const getDSLPrompts = () => {
         - title:搭建的别名；
         - layout 只能使用以下属性: 
 			    - flex相关属性：alignItems、justifyContent，默认值为flex-start；
-      5.3、插槽目前不可配置布局，默认为column布局
+      5.3、插槽目前不可配置布局，默认为column布局（即垂直的流式布局）
     6、对于其中的组件元素：
       6.1、组件只能使用<允许使用的组件/>中声明的组件；
       6.2、组件只能使用title、layout、styleAry、data四个属性，以及其slots用来包含其他的组件:
@@ -130,10 +130,6 @@ export const getDSLPrompts = () => {
   <布局使用案例>
     对于布局组件，不要根据用户分析来判断，认真根据不同组件的特性来思考合理性。
 
-    <特别注意>
-    由于「绝对定位布局」可以实现所有「flex布局」的功能，优先使用「绝对定位布局」来搭建。
-    </特别注意>
-
     <不同布局下直接子组件的限制>
     当父组件的display=relative时：
       直接子组件的属性规则
@@ -151,10 +147,23 @@ export const getDSLPrompts = () => {
         允许配置：padding；
     </不同布局下直接子组件的限制>
 
-    1. 绝对定位布局，子组件可以通过类似绝对定位的方式快速搭建，减少嵌套关系，优先使用的场景如下：
-    - 各类内容元素的排列，比如卡片、信息区域等子元素比较丰富的区域；
-    - 各类垂直布局、水平布局、居左、居右场景；
+    <针对不同情况针对性使用布局>
+      <首要原则>由于「绝对定位布局」可以实现所有「flex布局」的功能，优先使用「绝对定位布局」来搭建。</首要原则>
+      <分情况处理>
+        当发现
+          多类内容元素的排列，比如卡片、信息区域等子元素比较丰富的区域 -> 使用绝对定位布局；
+        当发现
+          非均分/网格的垂直布局、水平布局的居左、居右场景 -> 使用绝对定位布局；
+        当发现
+          需要对内容宽度高度使用fit-content来自动计算的区域 -> 使用flex布局；
+        当发现
+          对于内容横向均分的区域，比如一行N列的均分/等分布局，多行多列的网格，flex的均分更加简单直接 -> 使用flex布局；
+        当发现
+          不属于以上情况 -> 使用绝对定位布局；
+      </分情况处理>
+    </针对不同情况针对性使用布局>
 
+    1. 绝对定位布局，子组件可以通过类似绝对定位的方式快速搭建，减少嵌套关系。
     1.1 绝对定位-基础使用
       要点：
         - 声明display=relative；
@@ -182,24 +191,24 @@ export const getDSLPrompts = () => {
         <A title="水平垂直居中" layout={{ height: 60, width: 100, top: 12, left: 100, xCenter: true }} />
       </group>
 
-    2. flex布局，子组件通过嵌套和各种标记来搭建，无需考虑子组件的宽度和高度，优先使用的场景如下：
-    - 对内容宽度高度适合使用fit-content来自动计算的区域；
-    - 对于内容横向均分的区域，比如一行N列的布局，多行多列的网格，flex的均分更加简单直接；
+    2. flex布局，子组件通过嵌套和各种标记来搭建，无需考虑子组件的宽度和高度。
+
     注意：flex布局不能对内部的绝对定位组件计算高度，此时请配置合理的高度；
     
     2.1 使用flex进行水平布局，左右两端对齐，垂直居中
      要点：
-        - 声明display，row或者column；
+        - 声明display=row/column；
         - 子元素使用margin来定位；
       <group title="水平布局" layout={{ display: 'row', width: '100%', height: 60, justifyContent: 'space-between', alignItems: 'center' }}>
         <A />
         <B />
       </group>
-    2.2 使用flex进行横向均分布局，实现两行三列的效果
+    2.2 使用flex进行横向均分或网格布局，实现两行三列的效果
       要点
         - 声明display=row，并且配置flexWrap；
-        - 为了实现合理的均分，请对子元素配置宽度和高度的固定值；
-        <group title="均分布局" layout={{ display: 'row', width: '100%', height: 100, justifyContent: 'space-between' }}>
+        - group配置合理的高度，方便放下元素；
+        - 为了实现合理的均分，请对子元素配置宽度和高度的固定值，保证卡片之间存在间距；
+        <group title="两行三列网格" layout={{ display: 'row', width: '100%', height: 100, justifyContent: 'space-between', flexWrap: 'wrap' }}>
           <A title="组件", layout={{width: 40, height: 40}} />
           <B title="组件", layout={{width: 40, height: 40}} />
           <C title="组件", layout={{width: 40, height: 40}} />
@@ -208,8 +217,19 @@ export const getDSLPrompts = () => {
           <F title="组件", layout={{width: 40, height: 40, marginTop: 6}} />
         </group>
 
+    2.3 使用flex进行横向均分或等分布局，实现一行N列的效果
+      要点
+        - 声明display=row；
+        - group配置合理的高度，方便放下元素；
+        - 为了实现合理的均分，请对子元素配置宽度和高度的固定值，保证卡片之间存在间距；
+        <group title="一行三列等分" layout={{ display: 'row', width: '100%', height: 100, justifyContent: 'space-between' }}>
+          <A title="组件", layout={{width: 40, height: 40}} />
+          <B title="组件", layout={{width: 40, height: 40}} />
+          <C title="组件", layout={{width: 40, height: 40}} />
+        </group>
+
     3 fixed定位，配置position=fixed后需要通过left等定位属性进行定位，所有标签都可配置；
-    - 需要相对视口进行定位，仅在页面子组件中可以使用；
+    - 需要相对视口进行定位，仅在页面插槽中可以使用；
 
     3.1 使用fixed定位的group组件
     要点：
@@ -377,4 +397,65 @@ export const getSystemPrompts = (p) => {
 </examples>
       `
   }
+}
+
+export const getExamplePromptsAtFirst = () => {
+  return `
+  <example>
+    <user_query>根据图片搭建页面</user_query>
+    <assistant_response>
+    好的，经过对图片的全面分析，结论如下：
+    \`\`\`md file="uiDesign.md"
+      **themes**
+      界面采用简约的卡片式布局，整体背景采用浅紫色，内容区域使用纯白色背景，营造出清爽简洁的视觉效果。
+      
+      **layout**
+      界面总体采用从上往下的纵向流式布局，顶部内容通栏，每个区块以圆角卡片的形式呈现，底部通栏为固定布局；
+      1. 顶部区域为通栏，中间居中展示一个图标 + 标题；
+      2. 导航区域为两行四列的导航入口；
+      3. 套餐区域为横向三列的均分布局卡片；
+        3.1 卡片内所有文本元素从上到下依次排列，右上角可能存在一个圆形的角标；
+      4. 联系人区域是居左的标题 + 居右的联系人详情，联系人详情包含头像和昵称，以及一个可选择箭头；
+      5. 结算区域是固定的底部内容，包含左侧的价格计算+右侧的支付按钮；
+      
+      **colors**
+      界面主色调为明亮的蓝紫色，用于突出按钮和重要文字。背景采用柔和的浅紫色，搭配纯白色的内容区域，形成层次分明的视觉层级。
+      
+      **attention**
+      注意以下细节：
+      - 截图中的总体背景没有意义，可以考虑去掉；
+      - 注意各区块间距，顶部通栏就不要使用外间距了；
+      - 卡片中字体内容较丰富，注意字体大小，不要换行和重叠；
+      - 图片中的电话区域选择与输入手机号为一体设计、整体圆角；
+      - 验证码区域的获取验证码按钮为蓝色，按钮文字为白色；
+
+      **risk**
+      参考图片宽度为720像素，目标画布宽度为375像素，我们需要对元素尺寸进行合理的缩放，所以在搭建时需要注意内容不要溢出画布，主要关注以下部分：
+      1. 导航区域为两行四列的网格均分布局，两行使用换行来实现，同时内容需要考虑固定宽度，避免超出画布；
+      2. 套餐区域中的卡片为三列的均分布局，其中卡片的内容信息较丰富，建议固定宽高，同时将文本字体减少至10px;
+      3. “适合各种活动的场地”为动态内容，注意配置文本字体极小，并且配置溢出能力，避免换行；
+      4. 底部居左部分内容宽度缩小后会超过一半，注意将字体调整至极小，避免遮挡右侧内容；
+      5. 右侧图标 + 文本横向排列时，注意文本宽度，防止遮挡图标；
+    \`\`\`
+    
+    推荐采用以下组件进行搭建：
+    \`\`\`json file="require.json"
+    [
+      {
+        "namespace": "mybricks.somelib.card"
+      },
+      {
+        "namespace": "mybricks.somelib.icon"
+      },
+      {
+        "namespace": "mybricks.somelib.text"
+      },
+      {
+        "namespace": "mybricks.somelib.button"
+      }
+    ]
+    \`\`\`
+   </assistant_response>
+  </example>
+  `
 }
