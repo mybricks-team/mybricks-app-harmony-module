@@ -67,10 +67,31 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
       importType: "named",
     });
   }
-  if (page.content.includes("controller:")) {
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("ModuleController()")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["ModuleController"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
       importType: "named",
     });
   }
@@ -160,10 +181,31 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
-  if (page.content.includes("controller:")) {
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("ModuleController()")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["ModuleController"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
       importType: "named",
     });
   }
@@ -196,13 +238,39 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
-  if (page.content.includes("controller:")) {
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("Controller()")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
   }
+  if (page.content.includes("ModuleController()")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["ModuleController"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
+      importType: "named",
+    });
+  }
+  page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController"],
+      importType: "named",
+    });
   return `${page.importManager.toCode()}
 
       ${page.content}
@@ -219,6 +287,13 @@ const handleGlobalCode = (page, { params }) => {
       importType: "named",
     });
   }
+  if (page.content.includes("join")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["join"],
+      importType: "named",
+    });
+  }
   if (page.content.includes("createVariable")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
@@ -230,6 +305,13 @@ const handleGlobalCode = (page, { params }) => {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createFx"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("bus.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["bus"],
       importType: "named",
     });
   }
@@ -329,7 +411,7 @@ const handleReadMeCode = (params) => {
     "```\n\n" +
     "## 🚀 使用\n" +
     "```typescript\n" +
-    'import { api, config } from "./api"\n\n' +
+    'import { api, config, registerSystemBus } from "./api"\n\n' +
     (config ? (
       `/** 模块配置 */\n` +
       `config(${config.inputs?.length ? "{\n": ""}` + 
@@ -347,6 +429,14 @@ const handleReadMeCode = (params) => {
         "}"
       ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
     }, "") : ""}` + 
+    "\n\n/** 注册系统总线 */\n" + 
+    "registerSystemBus({\n" + 
+    "  /** 总线:获取登录用户 */\n" +
+    "  getUser(value, callBack) {\n" +
+    "    // callBack.then(value) // 成功时，返回用户信息\n" +
+    "    // callBack.catch(value) // 发生错误时，返回错误信息\n" +
+    "  }\n" +
+    "})" + 
     "\n```"
 }
 
@@ -367,6 +457,12 @@ const generatePageCodeWithMetadata = (params) => {
   const { toJson, componentMetaMap, download } = data;
   const verbose = useLog;
   const usedComponentsMap = {};
+
+  const busMap = {
+    "mybricks.core-comlib.bus-getUser": {
+      name: "getUser"
+    }
+  }
   const pageCode = toHarmonyCode(toJson, {
     getComponentMetaByNamespace(namespace, config) {
       if (!usedComponentsMap[namespace]) {
@@ -384,7 +480,7 @@ const generatePageCodeWithMetadata = (params) => {
 
       return {
         dependencyImport: {
-          packageName: download.source === "sourceCode" ? (config.source === "extensionEvent" ? "./components/Index" : COMPONENT_PACKAGE_NAME) : "@mybricks/comlib-harmony-normal",
+          packageName: download.source === "sourceCode" ? (config.source === "extensionEvent" ? "./components" : COMPONENT_PACKAGE_NAME) : "@mybricks/comlib-harmony-normal",
           dependencyNames,
           importType: "named",
         },
@@ -393,12 +489,15 @@ const generatePageCodeWithMetadata = (params) => {
     },
     getComponentPackageName(params) {
       if (params?.type === "extensionEvent") {
-        return download.source === "sourceCode" ? "./components/Index" : "./components"
+        return download.source === "sourceCode" ? "./components" : "./components"
       }
       return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "../components"
     },
     getUtilsPackageName() {
       return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/render-utils"
+    },
+    getBus(namespace: string) {
+      return busMap[namespace]
     },
     verbose
   });
@@ -435,7 +534,9 @@ const generatePageCodeWithMetadata = (params) => {
           styles: createStyles(params),
           ${hasSlots ? "slots: params.slots," : ""}
           ${hasSlots ? "slotsIO: params.slotsIO," : ""}
-          parentSlot: params.parentSlot
+          parentSlot: params.parentSlot,
+          env,
+          _env,
         })
       }
       
@@ -541,20 +642,20 @@ const copyComponents = async (params, config) => {
 
   // 拷贝components
   if (download.source === "ohpmLibrary") {
-    await fse.copy(path.join(__dirname, "./hm/components/IndexOhpmLibrary.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/components/indexOhpmLibrary.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
     await fse.writeFile(
       path.join(targetPath, "components/index.ets"),
-      (await fse.readFile(path.join(__dirname, "./hm/components/IndexOhpmLibrary.ets"), 'utf-8'))
+      (await fse.readFile(path.join(__dirname, "./hm/components/indexOhpmLibrary.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
           `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
         )
     );
   } else {
-    await fse.copy(path.join(__dirname, "./hm/components/Index.ets"), path.join(targetPath, "components/Index.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/components/index.ets"), path.join(targetPath, "components/index.ets"), { overwrite: true })
     await fse.writeFile(
-      path.join(targetPath, "components/Index.ets"),
-      (await fse.readFile(path.join(__dirname, "./hm/components/Index.ets"), 'utf-8'))
+      path.join(targetPath, "components/index.ets"),
+      (await fse.readFile(path.join(__dirname, "./hm/components/index.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
           `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
@@ -570,16 +671,22 @@ const copyJs = async (params, config) => {
   const { download } = data;
   const { targetPath, importComponentCode, declaredComponentCode } = config;
 
-  const jsCodePath = path.join(targetPath, download.source === "ohpmLibrary" ? "components/codes.ts" : "components/codes.js");
+  // const jsCodePath = path.join(targetPath, download.source === "ohpmLibrary" ? "components/codes.ts" : "components/codes.js");
+  const jsCodePath = path.join(targetPath, "components/codes.ts");
   await fse.ensureFile(jsCodePath)
-  await fse.writeFile(jsCodePath, download.source === "ohpmLibrary" ? `export default function({ createJSHandle, context }) {
+  await fse.writeFile(jsCodePath, `export default function({ createJSHandle, context }) {
       const comModules = {};
       ${decodeURIComponent(data.allModules?.all)};
       return comModules;
-    }` : `export default (function(comModules) {
-      ${decodeURIComponent(data.allModules?.all)};
-      return comModules;
-    })({})`, { encoding: "utf8" })
+    }`, { encoding: "utf8" })
+  // await fse.writeFile(jsCodePath, download.source === "ohpmLibrary" ? `export default function({ createJSHandle, context }) {
+  //     const comModules = {};
+  //     ${decodeURIComponent(data.allModules?.all)};
+  //     return comModules;
+  //   }` : `export default (function(comModules) {
+  //     ${decodeURIComponent(data.allModules?.all)};
+  //     return comModules;
+  //   })({})`, { encoding: "utf8" })
 }
 
 const getApiCode = async (params, config) => {
@@ -592,8 +699,8 @@ const getApiCode = async (params, config) => {
     .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
     .replace("$r('app.api.import.utils')",
       download.source === "sourceCode" ?
-        'import { MyBricks } from "./utils/types";\nimport { api as transformApi } from "./utils/mybricks"\n;' :
-        'import { MyBricks, api as transformApi } from "@mybricks/render-utils";'
+        'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
+        'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
     );
     // .replace("$r('app.api.import.utils')",
     //   download.source === "sourceCode" ?
@@ -657,9 +764,7 @@ const compilerHarmonyModule = async (params, config) => {
 
     if (page.type === "extension-api") {
       // API
-      extensionApiCode = extensionApiCode + `${page.name}: MyBricks.Api = transformApi((value: MyBricks.Any${page.meta.outputs?.length ? ", callBack: MyBricks.Any" : ""}) => {
-        ${page.content}
-      })\n`
+      extensionApiCode = extensionApiCode + page.content
       return
     }
 

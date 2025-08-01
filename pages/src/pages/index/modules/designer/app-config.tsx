@@ -600,6 +600,44 @@ export default function ({
               },
             },
           },
+          {
+            title: '模拟总线数据',
+            items: [
+              {
+                title: "用户数据",
+                type: "code",
+                options: ({ data, output }) => {
+                  return {
+                    title: '编辑用户数据',
+                    language: "json",
+                    width: 500,
+                    height: 150,
+                    minimap: {
+                      enabled: false,
+                    },
+                  };
+                },
+                value: {
+                  get() {
+                    return pageModel?.debug?.busData?.user ? JSON.stringify(pageModel?.debug?.busData?.user, null, 2) : '{}';
+                  },
+                  set(context, val) {
+                    let data;
+                    try {
+                      data = decodeURIComponent(val);
+                      data = JSON.parse(data);
+                    } catch (e) {
+                    }
+                    
+                    if (!pageModel?.debug?.busData) {
+                      pageModel.debug.busData = {}
+                    }
+                    pageModel.debug.busData.user = data
+                  },
+                },
+              },
+            ]
+          }
           // {
           //   title: "默认全局请求头（仅在调试模式下生效）",
           //   description: "每当页面刷新时会，将会在每次请求时自动携带",
@@ -894,6 +932,9 @@ export default function ({
     }),
     com: {
       env: {
+        getBusData(key, params) {
+          return Promise.resolve(pageModel?.debug?.busData?.[key])
+        },
         callConnector(connector, params, connectorConfig) {
           const plugin = designerRef.current?.getPlugin(
             connector.connectorName || "@mybricks/plugins/service"
@@ -1013,6 +1054,8 @@ export default function ({
         callServiceFx(id, params) {
           return FxService.callServiceFx({ id, params });
         },
+        // 区块搭建态，将env.edit设置为true
+        ENABLE_MODULE_EDIT: true
       },
     },
     permission: {

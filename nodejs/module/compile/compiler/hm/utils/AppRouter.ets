@@ -58,7 +58,7 @@ export class AppRouter {
       return this.pageParams?.get(name)
     }
     const paramsList = this.navPathStack.getParamByName(name) as UnknownJson[]
-    return paramsList[paramsList.length - 1]
+    return paramsList[paramsList.length - 1] || this.pageParams?.get(name)
   }
 
   public push(name: string, params: UnknownJson | undefined = undefined,
@@ -80,6 +80,7 @@ export class AppRouter {
         open()
         this.registEntryPage(name)
         this.routerStack.push(name)
+        this.pageParams?.set(name, params)
         return
       }
       this.routerStack.push(name);
@@ -102,7 +103,12 @@ export class AppRouter {
   /** 返回上一页 */
   public pop(result?: Object) {
     if (result !== undefined) {
-      this.navPathStack.pop(result, true)
+      if (!isNaN(parseFloat(result as string))) {
+        const length = this.navPathStack.size();
+        this.navPathStack.popToIndex(length - 1 - parseFloat(result as string), true)
+      } else {
+        this.navPathStack.pop(result, true)
+      }
     } else {
       this.navPathStack.pop(true)
     }

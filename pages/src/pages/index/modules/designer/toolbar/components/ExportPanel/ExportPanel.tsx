@@ -7,7 +7,7 @@ import css from "./ExportPanel.less";
 interface ExportPanelProps {
   visible: boolean;
   onCancel: () => void;
-  onOk: (values: { fileName: string }) => void;
+  onOk: (values: { fileName: string; source: "ohpmLibrary" | "sourceCode" }) => void;
 }
 const ExportPanel = (props: ExportPanelProps) => {
   const ref = useRef<HTMLDivElement>();

@@ -1,13 +1,13 @@
 import { appRouter } from "../utils"
-import basicCodes from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle, createStyles } from "../utils/mybricks"
+import generateCode from "./codes";
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle, createStyles, join } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
 $r('app.components.component.import')
 
 type Style = Record<string, string | number>;
-type Styles = Record<string, Style>;
+export type Styles = Record<string, Style>;
 interface MyBricksComponentBuilderParams {
   uid: string
   controller: MyBricks.Controller
@@ -21,7 +21,7 @@ interface MyBricksComponentBuilderParams {
   parentSlot?: MyBricks.SlotParams
 }
 
-class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
+export class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
   style: Style;
 
   constructor(style: Style) {
@@ -77,7 +77,7 @@ class MyBricksColumnModifier implements AttributeModifier<ColumnAttribute> {
 }
 
 @ObservedV2
-class ColumnVisibilityController {
+export class ColumnVisibilityController {
   @Trace visibility = Visibility.Visible;
 
   setVisibility = (visibility: Visibility) => {
@@ -87,6 +87,12 @@ class ColumnVisibilityController {
 
 @Builder function Slot(params: MyBricks.SlotParams) {}
 
+interface Context {
+  env?: MyBricks.Env
+  _env?: MyBricks._Env
+}
+
+const context: Context = {}
 const _env: MyBricks._Env = {
   currentScenes: {
     close: () => {
@@ -96,12 +102,16 @@ const _env: MyBricks._Env = {
 }
 
 const vars: ESObject = createVars(globalVars)
+const codes: MyBricks.Codes = generateCode({ createJSHandle, context });
 
-const env: MyBricks.Env = {
-  callConnector: genCallConnector(basicCodes, { domain: undefined }, { globalVars: vars }),
+const env: MyBricks.Any = {
+  callConnector: genCallConnector(codes, { domain: undefined }, { globalVars: vars }),
   appRouter,
   globalVars: vars
 }
+
+context.env = env;
+context._env = _env;
 
 export const Controller = () => {
   return createInputsHandle({}, true) as MyBricks.Controller
@@ -116,18 +126,11 @@ export const page = new Page(appRouter);
 
 $r('app.components.component.declared')
 
-/** JS计算 */
-const codes: MyBricks.Codes = Object.keys(basicCodes).reduce((pre, key) => {
-  pre[key] = (props: MyBricks.JSParams): MyBricks.JSReturn => {
-    return createJSHandle(basicCodes[key], { props });
-  }
-  return pre
-}, {} as MyBricks.Codes)
-
 export {
   codes,
   globalFxs,
   globalVars,
   createVariable,
-  createFx
+  createFx,
+  join
 }
