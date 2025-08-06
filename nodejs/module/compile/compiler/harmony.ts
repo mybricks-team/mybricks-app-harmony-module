@@ -268,7 +268,7 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
   }
   page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
-      dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController"],
+      dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController", "createModuleEventsHandle"],
       importType: "named",
     });
   return `${page.importManager.toCode()}
