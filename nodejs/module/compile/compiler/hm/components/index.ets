@@ -1,6 +1,6 @@
 import { appRouter } from "../utils"
 import generateCode from "./codes";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle, createStyles, join } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle, createStyles, join, createModuleEventsHandle } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
@@ -132,5 +132,6 @@ export {
   globalVars,
   createVariable,
   createFx,
-  join
+  join,
+  createModuleEventsHandle
 }
