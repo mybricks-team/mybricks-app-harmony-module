@@ -868,6 +868,11 @@ export default function ({
       title: "交互",
       vars: {},
       fx: {},
+      cards: {
+        main: {
+          ioEditable: true
+        }
+      },
       // useService: {
       //   debug(toJSON) {
       //     // return new Promise((resolve, reject) => {
