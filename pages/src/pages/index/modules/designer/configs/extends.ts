@@ -7,13 +7,31 @@ export default {
       type: 'config'
     },
     {
+      id: 'module-listener',
+      title: '事件',
+      type: 'event',
+      multiple: true,
+      inputs: [
+        {
+          id: 'call',
+          title: '调用',
+          schema: {
+            type: 'string',
+            description: '参数'
+          }
+        }
+      ],
+      outputs: [],
+      outputsEditable: true,
+    },
+    {
       id: 'module-api',
       title: 'API',
       type: 'api',
       multiple: true,
       inputs: [
         {
-          id: 'open',
+          id: 'call',
           title: '调用',
           schema: {
             type: 'string',

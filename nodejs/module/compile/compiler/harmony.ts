@@ -26,13 +26,14 @@ const handleEntryCode = (template: string, {
   tabbarScenes,
   normalScenes,
   entryScene,
-  tabbarConfig
+  tabbarConfig,
+  fileNameMap
 }) => {
   const allImports = Array.from(new Set([...tabbarScenes, ...normalScenes]))
-    .map(scene => `// ${scene.title} \nimport ${generatePageFileName(scene.title)} from './${generatePageFileName(scene.title)}';`)
+    .map(scene => `// ${scene.title} \nimport ${fileNameMap[scene.id] || generatePageFileName(scene.title)} from './${fileNameMap[scene.id] || generatePageFileName(scene.title)}';`)
     .join('\n')
   const generateRoutes = (scenes) => scenes
-    .map((scene, i) => `${i === 0 ? 'if' : '\t\telse if'} (path === '${scene.id}') {\n\t\t\t${generatePageFileName(scene.title)}()\n\t\t}`)
+    .map((scene, i) => `${i === 0 ? 'if' : '\t\telse if'} (path === '${scene.id}') {\n\t\t\t${fileNameMap[scene.id] || generatePageFileName(scene.title)}()\n\t\t}`)
     .join('\n');
   const renderMainScenes = generateRoutes(Array.from(new Set([entryScene, ...tabbarScenes, ...normalScenes])))
   const renderScenes = generateRoutes(normalScenes)
@@ -92,6 +93,13 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
     page.importManager.addImport({
       packageName: "../api",
       dependencyNames: ["bus"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("events.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["events"],
       importType: "named",
     });
   }
@@ -209,6 +217,13 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
+  if (page.content.includes("events.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["events"],
+      importType: "named",
+    });
+  }
   return `${page.importManager.toCode()}
 
       /** ${page.meta.title} */
@@ -266,6 +281,13 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
+  if (page.content.includes("events.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["events"],
+      importType: "named",
+    });
+  }
   page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController", "createModuleEventsHandle"],
@@ -312,6 +334,13 @@ const handleGlobalCode = (page, { params }) => {
     page.importManager.addImport({
       packageName: "../api",
       dependencyNames: ["bus"],
+      importType: "named",
+    });
+  }
+  if (page.content.includes("events.")) {
+    page.importManager.addImport({
+      packageName: "../api",
+      dependencyNames: ["events"],
       importType: "named",
     });
   }
@@ -454,7 +483,7 @@ const generatePageFileName = (text: string) => {
 
 const generatePageCodeWithMetadata = (params) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { toJson, componentMetaMap, download } = data;
+  const { toJson, componentMetaMap, download, fileNameMap = {} } = data;
   const verbose = useLog;
   const usedComponentsMap = {};
 
@@ -498,6 +527,9 @@ const generatePageCodeWithMetadata = (params) => {
     },
     getBus(namespace: string) {
       return busMap[namespace]
+    },
+    getFileName(id) {
+      return fileNameMap[id]
     },
     verbose
   });
@@ -691,8 +723,12 @@ const copyJs = async (params, config) => {
 
 const getApiCode = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { download } = data;
+  const { toJson, download } = data;
   const { targetPath } = config;
+
+  const eventTitles = toJson.frames.filter((frame) => {
+    return frame.type === "extension-event"
+  }).map((frame) => frame.title);
 
   const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
   return apiCode
@@ -701,6 +737,24 @@ const getApiCode = async (params, config) => {
       download.source === "sourceCode" ?
         'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
         'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
+    ) + 
+    (
+      eventTitles.length ? `
+        class Events {
+          ${eventTitles.reduce((pre, cur) => {
+            return pre + `${cur}: MyBricks.Api = createBus()\n`
+          }, "")}}
+
+        export const events = new Events();
+
+        type Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void
+        interface RegisterSystemEventsParams {
+          ${eventTitles.reduce((pre, cur) => {
+            return pre + `${cur}: Event;\n`
+          }, "")}}
+
+        export const registerSystemEvents: (events: RegisterSystemEventsParams) => void = transformBus(events);
+      ` : ""
     );
     // .replace("$r('app.api.import.utils')",
     //   download.source === "sourceCode" ?
@@ -712,7 +766,7 @@ const getApiCode = async (params, config) => {
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { download } = data;
+  const { download, fileNameMap = {} } = data;
   const { Logger } = config;
   const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata(params);
 
@@ -781,8 +835,9 @@ const compilerHarmonyModule = async (params, config) => {
     }
 
     if (page.type === "module") {
-      moduleNames.add(page.name);
-      fse.outputFileSync(path.join(targetPath, `sections/${page.name}.ets`), handleModuleCode(page, { params }), { encoding: "utf8" })
+      const fileName = fileNameMap[page.meta.id] || page.name
+      moduleNames.add(fileName);
+      fse.outputFileSync(path.join(targetPath, `sections/${fileName}.ets`), handleModuleCode(page, { params }), { encoding: "utf8" })
       return
     }
 
@@ -802,7 +857,9 @@ const compilerHarmonyModule = async (params, config) => {
       content = handlePopupCode(page, { params });
     }
 
-    fse.outputFileSync(path.join(targetPath, `pages/${page.name}Page.ets`), content, { encoding: "utf8" })
+    const fileName = fileNameMap[page.meta.id] || `${page.name}Page`
+
+    fse.outputFileSync(path.join(targetPath, `pages/${fileName}.ets`), content, { encoding: "utf8" })
   });
 
   apiCode = apiCode.replace("$r('app.api.apis')", extensionApiCode).replace("$r('app.api.import')", "").replace("$r('app.api.config')", "() => {}");
@@ -870,7 +927,8 @@ const compilerHarmonyModule = async (params, config) => {
     normalScenes,
     tabbarScenes,
     tabbarConfig,
-    entryScene
+    entryScene,
+    fileNameMap
   })
   await fse.writeFile(entryPath, entryFileContent, 'utf-8')
 }
