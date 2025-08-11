@@ -1,4 +1,4 @@
-import { open } from "../api"
+import { open, close } from "../api"
 type UnknownJson = Record<string, string | number | boolean | Object> | string | number | boolean
 
 export interface TabBarConfig {
@@ -102,9 +102,15 @@ export class AppRouter {
 
   /** 返回上一页 */
   public pop(result?: Object) {
+    // 如果已经是首页，退出所有当前路由堆栈
+    const length = this.navPathStack.size();
+    if (length === 0) {
+      close();
+      return
+    }
+
     if (result !== undefined) {
       if (!isNaN(parseFloat(result as string))) {
-        const length = this.navPathStack.size();
         this.navPathStack.popToIndex(length - 1 - parseFloat(result as string), true)
       } else {
         this.navPathStack.pop(result, true)
