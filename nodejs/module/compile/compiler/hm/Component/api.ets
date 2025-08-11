@@ -28,13 +28,13 @@ class Bus {
 
 export const bus = new Bus();
 
-interface RegisterSystemBusParamsGetUserCallBack {
+interface OnBusParamsGetUserCallBack {
   then: (value: MyBricks.Any) => void;
   catch: (value: MyBricks.Any) => void;
 }
 
-interface RegisterSystemBusParams {
-  getUser: (value: MyBricks.Any, callBack: RegisterSystemBusParamsGetUserCallBack) => void;
+interface OnBusParams {
+  getUser: (value: MyBricks.Any, callBack: OnBusParamsGetUserCallBack) => void;
 }
 
-export const registerSystemBus: (bus: RegisterSystemBusParams) => void = transformBus(bus);
+export const onBus: (bus: OnBusParams) => void = transformBus(bus);

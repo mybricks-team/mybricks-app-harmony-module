@@ -440,7 +440,7 @@ const handleReadMeCode = (params) => {
     "```\n\n" +
     "## 🚀 使用\n" +
     "```typescript\n" +
-    'import { api, config, registerSystemBus } from "./api"\n\n' +
+    'import { api, config, onBus } from "./api"\n\n' +
     (config ? (
       `/** 模块配置 */\n` +
       `config(${config.inputs?.length ? "{\n": ""}` + 
@@ -459,7 +459,7 @@ const handleReadMeCode = (params) => {
       ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
     }, "") : ""}` + 
     "\n\n/** 注册系统总线 */\n" + 
-    "registerSystemBus({\n" + 
+    "onBus({\n" + 
     "  /** 总线:获取登录用户 */\n" +
     "  getUser(value, callBack) {\n" +
     "    // callBack.then(value) // 成功时，返回用户信息\n" +
@@ -748,12 +748,12 @@ const getApiCode = async (params, config) => {
         export const events = new Events();
 
         type Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void
-        interface RegisterSystemEventsParams {
+        interface OnEventParams {
           ${eventTitles.reduce((pre, cur) => {
             return pre + `${cur}: Event;\n`
           }, "")}}
 
-        export const registerSystemEvents: (events: RegisterSystemEventsParams) => void = transformBus(events);
+        export const onEvent: (events: OnEventParams) => void = transformBus(events);
       ` : ""
     );
     // .replace("$r('app.api.import.utils')",
