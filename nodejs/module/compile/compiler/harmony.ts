@@ -288,11 +288,25 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
-  page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
-      dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController", "createModuleEventsHandle"],
+  if (page.content.includes("@Param navigation")) {
+    page.importManager.addImport({
+      packageName: "../utils/AppRouter",
+      dependencyNames: ["CustomNavConfig", "customNavigation"],
       importType: "named",
     });
+  }
+   if (page.content.includes("createModuleEventsHandle")) {
+    page.importManager.addImport({
+      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      dependencyNames: ["createModuleEventsHandle"],
+      importType: "named",
+    });
+  }
+  page.importManager.addImport({
+    packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+    dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController"],
+    importType: "named",
+  });
   return `${page.importManager.toCode()}
 
       ${page.content}
@@ -483,7 +497,7 @@ const generatePageFileName = (text: string) => {
 
 const generatePageCodeWithMetadata = (params) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { toJson, componentMetaMap, download, fileNameMap = {} } = data;
+  const { toJson, componentMetaMap, download, fileNameMap } = data;
   const verbose = useLog;
   const usedComponentsMap = {};
 
@@ -766,7 +780,7 @@ const getApiCode = async (params, config) => {
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { download, fileNameMap = {} } = data;
+  const { download, fileNameMap } = data;
   const { Logger } = config;
   const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata(params);
 
