@@ -1,10 +1,10 @@
-import { appRouter } from "../utils"
-import generateCode from "./codes";
+import { appRouter } from "../utils/Index"
+import jsModulesGenerator from "./JSModules";
 import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createSlotsIO, createModuleInputsHandle, createStyles, join, createModuleEventsHandle } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
-$r('app.components.component.import')
+$r('app.common.component.import')
 
 type Style = Record<string, string | number>;
 export type Styles = Record<string, Style>;
@@ -102,10 +102,10 @@ const _env: MyBricks._Env = {
 }
 
 const vars: ESObject = createVars(globalVars)
-const codes: MyBricks.Codes = generateCode({ createJSHandle, context });
+const jsModules: MyBricks.Codes = jsModulesGenerator({ createJSHandle, context });
 
 const env: MyBricks.Any = {
-  callConnector: genCallConnector(codes, { domain: undefined }, { globalVars: vars }),
+  callConnector: genCallConnector(jsModules, { domain: undefined }, { globalVars: vars }),
   appRouter,
   globalVars: vars
 }
@@ -124,10 +124,10 @@ export const ModuleController = () => {
 /** 场景打开、输出 */
 export const page = new Page(appRouter);
 
-$r('app.components.component.declared')
+$r('app.common.component.declared')
 
 export {
-  codes,
+  jsModules,
   globalFxs,
   globalVars,
   createVariable,

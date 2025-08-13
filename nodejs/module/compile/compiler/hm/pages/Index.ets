@@ -1,4 +1,4 @@
-import { appRouter, TabBarConfig, parseRadius } from '../utils'
+import { appRouter, TabBarConfig, parseRadius } from '../utils/Index'
 
 $r('app.config.imports')
 
