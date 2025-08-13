@@ -7,7 +7,11 @@ import css from "./ExportPanel.less";
 interface ExportPanelProps {
   visible: boolean;
   onCancel: () => void;
-  onOk: (values: { fileName: string; source: "ohpmLibrary" | "sourceCode" }) => void;
+  onOk: (values: { 
+    fileName: string;
+    source: "ohpmLibrary" | "sourceCode";
+    router: "Navigation" | "HMRouter"
+  }) => void;
 }
 const ExportPanel = (props: ExportPanelProps) => {
   const ref = useRef<HTMLDivElement>();
@@ -49,7 +53,8 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
   useLayoutEffect(() => {
     form.setFieldsValue({
       fileName: pageModel.appConfig.download.fileName,
-      source: pageModel.appConfig.download.source || "ohpmLibrary"
+      source: pageModel.appConfig.download.source || "ohpmLibrary",
+      router: pageModel.appConfig.download.router || "Navigation",
     })
   }, [])
 
@@ -81,13 +86,32 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             getPopupContainer={getPopupContainer}
           />
         </Form.Item>
+        <Form.Item
+          name="router"
+          label="模块路由"
+        >
+          <Select
+            placeholder="请选择模块路由"
+            options={[
+              {
+                label: "Navigation",
+                value: "Navigation"
+              },
+              {
+                label: "HMRouter",
+                value: "HMRouter"
+              }
+            ]}
+            getPopupContainer={getPopupContainer}
+          />
+        </Form.Item>
       </Form>
 
       <div className={css.help}>
         <div className={css.tips}>使用步骤及注意事项</div>
         <div className={css.listItem}>1.导出当前模块；</div>
         <div className={css.listItem}>2.解压并拷贝至应用工程的ets目录下；</div>
-        <div className={css.listItem}>3.阅读模块内的README.md文件，了解api的使用；</div>
+        <div className={css.listItem}>3.阅读模块内的README.md文件，了解如何使用；</div>
       </div>
 
       <div className={css.footer}>

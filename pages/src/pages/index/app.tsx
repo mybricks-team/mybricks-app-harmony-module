@@ -129,7 +129,12 @@ const Application = () => {
     if (!pageModel.appConfig.download) {
       pageModel.appConfig.download = {
         fileName: firstCharToLowerCase(transformString(pageModel.file.name || "module")),
-        source: "ohpmLibrary"
+        source: "ohpmLibrary",
+        router: "Navigation",
+      }
+    } else {
+      if (!pageModel.appConfig.download.router) {
+        pageModel.appConfig.download.router = "Navigation"
       }
     }
     pageModel.wxConfig = data.fileContent.content?.wxConfig || {};

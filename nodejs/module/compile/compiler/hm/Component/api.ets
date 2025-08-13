@@ -1,16 +1,15 @@
+$r('app.api.import.appRouter')
 $r('app.api.import.utils')
 $r('app.api.import')
 
-import { customNavigation } from './utils/AppRouter'
-
-export const PAGE_URL = $r('app.config.pageUrl')
+$r('app.api.export.pageUrl')
 
 export const open = () => {
-  customNavigation.push()
+  $r('app.api.router.open')
 }
 
 export const close = () => {
-  customNavigation.pop()
+  $r('app.api.router.close')
 }
 
 export const config = $r('app.api.config')

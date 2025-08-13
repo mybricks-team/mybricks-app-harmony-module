@@ -288,13 +288,6 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
-  if (page.content.includes("@Param navigation")) {
-    page.importManager.addImport({
-      packageName: "../utils/AppRouter",
-      dependencyNames: ["CustomNavConfig", "customNavigation"],
-      importType: "named",
-    });
-  }
    if (page.content.includes("createModuleEventsHandle")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
@@ -302,6 +295,38 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
+
+  if (download.router === "Navigation") {
+    page.importManager.addImport({
+      packageName: "../utils/AppRouter",
+      dependencyNames: ["CustomNavConfig", "customNavigation"],
+      importType: "named",
+    });
+    page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: CustomNavConfig = {} as CustomNavConfig
+      myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
+    if (page.content.includes("aboutToAppear(): void {")) {
+      page.content = page.content.replace("aboutToAppear(): void {", `aboutToAppear(): void {
+        if (this.navigation?.navPathStack) {
+          customNavigation.registConfig({
+            navPathStack: this.navigation.navPathStack,
+            entryRouter: this.navigation?.entryRouter
+          })
+        }
+      `)
+    } else {
+      page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+        aboutToAppear(): void {
+          if (this.navigation?.navPathStack) {
+            customNavigation.registConfig({
+              navPathStack: this.navigation.navPathStack,
+              entryRouter: this.navigation?.entryRouter
+            })
+          }
+        }
+      `)
+    }
+  }
+
   page.importManager.addImport({
     packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
     dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController"],
@@ -414,10 +439,12 @@ const handleGlobalCode = (page, { params }) => {
 const handleReadMeCode = (params) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
   const { toJson, componentMetaMap, download, basic } = data;
-  const { source } = download;
+  const { source, router } = download;
 
   let config = null
-  let apis = []
+  const apis = []
+  const events = []
+
 
   toJson.frames.forEach((frame) => {
     if (frame.type === "extension-config") {
@@ -426,11 +453,13 @@ const handleReadMeCode = (params) => {
     } else if (frame.type === "extension-api") {
       // 0或多个api
       apis.push(frame)
+    } else if (frame.type === "extension-event") {
+      events.push(frame);
     }
   })
 
   return `# ${basic.name}\n\n` +
-    "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" +
+    (router === "Navigation" ? "模块基于[Navigation](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-navigation-navigation)实现\n\n" : "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n") +
     "## 📋 基本信息\n\n" +
     `- **作者**：${basic.author}\n` +
     `- **版本**：${basic.version}\n` +
@@ -454,7 +483,7 @@ const handleReadMeCode = (params) => {
     "```\n\n" +
     "## 🚀 使用\n" +
     "```typescript\n" +
-    'import { api, config, onBus } from "./api"\n\n' +
+    'import { api, config, onBus } from "模块文件夹路径/api"\n\n' +
     (config ? (
       `/** 模块配置 */\n` +
       `config(${config.inputs?.length ? "{\n": ""}` + 
@@ -738,6 +767,7 @@ const copyJs = async (params, config) => {
 const getApiCode = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
   const { toJson, download } = data;
+  const { router } = download;
   const { targetPath } = config;
 
   const eventTitles = toJson.frames.filter((frame) => {
@@ -746,11 +776,23 @@ const getApiCode = async (params, config) => {
 
   const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
   return apiCode
-    .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
+    // .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
     .replace("$r('app.api.import.utils')",
       download.source === "sourceCode" ?
         'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
         'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
+    )
+    .replace("$r('app.api.export.pageUrl')", 
+      router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
+    )
+    .replace("$r('app.api.router.open')",
+      router === "HMRouter" ? "HMRouterMgr.push({ pageUrl: PAGE_URL })" : "customNavigation.push()"
+    )
+    .replace("$r('app.api.router.close')",
+      router === "HMRouter" ? "HMRouterMgr.pop()" : "customNavigation.pop()"
+    )
+    .replace("$r('app.api.import.appRouter')",
+      router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { customNavigation } from './utils/AppRouter'"
     ) + 
     (
       eventTitles.length ? `
@@ -777,6 +819,23 @@ const getApiCode = async (params, config) => {
     // );
 }
 
+const copyProject = async (params, config) => {
+  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { toJson, download } = data;
+  const { router } = download;
+  const { targetPath } = config;
+
+
+  await fse.copy(path.join(__dirname, "./hm/Component/api.ets"), path.join(targetPath, "api.ets"), { overwrite: true })
+
+  if (download.router === "HMRouter") {
+    await fse.copy(path.join(__dirname, "./hm/Component/HMRouterIndex.ets"), path.join(targetPath, "Index.ets"), { overwrite: true })
+  } else {
+    await fse.copy(path.join(__dirname, "./hm/Component/NavigationIndex.ets"), path.join(targetPath, "Index.ets"), { overwrite: true })
+  }
+  
+}
+
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
@@ -788,7 +847,9 @@ const compilerHarmonyModule = async (params, config) => {
   const targetPath = path.join(projectPath, download.fileName || "module");
 
   // 拷贝项目
-  await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
+  await copyProject(params, { targetPath });
+  // await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
+  
   // 写入README.md [TODO] 放最后处理
   await fse.writeFile(
     path.join(targetPath, "README.md"),

@@ -16,6 +16,7 @@ interface PageInfo {
   download: {
     fileName: string;
     source: "ohpmLibrary" | "sourceCode";
+    router: "Navigation" | "HMRouter";
   }
 }
 
