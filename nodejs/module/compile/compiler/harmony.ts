@@ -717,10 +717,10 @@ const copyComponents = async (params, config) => {
 
   // 拷贝common
   if (download.source === "ohpmLibrary") {
-    await fse.copy(path.join(__dirname, "./hm/common/indexOhpmLibrary.ets"), path.join(targetPath, "common/Index.ets"), { overwrite: true })
+    await fse.copy(path.join(__dirname, "./hm/common/IndexOhpmLibrary.ets"), path.join(targetPath, "common/Index.ets"), { overwrite: true })
     await fse.writeFile(
       path.join(targetPath, "common/Index.ets"),
-      (await fse.readFile(path.join(__dirname, "./hm/common/indexOhpmLibrary.ets"), 'utf-8'))
+      (await fse.readFile(path.join(__dirname, "./hm/common/IndexOhpmLibrary.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
           `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
