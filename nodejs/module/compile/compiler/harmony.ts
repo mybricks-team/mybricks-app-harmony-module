@@ -792,8 +792,8 @@ const getApiCode = async (params, config) => {
       router === "HMRouter" ? "HMRouterMgr.pop()" : "customNavigation.pop()"
     )
     .replace("$r('app.api.import.appRouter')",
-      router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { customNavigation } from './utils/AppRouter'"
-    ) + 
+      router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { customNavigation, CustomNavConfig } from './utils/AppRouter'"
+    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: CustomNavConfig) => {\n  customNavigation.registConfig(navConfig)\n}') + 
     (
       eventTitles.length ? `
         class Events {

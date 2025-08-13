@@ -14,6 +14,8 @@ export const close = () => {
 
 export const config = $r('app.api.config')
 
+$r('app.api.export.pagconfigNavigationUrl')
+
 class Api {
   $r('app.api.apis')
 }
