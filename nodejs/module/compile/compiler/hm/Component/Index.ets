@@ -1,11 +1,10 @@
-import { HMRouter } from "@hadss/hmrouter"
 import MyBricksIndex from "./pages/Index"
 import { PAGE_URL } from "./api"
 
-@HMRouter({ pageUrl: PAGE_URL })
-@ComponentV2
-export default struct Module {
-  build() {
+/** 所有页面入口 Builder */
+@Builder
+export function PagesBuilder() {
+  NavDestination() {
     MyBricksIndex()
-  }
+  }.hideTitleBar(true)
 }

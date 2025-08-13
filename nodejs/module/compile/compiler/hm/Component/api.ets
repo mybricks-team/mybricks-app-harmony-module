@@ -1,17 +1,16 @@
-import { HMRouterMgr } from "@hadss/hmrouter"
 $r('app.api.import.utils')
 $r('app.api.import')
+
+import { customNavigation } from './utils/AppRouter'
 
 export const PAGE_URL = $r('app.config.pageUrl')
 
 export const open = () => {
-  HMRouterMgr.push({
-    pageUrl: PAGE_URL,
-  })
+  customNavigation.push()
 }
 
 export const close = () => {
-  HMRouterMgr.pop()
+  customNavigation.pop()
 }
 
 export const config = $r('app.api.config')

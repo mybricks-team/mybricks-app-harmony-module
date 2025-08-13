@@ -152,3 +152,35 @@ export class AppRouter {
 }
 
 export const appRouter = new AppRouter()
+
+/** 使用App自定义的路由 */
+export interface CustomNavConfig {
+  /** App使用中的navPathStack */
+  navPathStack: NavPathStack
+  /** 配置入口页面的name，需要与RouterMap中的name一致 */
+  entryRouter?: string
+}
+
+class CustomNavigation {
+  private navPathStack?: NavPathStack
+  private entryRouter?: string
+
+  registConfig = (config: CustomNavConfig) => {
+    this.entryRouter = config.entryRouter
+    this.navPathStack = config.navPathStack
+  }
+
+  push = () => {
+    if (this.entryRouter) {
+      this.navPathStack?.pushPath({
+        name: this.entryRouter
+      })
+    }
+  }
+
+  pop = () => {
+    this.navPathStack?.pop()
+  }
+}
+
+export const customNavigation = new CustomNavigation()
