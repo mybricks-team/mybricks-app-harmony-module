@@ -92,7 +92,7 @@ export function toSlotJSON(slot, {depsReg, comsReg}, frame, opts: {
           }
           
           const model = opts.needClone ? JSON.parse(JSON.stringify(rt.model)) : rt.model
-          
+
           comsReg[rt.id] = {
             id: rt.id,
             def,
@@ -687,7 +687,11 @@ export function toFrameJSON(frame, regs: {
         
         delete model.inputAry
         delete model.outputAry
-        
+
+        if (model.style.height === "auto") {
+          model.style.heightAuto = true;
+        }
+
         comsReg[rt.id] = {
           id: rt.id,
           def,
