@@ -3,7 +3,7 @@ import * as path from "path";
 import * as fse from "fs-extra";
 import { COMPONENT_PACKAGE_NAME, RENDER_UTILS_PACKAGE_NAME } from "./hm/constant";
 import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip } from "../utils";
-import createUtilsMybricks from "./createUtilsMybricks";
+import { refactorCodeByAi } from "./utils";
 
 /**
  * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
@@ -50,15 +50,13 @@ const handleEntryCode = (template: string, {
 const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
   params,
   pageConfig: {
-    disableScroll = false,
-    statusBarStyle,
     navigationBarStyle,
     navigationBarTitleText,
     navigationStyle = 'default',
     showBackIcon = false
   }
 }) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data } = params;
   const { download } = data;
 
   if (page.content.includes("MyBricks.")) {
@@ -180,7 +178,7 @@ ${page.content}
 }
 
 const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data } = params;
   const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
@@ -244,7 +242,7 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
 }
 
 const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data } = params;
   const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
@@ -288,7 +286,7 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       importType: "named",
     });
   }
-   if (page.content.includes("createModuleEventsHandle")) {
+  if (page.content.includes("createModuleEventsHandle")) {
     page.importManager.addImport({
       packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createModuleEventsHandle"],
@@ -339,7 +337,7 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
 }
 
 const handleGlobalCode = (page, { params }) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data } = params;
   const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
@@ -389,56 +387,9 @@ const handleGlobalCode = (page, { params }) => {
   ${page.content}`
 }
 
-// const handleReadMeCode = (params) => {
-//   const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-//   const { toJson, componentMetaMap, download, basic } = data;
-//   const { source } = download;
-
-//   // 当前默认有且只有一个extension
-//   const extension = toJson.frames.find((frame) => frame.type === "extension");
-//   const { outputs } = extension;
-
-//   const outputsCode = outputs.reduce((pre, cur) => {
-//     return pre + (pre ? "\n\n" : "") +
-//       `/** 注册${cur.title}回调 */\n` +
-//       `api.on<P, R>("${cur.id}", (value) => {\n\n})`
-//   }, "")
-
-//   return `# ${basic.name}\n\n` +
-//     "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n" +
-//     "## 📋 基本信息\n\n" +
-//     `- **作者**：${basic.author}\n` +
-//     `- **版本**：${basic.version}\n` +
-//     `- **更新时间**：${basic.updateTime}\n` +
-//     `- **最后更新人**：${basic.updater}\n` +
-//     `- **搭建地址**：[点击访问](${basic.link})\n\n` +
-//     "## 📦 安装依赖\n\n" +
-//     "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-//     "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
-//     (source === "ohpmLibrary" ? (
-//       "- [@mybricks/comlib-harmony-normal](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Fcomlib-harmony-normal)\n" +
-//       "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
-//     ) : "\n") +
-//     "``` bash\n" +
-//     "ohpm i dayjs\n" +
-//     "ohpm i @ohos/axios\n" +
-//     (source === "ohpmLibrary" ? (
-//       "ohpm i @mybricks/comlib-harmony-normal\n" +
-//       "ohpm i @mybricks/render-utils\n"
-//     ) : "") +
-//     "```\n\n" +
-//     "## 🚀 使用\n" +
-//     "```typescript\n" +
-//     'import api from "./api"\n\n' +
-//     "/** 打开模块，支持输入参数 */\n" +
-//     "api.open(params)" + (outputsCode ? "\n\n" : "") +
-//     outputsCode +
-//     "\n```"
-// }
-
 const handleReadMeCode = (params) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { toJson, componentMetaMap, download, basic } = data;
+  const { data } = params;
+  const { toJson, download, basic } = data;
   const { source, router } = download;
 
   let config = null
@@ -486,11 +437,11 @@ const handleReadMeCode = (params) => {
     'import { api, config, onBus } from "模块文件夹路径/api"\n\n' +
     (config ? (
       `/** 模块配置 */\n` +
-      `config(${config.inputs?.length ? "{\n": ""}` + 
+      `config(${config.inputs?.length ? "{\n" : ""}` +
       (config.inputs?.length ? config.inputs.reduce((pre, cur) => {
         return pre + `  ${cur.pinId}: value,\n`
       }, "") : "") +
-      `${config.inputs?.length ? "}": ""})`
+      `${config.inputs?.length ? "}" : ""})`
     ) : "") +
     `${apis.length ? "\n\n/** 调用api */\n" + apis.reduce((pre, cur, index) => {
       return pre + `api.${cur.title}(value${cur.outputs?.length ? (
@@ -500,15 +451,15 @@ const handleReadMeCode = (params) => {
         }, "")) +
         "}"
       ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
-    }, "") : ""}` + 
-    "\n\n/** 注册系统总线 */\n" + 
-    "onBus({\n" + 
+    }, "") : ""}` +
+    "\n\n/** 注册系统总线 */\n" +
+    "onBus({\n" +
     "  /** 总线:获取登录用户 */\n" +
     "  getUser(value, callBack) {\n" +
     "    // callBack.then(value) // 成功时，返回用户信息\n" +
     "    // callBack.catch(value) // 发生错误时，返回错误信息\n" +
     "  }\n" +
-    "})" + 
+    "})" +
     "\n```"
 }
 
@@ -525,7 +476,7 @@ const generatePageFileName = (text: string) => {
 }
 
 const generatePageCodeWithMetadata = (params) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data, useLog = true } = params;
   const { toJson, componentMetaMap, download, fileNameMap } = data;
   const verbose = useLog;
   const usedComponentsMap = {};
@@ -665,7 +616,7 @@ const generatePageCodeWithMetadata = (params) => {
 }
 
 const copyComlib = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data, domainName } = params;
   const { download } = data;
   const { targetPath } = config;
 
@@ -711,7 +662,7 @@ const copyUtils = async (params, config) => {
 }
 
 const copyComponents = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data } = params;
   const { download } = data;
   const { targetPath, importComponentCode, declaredComponentCode } = config;
 
@@ -742,11 +693,8 @@ const copyComponents = async (params, config) => {
 }
 
 const copyJs = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { download } = data;
-  const { targetPath, importComponentCode, declaredComponentCode } = config;
-
-  // const jsCodePath = path.join(targetPath, download.source === "ohpmLibrary" ? "common/JSModules.ts" : "common/JSModules.js");
+  const { data } = params;
+  const { targetPath } = config;
   const jsCodePath = path.join(targetPath, "common/JSModules.ts");
   await fse.ensureFile(jsCodePath)
   await fse.writeFile(jsCodePath, `export default function({ createJSHandle, context }) {
@@ -754,18 +702,10 @@ const copyJs = async (params, config) => {
       ${decodeURIComponent(data.allModules?.all)};
       return comModules;
     }`, { encoding: "utf8" })
-  // await fse.writeFile(jsCodePath, download.source === "ohpmLibrary" ? `export default function({ createJSHandle, context }) {
-  //     const comModules = {};
-  //     ${decodeURIComponent(data.allModules?.all)};
-  //     return comModules;
-  //   }` : `export default (function(comModules) {
-  //     ${decodeURIComponent(data.allModules?.all)};
-  //     return comModules;
-  //   })({})`, { encoding: "utf8" })
 }
 
 const getApiCode = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data, fileId } = params;
   const { toJson, download } = data;
   const { router } = download;
   const { targetPath } = config;
@@ -776,13 +716,12 @@ const getApiCode = async (params, config) => {
 
   const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
   return apiCode
-    // .replace("$r('app.config.pageUrl')", `"myBricks${fileId}"`)
     .replace("$r('app.api.import.utils')",
       download.source === "sourceCode" ?
         'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
         'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
     )
-    .replace("$r('app.api.export.pageUrl')", 
+    .replace("$r('app.api.export.pageUrl')",
       router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
     )
     .replace("$r('app.api.router.open')",
@@ -793,38 +732,31 @@ const getApiCode = async (params, config) => {
     )
     .replace("$r('app.api.import.appRouter')",
       router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { customNavigation, CustomNavConfig } from './utils/AppRouter'"
-    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: CustomNavConfig) => {\n  customNavigation.registConfig(navConfig)\n}') + 
+    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: CustomNavConfig) => {\n  customNavigation.registConfig(navConfig)\n}') +
     (
       eventTitles.length ? `
         class Events {
           ${eventTitles.reduce((pre, cur) => {
-            return pre + `${cur}: MyBricks.Api = createBus()\n`
-          }, "")}}
+        return pre + `${cur}: MyBricks.Api = createBus()\n`
+      }, "")}}
 
         export const events = new Events();
 
         type Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void
         interface OnEventParams {
           ${eventTitles.reduce((pre, cur) => {
-            return pre + `${cur}: Event;\n`
-          }, "")}}
+        return pre + `${cur}: Event;\n`
+      }, "")}}
 
         export const onEvent: (events: OnEventParams) => void = transformBus(events);
       ` : ""
     );
-    // .replace("$r('app.api.import.utils')",
-    //   download.source === "sourceCode" ?
-    //     'import { MyBricks } from "./utils/types";\nimport { Subject, emit } from "./utils/mybricks"\n;' :
-    //     'import { MyBricks, Subject, emit } from "@mybricks/render-utils";'
-    // );
 }
 
 const copyProject = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
-  const { toJson, download } = data;
-  const { router } = download;
+  const { data } = params;
+  const { download } = data;
   const { targetPath } = config;
-
 
   await fse.copy(path.join(__dirname, "./hm/Component/api.ets"), path.join(targetPath, "api.ets"), { overwrite: true })
 
@@ -833,14 +765,13 @@ const copyProject = async (params, config) => {
   } else {
     await fse.copy(path.join(__dirname, "./hm/Component/NavigationIndex.ets"), path.join(targetPath, "Index.ets"), { overwrite: true })
   }
-  
+
 }
 
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
-  const { data, projectPath, projectName, fileName, depModules, origin, type, fileId, domainName, useLog = true } = params;
+  const { data, projectPath } = params;
   const { download, fileNameMap } = data;
-  const { Logger } = config;
   const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata(params);
 
   // 目标项目路径
@@ -848,8 +779,7 @@ const compilerHarmonyModule = async (params, config) => {
 
   // 拷贝项目
   await copyProject(params, { targetPath });
-  // await fse.copy(path.join(__dirname, "./hm/Component"), targetPath, { overwrite: true })
-  
+
   // 写入README.md [TODO] 放最后处理
   await fse.writeFile(
     path.join(targetPath, "README.md"),
@@ -882,7 +812,7 @@ const compilerHarmonyModule = async (params, config) => {
 
   let extensionApiCode = "";
 
-  pageCode.forEach((page) => {
+  await Promise.all(pageCode.map(async (page) => {
     if (page.type === "extension-config") {
       // 配置
       apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.config')", `(${page.meta.inputs?.length ? "value: MyBricks.Any" : ""}) => {
@@ -897,12 +827,6 @@ const compilerHarmonyModule = async (params, config) => {
       return
     }
 
-    // if (page.type === "extensionEvent") {
-    //   // 业务模块
-    //   apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.open')", page.content)
-    //   return
-    // }
-
     if (page.type === "global") {
       // 全局变量、全局Fx
       fse.outputFileSync(path.join(targetPath, `common/global.ets`), handleGlobalCode(page, { params }), { encoding: "utf8" })
@@ -912,7 +836,11 @@ const compilerHarmonyModule = async (params, config) => {
     if (page.type === "module") {
       const fileName = fileNameMap[page.meta.id] || page.name
       moduleNames.add(fileName);
-      fse.outputFileSync(path.join(targetPath, `sections/${fileName}.ets`), handleModuleCode(page, { params }), { encoding: "utf8" })
+      let content = handleModuleCode(page, { params });
+      if (download.enableAI) {
+        content = await refactorCodeByAi(content)
+      }
+      fse.outputFileSync(path.join(targetPath, `sections/${fileName}.ets`), content, { encoding: "utf8" })
       return
     }
 
@@ -927,15 +855,23 @@ const compilerHarmonyModule = async (params, config) => {
       content = handlePageCode(page, {
         params, pageConfig
       });
+
+      if (download.enableAI) {
+        content = await refactorCodeByAi(content)
+      }
     } else if (page.type === "popup") {
       // 弹窗
       content = handlePopupCode(page, { params });
+
+      if (download.enableAI) {
+        content = await refactorCodeByAi(content)
+      }
     }
 
     const fileName = fileNameMap[page.meta.id] || `${page.name}Page`
 
     fse.outputFileSync(path.join(targetPath, `pages/${fileName}.ets`), content, { encoding: "utf8" })
-  });
+  }))
 
   apiCode = apiCode.replace("$r('app.api.apis')", extensionApiCode).replace("$r('app.api.import')", "").replace("$r('app.api.config')", "() => {}");
 

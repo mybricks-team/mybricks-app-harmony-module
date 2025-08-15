@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Form, Input, Select } from "antd";
+import { Form, Input, Select, Switch } from "antd";
 import { pageModel } from "@/stores";
 import css from "./ExportPanel.less";
 
@@ -55,6 +55,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
       fileName: pageModel.appConfig.download.fileName,
       source: pageModel.appConfig.download.source || "ohpmLibrary",
       router: pageModel.appConfig.download.router || "Navigation",
+      enableAI: false,
     })
   }, [])
 
@@ -104,6 +105,13 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             ]}
             getPopupContainer={getPopupContainer}
           />
+        </Form.Item>
+        <Form.Item
+          name="enableAI"
+          label="AI「Beta」"
+          tooltip="通过AI对代码进行优化，提高可读性。"
+        >
+          <Switch />
         </Form.Item>
       </Form>
 

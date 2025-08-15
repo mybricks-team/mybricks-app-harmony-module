@@ -1247,8 +1247,8 @@ const Designer = ({ appData }) => {
         
           return componentMetaMap;
         }
-        // const fileNameMap = await getFileNameMapByAi(toJson);
-        const fileNameMap = {};
+
+        const fileNameMap = params.enableAI ? await getFileNameMapByAi(toJson) : {};
 
         const res = await axios({
           url: "/api/harmony-module/harmony/compile",
@@ -1526,115 +1526,91 @@ const Designer = ({ appData }) => {
 
 export default Designer;
 
-// import { aiUtils } from "./utils/get-ai-encrypt-data";
-// import renameFileSystem from "./rename/file.md";
+import { aiUtils } from "./utils/get-ai-encrypt-data";
+import renameFileSystem from "./rename/file.md";
 
-// const getFileNameMapByAi = async (toJson: any) => {
-//   const files = toJson.scenes.map((scene) => {
-//     return {
-//       id: scene.id,
-//       title: scene.title,
-//       fileName: null
-//     };
-//   });
-//   // const files = [{"id":"u_fpnRu","title":"首页","fileName":null},{"id":"u_APL7T","title":"购物车","fileName":null},{"id":"u_bIqlz","title":"提交订单页面","fileName":null},{"id":"u_UetSP","title":"搜索页","fileName":null},{"id":"u_z9aR_","title":"好货抢先购","fileName":null},{"id":"u_Hdl55","title":"参与对象描述","fileName":null},{"id":"u_898Zx","title":"领券中心","fileName":null},{"id":"u_Mxb6G","title":"商品分类","fileName":null},{"id":"u_ipzwq","title":"选择地址","fileName":null},{"id":"u_CHM7H","title":"新增收货地址","fileName":null},{"id":"u_bGhll","title":"复制的 订单页","fileName":null},{"id":"u__eiKO","title":"复制的 售后页","fileName":null},{"id":"u_68W9D","title":"商品详情页","fileName":null},{"id":"u_9ES9I","title":"服务对话框","fileName":null},{"id":"u_voHyy","title":"商城区块","fileName":null}];
-//   const cancelControl = !!AbortController ? new AbortController() : null;
-//   // const model = "deepseek-chat";
-//   const model = "google/gemini-2.5-pro";
-//   // const model = "openai/gpt-4.1-mini";
+const getFileNameMapByAi = async (toJson: any, model = "deepseek-chat") => {
+  const files = toJson.scenes.map((scene) => {
+    return {
+      id: scene.id,
+      title: scene.title,
+      fileName: null
+    };
+  });
+  const cancelControl = !!AbortController ? new AbortController() : null;
+  const _messages = [
+    {
+      role: "system",
+      content: renameFileSystem
+    },
+    {
+      role: "user",
+      content: `\`\`\` json
+      ${JSON.stringify(files)}
+      \`\`\``
+    }
+  ]
 
-//   const _messages = [
-//     {
-//       role: "system",
-//       content: renameFileSystem
-//     },
-//     {
-//       role: "user",
-//       content: `\`\`\` json
-//       ${JSON.stringify(files)}
-//       \`\`\``
-//     }
-//   ]
+  const response = await fetch(
+    APP_ENV === 'production' ? "//ai.mybricks.world/stream-with-tools" : "//ai.mybricks.world/stream-test",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: cancelControl?.signal,
+      credentials: 'include',
+      body: JSON.stringify(
+        APP_ENV === 'production' ? aiUtils.getAiEncryptData({
+          model,
+          messages: _messages,
+        }) : {
+          model,
+          messages: _messages,
+        }
+      ),
+    }
+  );
 
-//   const response = await fetch(
-//     APP_ENV === 'production' ? "//ai.mybricks.world/stream-with-tools" : "//ai.mybricks.world/stream-test",
-//     {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         // ...(role ? {
-//         //   "M-Request-Role": role,
-//         // } : {})
-//       },
-//       signal: cancelControl?.signal,
-//       credentials: 'include',
-//       body: JSON.stringify(
-//         APP_ENV === 'production' ? aiUtils.getAiEncryptData({
-//           model,
-//           // role,
-//           messages: _messages,
-//           // tools,
-//           // tool_choice: 'auto',
-//         }) : {
-//           model,
-//           messages: _messages,
-//           // tools,
-//           // tool_choice: 'auto',
-//         }
-//       ),
-//     }
-//   );
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let chunk = "";
 
-//   const reader = response.body.getReader();
-//   const decoder = new TextDecoder();
-//   let chunk = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
 
-//   while (true) {
-//     const { done, value } = await reader.read();
-//     if (done) {
-//       break;
-//     }
+    chunk += decoder.decode(value, { stream: true });
+  }
 
-//     chunk += decoder.decode(value, { stream: true });
+  const jsonStr = chunk.match(/```json\s*([\s\S]*?)\s*```/)?.[1];
 
-//     // const chunk = decoder.decode(value, { stream: true });
-//     // write(chunk);
-//   }
+  if (!jsonStr) {
+    throw new Error('未找到 JSON 代码块');
+  }
 
-//   const jsonStr = chunk.match(/```json\s*([\s\S]*?)\s*```/)?.[1];
+  let nextFiles = [];
+  try {
+    nextFiles = JSON.parse(jsonStr);
+  } catch (e) {
+    console.error('JSON 解析失败:', e);
+  }
 
-//   if (!jsonStr) {
-//     throw new Error('未找到 JSON 代码块');
-//   }
+  const fileNameMap = nextFiles.reduce((pre, cur) => {
+    pre[cur.id] = cur.fileName
+    return pre;
+  }, {})
 
-//   let nextFiles = [];
-//   try {
-//     nextFiles = JSON.parse(jsonStr);
-//   } catch (e) {
-//     console.error('JSON 解析失败:', e);
-//   }
-
-//   const fileNameMap = nextFiles.reduce((pre, cur) => {
-//     pre[cur.id] = cur.fileName
-//     return pre;
-//   }, {})
-
-//   console.log("[chunk]", chunk);
-//   console.log("[nextFiles]", nextFiles);
-//   console.log("[fileNameMap]", fileNameMap);
-
-//   return fileNameMap;
-// }
+  return fileNameMap;
+}
 
 // import renameCodeSystem from "./rename/code.md";
 // import arkts from "./rename/arkts.md";
 
-// const refactorCodeByAi = async (code: string, model: string) => {
+// const refactorCodeByAi = async (code: string, model = "google/gemini-2.5-pro") => {
 //   const cancelControl = !!AbortController ? new AbortController() : null;
-//   // const model = "deepseek-chat"; // 
-//   // const model = "openai/gpt-4.1-mini"; // 
-//   // const model = "moonshotai/kimi-k2"; // 1.9 min
-
 //   const _messages = [
 //     {
 //       role: "system",
@@ -1694,46 +1670,48 @@ export default Designer;
 
 //   console.log(arkts, `[arkts - ${model}]`);
 
-//   return chunk;
+//   return arkts;
 // }
 
-// // refactorCodeByAi(arkts, "deepseek-chat"); // 代码截断
-// // refactorCodeByAi(arkts, "deepseek/deepseek-r1-0528") //
-// // refactorCodeByAi(arkts, "qwen/qwen3-coder"); // 截断，返回不完整
-// // refactorCodeByAi(arkts, "google/gemini-2.0-flash-001") // 
+// refactorCodeByAi(arkts, "deepseek-chat"); // 代码截断
+// refactorCodeByAi(arkts, "deepseek/deepseek-r1-0528") //
+// refactorCodeByAi(arkts, "qwen/qwen3-coder"); // 截断，返回不完整
+// refactorCodeByAi(arkts, "google/gemini-2.0-flash-001") // 
 
-// // refactorCodeByAi(arkts, "openai/gpt-4.1-mini"); // ☑️ 基本稳定，还需要通过提示词来约束可修改范围。返回截断较频繁
-// // refactorCodeByAi(arkts, "moonshotai/kimi-k2"); // 修改不允许修改的代码、不理解驼峰式命名，速度很慢
-// // refactorCodeByAi(arkts, "google/gemini-2.5-pro"); // ✅
+// refactorCodeByAi(arkts, "openai/gpt-4.1-mini"); // ☑️ 基本稳定，还需要通过提示词来约束可修改范围。返回截断较频繁
+// refactorCodeByAi(arkts, "moonshotai/kimi-k2"); // 修改不允许修改的代码、不理解驼峰式命名，速度很慢
+// refactorCodeByAi(arkts, "google/gemini-2.5-pro"); // ✅
 
 
 // const testModel = "google/gemini-2.5-pro"
-// // refactorCodeByAi(arkts, testModel);
-// // refactorCodeByAi(arkts, testModel);
-// // refactorCodeByAi(arkts, testModel);
-// // refactorCodeByAi(arkts, testModel);
-// // refactorCodeByAi(arkts, testModel);
+// const testModel = "openai/gpt-5-mini";
+// const testModel = "google/gemini-2.5-flash";
+// refactorCodeByAi(arkts, testModel);
+// refactorCodeByAi(arkts, testModel);
+// refactorCodeByAi(arkts, testModel);
+// refactorCodeByAi(arkts, testModel);
+// refactorCodeByAi(arkts, testModel);
 
-// /**
-//  * 代码行：未格式化，800行
-//  * 平均耗时：忽略了截断的请求
-//  */
-// // refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// // refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// // refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// // refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// // refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// // 4/5 - 2.6min - [截断1] 80% - 100%
-// // 4/5 - 2.6min - [截断1] 80% - 100%
-// // 3/5 - 2.4min - [截断2] 60% - 100%
-// // 3/5 - 1.9min - [截断2] 60% - 100%
-// // 2/5 - 2min - [截断1、修改了变量2(不影响运行)] 40% - 60%
-// // 4/5 - 1.8min - [截断1] 80% - 100%
-// // 4/5 - 2min - [截断1] 80% - 100%
+/**
+ * 代码行：未格式化，800行
+ * 平均耗时：忽略了截断的请求
+ */
+// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
+// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
+// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
+// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
+// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
+// 4/5 - 2.6min - [截断1] 80% - 100%
+// 4/5 - 2.6min - [截断1] 80% - 100%
+// 3/5 - 2.4min - [截断2] 60% - 100%
+// 3/5 - 1.9min - [截断2] 60% - 100%
+// 2/5 - 2min - [截断1、修改了变量2(不影响运行)] 40% - 60%
+// 4/5 - 1.8min - [截断1] 80% - 100%
+// 4/5 - 2min - [截断1] 80% - 100%
 
-// /**
-//  *        计算截断 不计算截断
-//  * 成功率  68%     94%
-//  * 
-//  * 
-//  */
+/**
+ *        计算截断 不计算截断
+ * 成功率  68%     94%
+ * 
+ * 
+ */
