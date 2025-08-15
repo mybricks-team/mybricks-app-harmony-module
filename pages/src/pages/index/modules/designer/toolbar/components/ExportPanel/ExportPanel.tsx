@@ -70,10 +70,10 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
         </Form.Item>
         <Form.Item
           name="source"
-          label="模块依赖"
+          label="库依赖方式"
         >
           <Select
-            placeholder="请选择模块依赖"
+            placeholder="请选择库依赖方式"
             options={[
               {
                 label: "ohpm三方库",
@@ -89,10 +89,10 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
         </Form.Item>
         <Form.Item
           name="router"
-          label="模块路由"
+          label="路由方式"
         >
           <Select
-            placeholder="请选择模块路由"
+            placeholder="请选择路由方式"
             options={[
               {
                 label: "Navigation",
@@ -108,7 +108,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
         </Form.Item>
         <Form.Item
           name="enableAI"
-          label="AI「Beta」"
+          label="AI润色（Beta）"
           tooltip="通过AI对代码进行优化，提高可读性。"
         >
           <Switch />
@@ -117,7 +117,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
 
       <div className={css.help}>
         <div className={css.tips}>使用步骤及注意事项</div>
-        <div className={css.listItem}>1.导出当前模块；</div>
+        <div className={css.listItem}>1.导出当前模块的源代码；</div>
         <div className={css.listItem}>2.解压并拷贝至应用工程的ets目录下；</div>
         <div className={css.listItem}>3.阅读模块内的README.md文件，了解如何使用；</div>
       </div>
