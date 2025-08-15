@@ -94,13 +94,6 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
       importType: "named",
     });
   }
-  if (page.content.includes("events.")) {
-    page.importManager.addImport({
-      packageName: "../api",
-      dependencyNames: ["events"],
-      importType: "named",
-    });
-  }
 
   switch (navigationStyle) {
     case 'default': {
@@ -215,13 +208,6 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
-  if (page.content.includes("events.")) {
-    page.importManager.addImport({
-      packageName: "../api",
-      dependencyNames: ["events"],
-      importType: "named",
-    });
-  }
   return `${page.importManager.toCode()}
 
       /** ${page.meta.title} */
@@ -276,13 +262,6 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
     page.importManager.addImport({
       packageName: "../api",
       dependencyNames: ["bus"],
-      importType: "named",
-    });
-  }
-  if (page.content.includes("events.")) {
-    page.importManager.addImport({
-      packageName: "../api",
-      dependencyNames: ["events"],
       importType: "named",
     });
   }
@@ -371,13 +350,6 @@ const handleGlobalCode = (page, { params }) => {
     page.importManager.addImport({
       packageName: "../api",
       dependencyNames: ["bus"],
-      importType: "named",
-    });
-  }
-  if (page.content.includes("events.")) {
-    page.importManager.addImport({
-      packageName: "../api",
-      dependencyNames: ["events"],
       importType: "named",
     });
   }
@@ -525,7 +497,20 @@ const generatePageCodeWithMetadata = (params) => {
     getFileName(id) {
       return fileNameMap[id]
     },
-    verbose
+    verbose,
+    getModuleApi(type) {
+      if (type === "event") {
+        const componentName = "events";
+        return {
+          dependencyImport: {
+            packageName: "../api",
+            dependencyNames: [componentName],
+            importType: "named",
+          },
+          componentName,
+        };
+      }
+    }
   });
 
   let importComponentCode = "";
