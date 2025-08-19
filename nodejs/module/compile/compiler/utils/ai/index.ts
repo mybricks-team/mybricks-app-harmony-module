@@ -61,7 +61,7 @@ const refactorCodeSystem = fse.readFileSync(path.join(__dirname, "./refactorCode
 //   return arkts;
 // }
 
-const refactorCodeByAi = async (code: string, model = "google/gemini-2.5-flash") => {
+const refactorCodeByAi = async (code: string, model = "google/gemini-2.5-pro") => {
   const _messages = [
     {
       role: "system",
@@ -96,13 +96,17 @@ const refactorCodeByAi = async (code: string, model = "google/gemini-2.5-flash")
   return new Promise<string | undefined>((resolve, reject) => {
     response.data.on("data", (data: Buffer) => {
       const decoded = decoder.decode(data, { stream: true });
-      console.log("[chunk]", decoded);
       chunk += decoded;
     });
 
     response.data.on("end", () => {
       const arkts = chunk.match(/```arkts\s*([\s\S]*?)\s*```/)?.[1];
-      resolve(arkts);
+      if (!arkts) {
+        console.log("代码生成失败")
+        resolve(code);
+      } else {
+        resolve(arkts);
+      }
     });
 
     response.data.on("error", (err: Error) => {
@@ -110,8 +114,6 @@ const refactorCodeByAi = async (code: string, model = "google/gemini-2.5-flash")
     });
   });
 }
-
-
 
 export {
   refactorCodeByAi
