@@ -17,7 +17,7 @@ import { editorAppenderFn } from "./editorAppender";
 
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
-import { aiUtils } from "./utils/get-ai-encrypt-data";
+import { getAIResponse } from './utils/get-ai-response'
 import { getNewDSL, getDSLPrompts, getExamplePrompts, getSystemPrompts, getExamplePromptsAtFirst } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
@@ -1489,50 +1489,67 @@ const getAiView = (enableAI, option) => {
           //   }
           // ]
 
-          const response = await fetch(
-            APP_ENV === 'production' ? "//ai.mybricks.world/stream-with-tools" : "//ai.mybricks.world/stream-test",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(role ? {
-                  "M-Request-Role": role,
-                } : {})
-              },
-              signal: cancelControl?.signal,
-              credentials: 'include',
-              body: JSON.stringify(
-                APP_ENV === 'production' ? aiUtils.getAiEncryptData({
-                  model,
-                  role,
-                  messages: _messages,
-                  tools,
-                  tool_choice: 'auto',
-                  // tool_choice: {"type": "function", "function": {"name": "query_knowledges"}},
-                }) : {
-                  model,
-                  messages: _messages,
-                  tools,
-                  tool_choice: 'auto',
-                }
-              ),
-            }
-          );
+          const { abort } = await getAIResponse({
+            model,
+            messages,
+            role,
+            tools
+          }, {
+            onMessage: (chunk) => {
+              write(chunk);
+            },
+            onComplete: (content) => {
+              complete();
+            },
+            devMode: APP_ENV !== 'production',
+          })
 
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
+          cancel?.(abort)
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-              break;
-            }
+          // const response = await fetch(
+          //   APP_ENV === 'production' ? "//ai.mybricks.world/stream-with-tools" : "//ai.mybricks.world/stream-test",
+          //   {
+          //     method: "POST",
+          //     headers: {
+          //       "Content-Type": "application/json",
+          //       ...(role ? {
+          //         "M-Request-Role": role,
+          //       } : {})
+          //     },
+          //     signal: cancelControl?.signal,
+          //     credentials: 'include',
+          //     body: JSON.stringify(
+          //       APP_ENV === 'production' ? aiUtils.getAiEncryptData({
+          //         model,
+          //         role,
+          //         messages: _messages,
+          //         tools,
+          //         tool_choice: 'auto',
+          //         // tool_choice: {"type": "function", "function": {"name": "query_knowledges"}},
+          //       }) : {
+          //         model,
+          //         messages: _messages,
+          //         tools,
+          //         tool_choice: 'auto',
+          //       }
+          //     ),
+          //   }
+          // );
 
-            const chunk = decoder.decode(value, { stream: true });
-            write(chunk);
-          }
+          // const reader = response.body.getReader();
+          // const decoder = new TextDecoder();
 
-          complete();
+          // while (true) {
+          //   const { done, value } = await reader.read();
+          //   if (done) {
+          //     break;
+          //   }
+
+          //   const chunk = decoder.decode(value, { stream: true });
+          //   write(chunk);
+          // }
+
+          // complete();
         } catch (ex) {
           error(ex);
         }
