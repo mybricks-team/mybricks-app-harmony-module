@@ -1288,9 +1288,9 @@ const Designer = ({ appData }) => {
         
         if (data.code !== 1) {
           if (data.innerMessage) {
-            message.error(data.innerMessage);
+            message.error(`导出失败: ${data.innerMessage}！请重试`);
           } else {
-            message.error("导出失败")
+            message.error(`导出失败: ${data.message || data.msg}！请重试`)
             console.error("导出失败:", data);
           }
           close()
