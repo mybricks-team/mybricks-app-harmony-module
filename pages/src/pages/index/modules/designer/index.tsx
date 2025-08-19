@@ -1304,8 +1304,8 @@ const Designer = ({ appData }) => {
           .then(() => {
             message.success("导出完成")
           })
-          .catch(() => {
-            message.error("导出失败")
+          .catch((e) => {
+            message.error(`导出失败: ${e.message || e.msg}！请重试`)
           })
           .finally(() => {
             close()
