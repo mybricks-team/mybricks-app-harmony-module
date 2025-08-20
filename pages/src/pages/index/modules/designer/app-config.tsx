@@ -940,7 +940,7 @@ export default function ({
         getBusData(key, params) {
           return Promise.resolve(pageModel?.debug?.busData?.[key])
         },
-        callConnector(connector, params, connectorConfig) {
+        callConnector(connector, params, connectorConfig, env) {
           const plugin = designerRef.current?.getPlugin(
             connector.connectorName || "@mybricks/plugins/service"
           );
@@ -979,7 +979,8 @@ export default function ({
 
                   return newOptions;
                 },
-              }
+              },
+              env
             );
           } else {
             return Promise.reject("错误的连接器类型.");
