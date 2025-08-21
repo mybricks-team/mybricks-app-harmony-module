@@ -1,9 +1,10 @@
-import toHarmonyCode from "@mybricks/to-code-react/dist/cjs/toHarmonyCode"
+import toHarmonyCode, { toHarmonyCodeWithAI } from "@mybricks/to-code-react/dist/cjs/toHarmonyCode"
 import * as path from "path";
 import * as fse from "fs-extra";
 import { COMPONENT_PACKAGE_NAME, RENDER_UTILS_PACKAGE_NAME } from "./hm/constant";
 import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip } from "../utils";
-import { refactorCodeByAi } from "./utils";
+import fetchAI from "./utils/ai/fetchAI";
+import { Logger } from "@mybricks/rocker-commons";
 
 /**
  * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
@@ -436,6 +437,7 @@ const handleReadMeCode = (params) => {
 }
 
 export const compilerHarmony = async (params, config) => {
+  Logger.info("[AppHarmonyModule - compiler] - 开始")
   await compilerHarmonyModule(params, config)
 }
 
@@ -447,9 +449,9 @@ const generatePageFileName = (text: string) => {
   }, "") + "Page"
 }
 
-const generatePageCodeWithMetadata = (params) => {
+const generatePageCodeWithMetadata = async (params) => {
   const { data, useLog = true } = params;
-  const { toJson, componentMetaMap, download, fileNameMap } = data;
+  const { toJson, componentMetaMap, download } = data;
   const verbose = useLog;
   const usedComponentsMap = {};
 
@@ -458,7 +460,8 @@ const generatePageCodeWithMetadata = (params) => {
       name: "getUser"
     }
   }
-  const pageCode = toHarmonyCode(toJson, {
+  Logger.info(`[AppHarmonyModule - compiler] - ${download.enableAI ? "toHarmonyCodeWithAI" : "toHarmonyCode"}`)
+  const pageCode = await (download.enableAI ? toHarmonyCodeWithAI : toHarmonyCode)(toJson, {
     getComponentMetaByNamespace(namespace, config) {
       if (!usedComponentsMap[namespace]) {
         usedComponentsMap[namespace] = config;
@@ -494,9 +497,6 @@ const generatePageCodeWithMetadata = (params) => {
     getBus(namespace: string) {
       return busMap[namespace]
     },
-    getFileName(id) {
-      return fileNameMap[id]
-    },
     verbose,
     getModuleApi(type) {
       if (type === "event") {
@@ -510,8 +510,21 @@ const generatePageCodeWithMetadata = (params) => {
           componentName,
         };
       }
+    },
+    ai: {
+      transform: async (messages) => {
+        return await fetchAI({
+          data: {
+            messages,
+            model: "openai/gpt-4.1-mini",
+          },
+          url: "https://ai.mybricks.world/stream-test"
+        })
+      }
     }
   });
+
+  Logger.info(`[AppHarmonyModule - compiler] - ${download.enableAI ? "toHarmonyCodeWithAI" : "toHarmonyCode"} Done`)
 
   let importComponentCode = "";
   let declaredComponentCode = "";
@@ -724,15 +737,20 @@ const copyProject = async (params, config) => {
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath } = params;
-  const { download, fileNameMap } = data;
-  const { pageCode, importComponentCode, declaredComponentCode } = generatePageCodeWithMetadata(params);
+  const { download } = data;
+  const fileNameMap = {};
+  Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata")
+  const { pageCode, importComponentCode, declaredComponentCode } = await generatePageCodeWithMetadata(params);
+  Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata Done")
 
   // 目标项目路径
   const targetPath = path.join(projectPath, download.fileName || "module");
 
+  Logger.info(`[AppHarmonyModule - compiler] - copyProject`)
   // 拷贝项目
   await copyProject(params, { targetPath });
 
+  Logger.info(`[AppHarmonyModule - compiler] - handleReadMeCode`)
   // 写入README.md [TODO] 放最后处理
   await fse.writeFile(
     path.join(targetPath, "README.md"),
@@ -740,22 +758,26 @@ const compilerHarmonyModule = async (params, config) => {
     { encoding: "utf8" }
   );
 
+  Logger.info(`[AppHarmonyModule - compiler] - copyComlib`)
   // 拷贝组件库
   await copyComlib(params, {
     targetPath
   })
 
+  Logger.info(`[AppHarmonyModule - compiler] - copyUtils`)
   // 拷贝utils
   await copyUtils(params, {
     targetPath
   })
 
+  Logger.info(`[AppHarmonyModule - compiler] - copyComponents`)
   await copyComponents(params, {
     targetPath,
     importComponentCode,
     declaredComponentCode
   })
 
+  Logger.info(`[AppHarmonyModule - compiler] - getApiCode`)
   let apiCode = await getApiCode(params, {
     targetPath
   })
@@ -765,6 +787,7 @@ const compilerHarmonyModule = async (params, config) => {
 
   let extensionApiCode = "";
 
+  Logger.info(`[AppHarmonyModule - compiler] - 遍历pageCode写页面、模块、api等`)
   await Promise.all(pageCode.map(async (page) => {
     if (page.type === "extension-config") {
       // 配置
@@ -787,12 +810,10 @@ const compilerHarmonyModule = async (params, config) => {
     }
 
     if (page.type === "module") {
-      const fileName = fileNameMap[page.meta.id] || page.name
+      const fileName = page.name
+      fileNameMap[page.meta.id] = page.name;
       moduleNames.add(fileName);
       let content = handleModuleCode(page, { params });
-      if (download.enableAI) {
-        content = await refactorCodeByAi(content)
-      }
       fse.outputFileSync(path.join(targetPath, `sections/${fileName}.ets`), content, { encoding: "utf8" })
       return
     }
@@ -809,19 +830,13 @@ const compilerHarmonyModule = async (params, config) => {
         params, pageConfig
       });
 
-      if (download.enableAI) {
-        content = await refactorCodeByAi(content)
-      }
     } else if (page.type === "popup") {
       // 弹窗
       content = handlePopupCode(page, { params });
-
-      if (download.enableAI) {
-        content = await refactorCodeByAi(content)
-      }
     }
 
-    const fileName = fileNameMap[page.meta.id] || `${page.name}Page`
+    const fileName = page.name;
+    fileNameMap[page.meta.id] = page.name;
 
     fse.outputFileSync(path.join(targetPath, `pages/${fileName}.ets`), content, { encoding: "utf8" })
   }))
@@ -829,6 +844,7 @@ const compilerHarmonyModule = async (params, config) => {
   apiCode = apiCode.replace("$r('app.api.apis')", extensionApiCode).replace("$r('app.api.import')", "").replace("$r('app.api.config')", "() => {}");
 
   if (moduleNames.size) {
+    Logger.info(`[AppHarmonyModule - compiler] - 补充区块入口`)
     // 有区块，补充区块的入口文件
     fse.outputFileSync(
       path.join(targetPath, `sections/Index.ets`),
@@ -838,8 +854,10 @@ const compilerHarmonyModule = async (params, config) => {
       { encoding: "utf8" })
   }
 
+  Logger.info(`[AppHarmonyModule - compiler] - api`)
   await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
 
+  Logger.info(`[AppHarmonyModule - compiler] - copyJs`)
   // 写入搭建Js
   await copyJs(params, {
     targetPath
@@ -883,8 +901,10 @@ const compilerHarmonyModule = async (params, config) => {
   })
 
   const entryPath = path.join(targetPath, "./pages/Index.ets");
+  Logger.info(`[AppHarmonyModule - compiler] - copy pages主入口文件`)
   await fse.copy(path.join(__dirname, "./hm/pages/Index.ets"), entryPath, { overwrite: true });
 
+  Logger.info(`[AppHarmonyModule - compiler] - 读 pages主入口文件`)
   let entryFileContent = await fse.readFile(entryPath, 'utf-8')
 
   entryFileContent = handleEntryCode(entryFileContent, {
@@ -894,5 +914,6 @@ const compilerHarmonyModule = async (params, config) => {
     entryScene,
     fileNameMap
   })
+  Logger.info(`[AppHarmonyModule - compiler] - 写 pages主入口文件`)
   await fse.writeFile(entryPath, entryFileContent, 'utf-8')
 }

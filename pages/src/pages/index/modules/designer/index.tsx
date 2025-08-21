@@ -1248,7 +1248,7 @@ const Designer = ({ appData }) => {
           return componentMetaMap;
         }
 
-        const fileNameMap = params.enableAI ? await getFileNameMapByAi(toJson) : {};
+        // const fileNameMap = params.enableAI ? await getFileNameMapByAi(toJson) : {};
 
         const res = await axios({
           url: "/api/harmony-module/harmony/compile",
@@ -1278,7 +1278,7 @@ const Designer = ({ appData }) => {
                 updateTime: dayjs(pageModel.file.updateTime || pageModel.file._updateTime || pageModel.file.createTime || pageModel.file._createTime).format("YYYY-MM-DD HH:mm:ss"),
                 updater: pageModel.file.updatorName || pageModel.file.creatorName
               },
-              fileNameMap
+              // fileNameMap
             },
           },
           withCredentials: false,
@@ -1311,7 +1311,7 @@ const Designer = ({ appData }) => {
             close()
           })
       } catch (e) {
-        message.error("导出失败")
+        message.error(`导出失败: ${e.message || e.msg}！请重试`)
         console.error("导出失败:", e);
         close();
       }
