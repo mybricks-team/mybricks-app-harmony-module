@@ -800,6 +800,13 @@ export function toFrameJSON(frame, regs: {
           com.frames.forEach(frame => {
             scanFrame(frame)
           })
+
+          comsReg[rt.id].frames = com.frames.map(({ id, title }) => {
+            return {
+              id,
+              title
+            }
+          })
         }
       })
     }
