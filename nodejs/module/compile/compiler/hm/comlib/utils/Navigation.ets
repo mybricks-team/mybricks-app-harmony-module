@@ -72,7 +72,7 @@ export struct DefaultNavigation {
 @Builder function emptySlot() {}
 
 @ComponentV2
-export struct CustomNavigation {
+export struct Navigation {
   @Param navHeight: number = 40
   @Param navBackgroundColor: string = '#464646'
 
@@ -106,7 +106,7 @@ export default struct MyBricksNavigation {
       if (this.mode === 'none') {
 
       } else if (this.mode === 'custom') {
-        CustomNavigation({
+        Navigation({
           navBackgroundColor: this.config?.navigationBarStyle?.backgroundColor,
           titleColor: this.config?.navigationBarStyle?.color
         }) {

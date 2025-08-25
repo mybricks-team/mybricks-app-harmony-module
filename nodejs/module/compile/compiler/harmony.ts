@@ -277,32 +277,32 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
   if (download.router === "Navigation") {
     page.importManager.addImport({
       packageName: "../utils/AppRouter",
-      dependencyNames: ["CustomNavConfig", "customNavigation"],
+      dependencyNames: ["NavConfig", "navigation"],
       importType: "named",
     });
-    page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: CustomNavConfig = {} as CustomNavConfig
+    page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: NavConfig = undefined
       myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
-    if (page.content.includes("aboutToAppear(): void {")) {
-      page.content = page.content.replace("aboutToAppear(): void {", `aboutToAppear(): void {
-        if (this.navigation?.navPathStack) {
-          customNavigation.registConfig({
-            navPathStack: this.navigation.navPathStack,
-            entryRouter: this.navigation?.entryRouter
-          })
-        }
-      `)
-    } else {
-      page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
-        aboutToAppear(): void {
-          if (this.navigation?.navPathStack) {
-            customNavigation.registConfig({
-              navPathStack: this.navigation.navPathStack,
-              entryRouter: this.navigation?.entryRouter
-            })
-          }
-        }
-      `)
-    }
+    // if (page.content.includes("aboutToAppear(): void {")) {
+    //   page.content = page.content.replace("aboutToAppear(): void {", `aboutToAppear(): void {
+    //     if (this.navigation?.navPathStack) {
+    //       navigation.registConfig({
+    //         navPathStack: this.navigation.navPathStack,
+    //         entryRouter: this.navigation?.entryRouter
+    //       })
+    //     }
+    //   `)
+    // } else {
+    //   page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
+    //     aboutToAppear(): void {
+    //       if (this.navigation?.navPathStack) {
+    //         navigation.registConfig({
+    //           navPathStack: this.navigation.navPathStack,
+    //           entryRouter: this.navigation?.entryRouter
+    //         })
+    //       }
+    //     }
+    //   `)
+    // }
   }
 
   page.importManager.addImport({
@@ -691,14 +691,14 @@ const getApiCode = async (params, config) => {
       router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
     )
     .replace("$r('app.api.router.open')",
-      router === "HMRouter" ? "HMRouterMgr.push({ pageUrl: PAGE_URL })" : "customNavigation.push()"
+      router === "HMRouter" ? "HMRouterMgr.push({ pageUrl: PAGE_URL })" : "navigation.push()"
     )
     .replace("$r('app.api.router.close')",
-      router === "HMRouter" ? "HMRouterMgr.pop()" : "customNavigation.pop()"
+      router === "HMRouter" ? "HMRouterMgr.pop()" : "navigation.pop()"
     )
     .replace("$r('app.api.import.appRouter')",
-      router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { customNavigation, CustomNavConfig } from './utils/AppRouter'"
-    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: CustomNavConfig) => {\n  customNavigation.registConfig(navConfig)\n}') +
+      router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { navigation, NavConfig } from './utils/AppRouter'"
+    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: NavConfig) => {\n  navigation.registConfig(navConfig)\n}') +
     (
       eventTitles.length ? `
         class Events {
@@ -744,7 +744,7 @@ const compilerHarmonyModule = async (params, config) => {
   Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata Done")
 
   // 目标项目路径
-  const targetPath = path.join(projectPath, download.fileName || "module");
+  const targetPath = "/Users/lianglihao/Downloads/HMRouter_new/entry/src/main/ets/component/module4";
 
   Logger.info(`[AppHarmonyModule - compiler] - copyProject`)
   // 拷贝项目
@@ -901,10 +901,10 @@ const compilerHarmonyModule = async (params, config) => {
   })
 
   const entryPath = path.join(targetPath, "./pages/Index.ets");
-  Logger.info(`[AppHarmonyModule - compiler] - copy pages主入口文件`)
+  Logger.info(`[AppHarmonyModule - compiler] - copy pages 主入口文件`)
   await fse.copy(path.join(__dirname, "./hm/pages/Index.ets"), entryPath, { overwrite: true });
 
-  Logger.info(`[AppHarmonyModule - compiler] - 读 pages主入口文件`)
+  Logger.info(`[AppHarmonyModule - compiler] - 读 pages 主入口文件`)
   let entryFileContent = await fse.readFile(entryPath, 'utf-8')
 
   entryFileContent = handleEntryCode(entryFileContent, {
@@ -914,6 +914,6 @@ const compilerHarmonyModule = async (params, config) => {
     entryScene,
     fileNameMap
   })
-  Logger.info(`[AppHarmonyModule - compiler] - 写 pages主入口文件`)
+  Logger.info(`[AppHarmonyModule - compiler] - 写 pages 主入口文件`)
   await fse.writeFile(entryPath, entryFileContent, 'utf-8')
 }

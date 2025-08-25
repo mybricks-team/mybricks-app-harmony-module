@@ -154,18 +154,18 @@ export class AppRouter {
 export const appRouter = new AppRouter()
 
 /** 使用App自定义的路由 */
-export interface CustomNavConfig {
+export interface NavConfig {
   /** App使用中的navPathStack */
   navPathStack: NavPathStack
   /** 配置入口页面的name，需要与RouterMap中的name一致 */
   entryRouter?: string
 }
 
-class CustomNavigation {
+class Navigation {
   private navPathStack?: NavPathStack
   private entryRouter?: string
 
-  registConfig = (config: CustomNavConfig) => {
+  registConfig = (config: NavConfig) => {
     this.entryRouter = config.entryRouter
     this.navPathStack = config.navPathStack
   }
@@ -183,4 +183,4 @@ class CustomNavigation {
   }
 }
 
-export const customNavigation = new CustomNavigation()
+export const navigation = new Navigation()

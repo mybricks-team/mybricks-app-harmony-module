@@ -1,7 +1,7 @@
 import { AttributeUpdater } from '@ohos.arkui.modifier'
 import { appRouter } from "../utils/Index"
 import jsModulesGenerator from "./JSModules";
-import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createModuleInputsHandle, createStyles, join, createModuleEventsHandle, createModifier, createData } from "../utils/mybricks"
+import { createJSHandle, createInputsHandle, createEventsHandle, Page, createVariable, createVars, createFx, createModuleInputsHandle, createStyles, join, createModuleEventsHandle, createModifier, createData, MyBricksDescriptor } from "../utils/mybricks"
 import { genCallConnector } from "../utils/CallConnector"
 import { MyBricks } from "../utils/types"
 import { globalVars, globalFxs } from "./global"
@@ -148,5 +148,6 @@ export {
   createVariable,
   createFx,
   join,
-  createModuleEventsHandle
+  createModuleEventsHandle,
+  MyBricksDescriptor
 }
