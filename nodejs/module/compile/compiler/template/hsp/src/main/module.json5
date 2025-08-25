@@ -1,0 +1,14 @@
+{
+  "module": {
+    "name": "library",
+    "type": "shared",
+    "description": "description",
+    "deviceTypes": [
+      "phone",
+      "tablet",
+      "2in1"
+    ],
+    "deliveryWithInstall": true,
+    "pages": "$profile:main_pages"
+  }
+}
