@@ -755,20 +755,30 @@ const handleHSP = async (params, config) => {
 
   let ohPackage = fse.readFileSync(path.join(targetPath, "./oh-package.json5"), "utf-8")
   ohPackage = ohPackage.replace("--replace-name--", name.toLowerCase());
+  const dependencies = [];
   if (download.source === "ohpmLibrary") {
-    ohPackage = ohPackage.replace(
-      "--replace-dependencies--", 
-      '"@mybricks/render-utils": "latest",\n' + 
-      '    "@mybricks/comlib-harmony-normal": "latest"'
+    dependencies.push(
+      '"@mybricks/render-utils": "latest"',
+      '"@mybricks/comlib-harmony-normal": "latest"'
     )
   } else {
-    ohPackage = ohPackage.replace(
-      "--replace-dependencies--",
-      '"dayjs": "latest",\n' + 
-      '    "@ohos/axios": "latest",\n' +
-      '    "@mybricks/render-utils": "latest"'
+    dependencies.push(
+      '"dayjs": "latest"',
+      '"@ohos/axios": "latest"',
+      '"@mybricks/render-utils": "latest"'
     )
   }
+
+  if (download.router === "HMRouter") {
+    dependencies.push('"@hadss/hmrouter": "latest"')
+  }
+
+  ohPackage = ohPackage.replace(
+    "--replace-dependencies--",
+    dependencies.reduce((pre, cur, index) => {
+      return pre + (!index ? cur : `    ${cur}`) + (index === dependencies.length -1 ? "" : ",\n")
+    }, "")
+  )
 
   fse.writeFileSync(path.join(targetPath, "./oh-package.json5"), ohPackage)
 
@@ -776,6 +786,21 @@ const handleHSP = async (params, config) => {
   module = module.replace("--replace-name--", name);
 
   fse.writeFileSync(path.join(targetPath, "./src/main/module.json5"), module)
+
+  if (download.router === "HMRouter") {
+    const hvigorfile = fse.readFileSync(path.join(targetPath, "./hvigorfile.ts"), "utf-8")
+    fse.writeFileSync(
+      path.join(targetPath, "./hvigorfile.ts"), 
+      hvigorfile.replace(
+        "import { hspTasks } from '@ohos/hvigor-ohos-plugin';",
+        "import { hspTasks } from '@ohos/hvigor-ohos-plugin';\nimport { hspPlugin } from '@hadss/hmrouter-plugin';"
+      ).replace(
+        "plugins: []",
+        "plugins: [hspPlugin()]"
+      )
+    )
+    
+  }
 }
 
 /** 下载模块 */

@@ -61,13 +61,6 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
       integrationType: pageModel.appConfig.download.integrationType || "HSP",
       enableAI: false,
     })
-    console.log(123, {
-      fileName: pageModel.appConfig.download.fileName,
-      source: pageModel.appConfig.download.source || "ohpmLibrary",
-      router: pageModel.appConfig.download.router || "Navigation",
-      integrationType: pageModel.appConfig.download.integrationType || "HSP",
-      enableAI: false,
-    })
   }, [])
 
   return (
@@ -84,7 +77,6 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
               maxLength={31}
               placeholder="请输入模块名称"
               onChange={(e) => {
-                console.log(e.target.value)
                 if (fileNamePattern.test(e.target.value)) {
                   setFileNameError(null)
                 } else {
