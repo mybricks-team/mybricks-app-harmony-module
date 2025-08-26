@@ -62,28 +62,32 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
 
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("join")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["join"],
       importType: "named",
     });
   }
   if (page.content.includes("Controller()")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
   }
   if (page.content.includes("ModuleController()")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["ModuleController"],
       importType: "named",
     });
@@ -176,28 +180,32 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
   const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("join")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["join"],
       importType: "named",
     });
   }
   if (page.content.includes("Controller()")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
   }
   if (page.content.includes("ModuleController()")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["ModuleController"],
       importType: "named",
     });
@@ -233,28 +241,32 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
   const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("join")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["join"],
       importType: "named",
     });
   }
   if (page.content.includes("Controller()")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["Controller"],
       importType: "named",
     });
   }
   if (page.content.includes("ModuleController()")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["ModuleController"],
       importType: "named",
     });
@@ -268,7 +280,8 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
   }
   if (page.content.includes("createModuleEventsHandle")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createModuleEventsHandle"],
       importType: "named",
     });
@@ -282,31 +295,15 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
     });
     page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: NavConfig = undefined
       myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
-    // if (page.content.includes("aboutToAppear(): void {")) {
-    //   page.content = page.content.replace("aboutToAppear(): void {", `aboutToAppear(): void {
-    //     if (this.navigation?.navPathStack) {
-    //       navigation.registConfig({
-    //         navPathStack: this.navigation.navPathStack,
-    //         entryRouter: this.navigation?.entryRouter
-    //       })
-    //     }
-    //   `)
-    // } else {
-    //   page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)
-    //     aboutToAppear(): void {
-    //       if (this.navigation?.navPathStack) {
-    //         navigation.registConfig({
-    //           navPathStack: this.navigation.navPathStack,
-    //           entryRouter: this.navigation?.entryRouter
-    //         })
-    //       }
-    //     }
-    //   `)
-    // }
+    if (page.content.includes("@MyBricksDescriptor({")) {
+      page.content = page.content.replace("@MyBricksDescriptor({", `@MyBricksDescriptor({
+        navigation,`)
+    }
   }
 
   page.importManager.addImport({
-    packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+    // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+    packageName: RENDER_UTILS_PACKAGE_NAME,
     dependencyNames: ["Styles", "MyBricksColumnModifier", "ColumnVisibilityController"],
     importType: "named",
   });
@@ -321,28 +318,32 @@ const handleGlobalCode = (page, { params }) => {
   const { download } = data;
   if (page.content.includes("MyBricks.")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? "../utils/types" : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["MyBricks"],
       importType: "named",
     });
   }
   if (page.content.includes("join")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["join"],
       importType: "named",
     });
   }
   if (page.content.includes("createVariable")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createVariable"],
       importType: "named",
     });
   }
   if (page.content.includes("createFx")) {
     page.importManager.addImport({
-      packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
+      // packageName: download.source === "sourceCode" ? "../utils/mybricks" : RENDER_UTILS_PACKAGE_NAME,
+      packageName: RENDER_UTILS_PACKAGE_NAME,
       dependencyNames: ["createFx"],
       importType: "named",
     });
@@ -391,19 +392,27 @@ const handleReadMeCode = (params) => {
     `- **最后更新人**：${basic.updater}\n` +
     `- **搭建地址**：[点击访问](${basic.link})\n\n` +
     "## 📦 安装依赖\n\n" +
-    "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-    "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
+    // "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
+    // "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
     (source === "ohpmLibrary" ? (
       "- [@mybricks/comlib-harmony-normal](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Fcomlib-harmony-normal)\n" +
       "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
-    ) : "\n") +
+    ) : (
+      "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
+      "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
+      "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
+    )) +
     "``` bash\n" +
-    "ohpm i dayjs\n" +
-    "ohpm i @ohos/axios\n" +
+    // "ohpm i dayjs\n" +
+    // "ohpm i @ohos/axios\n" +
     (source === "ohpmLibrary" ? (
       "ohpm i @mybricks/comlib-harmony-normal\n" +
       "ohpm i @mybricks/render-utils\n"
-    ) : "") +
+    ) : (
+      "ohpm i dayjs\n" +
+      "ohpm i @ohos/axios\n" +
+      "ohpm i @mybricks/render-utils\n"
+    )) +
     "```\n\n" +
     "## 🚀 使用\n" +
     "```typescript\n" +
@@ -487,12 +496,14 @@ const generatePageCodeWithMetadata = async (params) => {
     },
     getComponentPackageName(params) {
       if (params?.type === "extensionEvent") {
-        return download.source === "sourceCode" ? "./common/Index" : "./common/Index"
+        return "./common/Index"
+        // return download.source === "sourceCode" ? "./common/Index" : "./common/Index"
       }
       return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "../common/Index"
     },
     getUtilsPackageName() {
-      return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/render-utils"
+      // return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/render-utils"
+      return RENDER_UTILS_PACKAGE_NAME
     },
     getBus(namespace: string) {
       return busMap[namespace]
@@ -611,7 +622,7 @@ const copyUtils = async (params, config) => {
   const { download } = data;
   const { targetPath } = config;
 
-  if (download.source !== "ohpmLibrary") {
+  if (download.source !== "ohpmLibrary" && false) {
     // 拷贝utils
     await fse.copy(path.join(__dirname, "./hm/utils"), path.join(targetPath, "utils"), { overwrite: true })
     // 写utils/mybricks.js
@@ -683,9 +694,10 @@ const getApiCode = async (params, config) => {
   const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
   return apiCode
     .replace("$r('app.api.import.utils')",
-      download.source === "sourceCode" ?
-        'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
-        'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
+      `import { MyBricks, transformApi, createBus, transformBus } from "${RENDER_UTILS_PACKAGE_NAME}";`
+      // download.source === "sourceCode" ?
+      //   'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
+      //   'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
     )
     .replace("$r('app.api.export.pageUrl')",
       router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
@@ -734,6 +746,38 @@ const copyProject = async (params, config) => {
 
 }
 
+const handleHSP = async (params, config) => {
+  const { data } = params;
+  const { download } = data;
+  const { targetPath } = config;
+
+  const name = download.fileName || "module";
+
+  let ohPackage = fse.readFileSync(path.join(targetPath, "./oh-package.json5"), "utf-8")
+  ohPackage = ohPackage.replace("--replace-name--", name.toLowerCase());
+  if (download.source === "ohpmLibrary") {
+    ohPackage = ohPackage.replace(
+      "--replace-dependencies--", 
+      '"@mybricks/render-utils": "latest",\n' + 
+      '    "@mybricks/comlib-harmony-normal": "latest"'
+    )
+  } else {
+    ohPackage = ohPackage.replace(
+      "--replace-dependencies--",
+      '"dayjs": "latest",\n' + 
+      '    "@ohos/axios": "latest",\n' +
+      '    "@mybricks/render-utils": "latest"'
+    )
+  }
+
+  fse.writeFileSync(path.join(targetPath, "./oh-package.json5"), ohPackage)
+
+  let module = fse.readFileSync(path.join(targetPath, "./src/main/module.json5"), "utf-8")
+  module = module.replace("--replace-name--", name);
+
+  fse.writeFileSync(path.join(targetPath, "./src/main/module.json5"), module)
+}
+
 /** 下载模块 */
 const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath } = params;
@@ -744,7 +788,13 @@ const compilerHarmonyModule = async (params, config) => {
   Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata Done")
 
   // 目标项目路径
-  const targetPath = "/Users/lianglihao/Downloads/HMRouter_new/entry/src/main/ets/component/module4";
+  let targetPath = path.join(projectPath, download.fileName || "module");
+
+  if (download.integrationType === "HSP") {
+   await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
+   await handleHSP(params, { targetPath })
+   targetPath = path.join(targetPath, "/src/main/ets");
+  }
 
   Logger.info(`[AppHarmonyModule - compiler] - copyProject`)
   // 拷贝项目
@@ -852,6 +902,13 @@ const compilerHarmonyModule = async (params, config) => {
         return pre + `export { default as ${cur} } from "./${cur}"\n`
       }, ""),
       { encoding: "utf8" })
+  } else {
+    const IndexPath = path.join(targetPath, "Index.ets");
+    fse.writeFileSync(
+      IndexPath, 
+      fse.readFileSync(IndexPath, "utf-8").replace(
+        'export * from "./sections/Index"\n', ""
+      ))
   }
 
   Logger.info(`[AppHarmonyModule - compiler] - api`)

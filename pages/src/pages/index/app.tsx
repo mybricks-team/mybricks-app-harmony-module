@@ -131,10 +131,14 @@ const Application = () => {
         fileName: firstCharToLowerCase(transformString(pageModel.file.name || "module")),
         source: "ohpmLibrary",
         router: "Navigation",
+        integrationType: "HSP"
       }
     } else {
       if (!pageModel.appConfig.download.router) {
         pageModel.appConfig.download.router = "Navigation"
+      }
+      if (!pageModel.appConfig.download.integrationType) {
+        pageModel.appConfig.download.integrationType = "HSP"
       }
     }
     pageModel.wxConfig = data.fileContent.content?.wxConfig || {};
