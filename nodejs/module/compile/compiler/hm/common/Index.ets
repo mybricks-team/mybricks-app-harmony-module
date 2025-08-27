@@ -13,7 +13,8 @@ import {
   genCallConnector,
   context,
   MyBricksComponentBuilderParams,
-  CommonModifier
+  CommonModifier,
+  createSlotsIO
 } from "@mybricks/render-utils"
 import { globalVars, globalFxs } from "./global"
 $r('app.common.component.import')
