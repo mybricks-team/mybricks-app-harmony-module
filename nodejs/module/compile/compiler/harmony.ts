@@ -29,7 +29,7 @@ const handleEntryCode = (template: string, {
   entryScene,
   tabbarConfig,
   fileNameMap
-}) => {
+}, params) => {
   const allImports = Array.from(new Set([...tabbarScenes, ...normalScenes]))
     .map(scene => `// ${scene.title} \nimport ${fileNameMap[scene.id] || generatePageFileName(scene.title)} from './${fileNameMap[scene.id] || generatePageFileName(scene.title)}';`)
     .join('\n')
@@ -39,6 +39,23 @@ const handleEntryCode = (template: string, {
   const renderMainScenes = generateRoutes(Array.from(new Set([entryScene, ...tabbarScenes, ...normalScenes])))
   const renderScenes = generateRoutes(normalScenes)
 
+  const { data, fileId } = params;
+  const { download } = data;
+
+  if (download.router === "HMRouter") {
+    template = template
+      .replace(
+        "import { appRouter, TabBarConfig, parseRadius } from '../utils/Index'",
+        "import { HMRouter } from '@hadss/hmrouter'\n" +
+        "import { appRouter, TabBarConfig, parseRadius } from '../utils/Index'" 
+      )
+      .replace(
+        "@ComponentV2",
+        `export const PAGE_URL = "myBricks${fileId}"\n\n`+
+        "@HMRouter({ pageUrl: PAGE_URL })\n" +
+        "@ComponentV2"
+      )
+  }
 
   return template
     .replace("$r('app.config.imports')", allImports)
@@ -400,6 +417,7 @@ const handleReadMeCode = (params) => {
     ) : (
       "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
       "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
+      "- [@aliyun/oss](https://ohpm.openharmony.cn/#/cn/detail/@aliyun%2Foss)\n" +
       "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
     )) +
     "``` bash\n" +
@@ -411,6 +429,7 @@ const handleReadMeCode = (params) => {
     ) : (
       "ohpm i dayjs\n" +
       "ohpm i @ohos/axios\n" +
+      "ohpm i @aliyun/oss\n" +
       "ohpm i @mybricks/render-utils\n"
     )) +
     "```\n\n" +
@@ -560,7 +579,7 @@ const generatePageCodeWithMetadata = async (params) => {
       const componentName = asImportName.replace("Basic", "");
       const { hasSlots } = componentMetaMap[namespace]
       declaredComponentCode += `@Builder
-      export function ${componentName} (params: MyBricksComponentBuilderParams) {
+      function ${componentName}Builder (params: MyBricksComponentBuilderParams) {
         ${asImportName}({
           uid: params.uid,
           data: createData(params, ${importData}),
@@ -568,12 +587,27 @@ const generatePageCodeWithMetadata = async (params) => {
           outputs: createEventsHandle(params),
           styles: createStyles(params),
           ${hasSlots ? "slots: params.slots," : ""}
-          ${hasSlots ? "slotsIO: params.slotsIO," : ""}
+          ${hasSlots ? "slotsIO: createSlotsIO(params)," : ""}
           parentSlot: params.parentSlot,
           env,
           _env,
           modifier: createModifier(params, CommonModifier)
         })
+      }
+
+      @Builder
+      export function ${componentName} (params: MyBricksComponentBuilderParams) {
+        if (params.parentSlot?.itemWrap) {
+          params.parentSlot.itemWrap({
+            id: params.uid,
+            inputs: params.controller?._inputEvents
+          }).wrap.builder(wrapBuilder(${componentName}Builder), params, params.parentSlot.itemWrap({
+            id: params.uid,
+            inputs: params.controller?._inputEvents
+          }).params)
+        } else {
+          ${componentName}Builder(params)
+        }
       }
       \n`
     } else {
@@ -700,7 +734,8 @@ const getApiCode = async (params, config) => {
       //   'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
     )
     .replace("$r('app.api.export.pageUrl')",
-      router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
+      // router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
+      router === "HMRouter" ? "import { PAGE_URL } from './pages/Index'" : ""
     )
     .replace("$r('app.api.router.open')",
       router === "HMRouter" ? "HMRouterMgr.push({ pageUrl: PAGE_URL })" : "navigation.push()"
@@ -765,6 +800,7 @@ const handleHSP = async (params, config) => {
     dependencies.push(
       '"dayjs": "latest"',
       '"@ohos/axios": "latest"',
+      '"@aliyun/oss": "latest"',
       '"@mybricks/render-utils": "latest"'
     )
   }
@@ -816,9 +852,9 @@ const compilerHarmonyModule = async (params, config) => {
   let targetPath = path.join(projectPath, download.fileName || "module");
 
   if (download.integrationType === "HSP") {
-   await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
-   await handleHSP(params, { targetPath })
-   targetPath = path.join(targetPath, "/src/main/ets");
+    await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
+    await handleHSP(params, { targetPath })
+    targetPath = path.join(targetPath, "/src/main/ets");
   }
 
   Logger.info(`[AppHarmonyModule - compiler] - copyProject`)
@@ -995,7 +1031,7 @@ const compilerHarmonyModule = async (params, config) => {
     tabbarConfig,
     entryScene,
     fileNameMap
-  })
+  }, params)
   Logger.info(`[AppHarmonyModule - compiler] - 写 pages 主入口文件`)
   await fse.writeFile(entryPath, entryFileContent, 'utf-8')
 }
