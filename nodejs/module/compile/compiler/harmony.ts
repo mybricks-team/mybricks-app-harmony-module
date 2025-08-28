@@ -125,7 +125,6 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
         importType: "named",
       });
       return `${page.importManager.toCode()}
-
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -153,7 +152,6 @@ ${page.content}
         importType: "named",
       });
       return `${page.importManager.toCode()}
-
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -174,7 +172,6 @@ ${page.content}
     }
     case 'none': {
       return `${page.importManager.toCode()}
-
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -235,21 +232,20 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
     });
   }
   return `${page.importManager.toCode()}
-
-      /** ${page.meta.title} */
-      @ComponentV2
-      export default struct Page {
-        build() {
-          NavDestination() {
-            Index()
-          }
-          .hideTitleBar(true)
-          .mode(NavDestinationMode.DIALOG)
-          .systemTransition(NavigationSystemTransitionType.NONE)
-        }
-      }
+/** ${page.meta.title} */
+@ComponentV2
+export default struct Page {
+  build() {
+    NavDestination() {
+      Index()
+    }
+    .hideTitleBar(true)
+    .mode(NavDestinationMode.DIALOG)
+    .systemTransition(NavigationSystemTransitionType.NONE)
+  }
+}
   
-      ${page.content}
+${page.content}
       `;
 }
 
@@ -310,11 +306,14 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
       dependencyNames: ["NavConfig", "navigation"],
       importType: "named",
     });
-    page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: NavConfig = undefined
-      myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
+    // [TODO]缩进配置
+    const indent = " ".repeat(2)
+    const indent2 = " ".repeat(4)
+    page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: NavConfig = undefined\n` +
+      `${indent}myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
     if (page.content.includes("@MyBricksDescriptor({")) {
-      page.content = page.content.replace("@MyBricksDescriptor({", `@MyBricksDescriptor({
-        navigation,`)
+      page.content = page.content.replace("@MyBricksDescriptor({", `@MyBricksDescriptor({` + 
+        `\n${indent2}navigation,`)
     }
   }
 
@@ -325,8 +324,7 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
     importType: "named",
   });
   return `${page.importManager.toCode()}
-
-      ${page.content}
+${page.content}
       `;
 }
 
@@ -374,8 +372,7 @@ const handleGlobalCode = (page, { params }) => {
   }
 
   return `${page.importManager.toCode()}
-  
-  ${page.content}`
+${page.content}`
 }
 
 const handleReadMeCode = (params) => {
@@ -490,35 +487,54 @@ const generatePageCodeWithMetadata = async (params) => {
   }
   Logger.info(`[AppHarmonyModule - compiler] - ${download.enableAI ? "toHarmonyCodeWithAI" : "toHarmonyCode"}`)
   const pageCode = await (download.enableAI ? toHarmonyCodeWithAI : toHarmonyCode)(toJson, {
-    getComponentMetaByNamespace(namespace, config) {
+    getComponentMeta(com, config) {
+      const { namespace, rtType } = com.def;
+
+      if (["mybricks.core-comlib.js-ai", "mybricks.harmony._muilt-inputJs"].includes(namespace)) {
+        return {
+          importInfo: {
+            name: "jsModules",
+            from: ["extension-config", "extension-api", "extension-bus", "extension-event"].includes(config?.json?.type) ? 
+              "./common/Index" :
+              COMPONENT_PACKAGE_NAME,
+            type: "named",
+          },
+          callName: `jsModules.${com.id}`
+        }
+      }
+
       if (!usedComponentsMap[namespace]) {
-        usedComponentsMap[namespace] = config;
+        usedComponentsMap[namespace] = com;
       }
 
       let componentName = convertNamespaceToComponentName(namespace);
-      const dependencyNames: string[] = [];
+      // const dependencyNames: string[] = [];
 
-      if (config.type === "js") {
+      if (rtType?.match(/^js/gi)) {
         componentName = componentName[0].toLowerCase() + componentName.slice(1);
       }
-
-      dependencyNames.push(componentName);
-
+    
       return {
-        dependencyImport: {
-          packageName: download.source === "sourceCode" ? (config.source === "extensionEvent" ? "./common/Index" : COMPONENT_PACKAGE_NAME) : "@mybricks/comlib-harmony-normal",
-          dependencyNames,
-          importType: "named",
-        },
-        componentName: componentName,
-      };
+        importInfo: {
+          name: componentName,
+          from: download.source === "sourceCode" ? 
+            (
+              ["extension-config", "extension-api", "extension-bus", "extension-event"].includes(config?.json?.type) ? 
+                "./common/Index" :
+                COMPONENT_PACKAGE_NAME
+            ) : 
+            "@mybricks/comlib-harmony-normal",
+          type: "named",
+        }
+      }
     },
     getComponentPackageName(params) {
       if (params?.type === "extensionEvent") {
         return "./common/Index"
         // return download.source === "sourceCode" ? "./common/Index" : "./common/Index"
       }
-      return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "../common/Index"
+      return "../common/Index"
+      // return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "../common/Index"
     },
     getUtilsPackageName() {
       // return download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : "@mybricks/render-utils"
@@ -559,11 +575,12 @@ const generatePageCodeWithMetadata = async (params) => {
   let importComponentCode = "";
   let declaredComponentCode = "";
 
-  Object.entries(usedComponentsMap).forEach(([namespace, config]: any) => {
+  Object.entries(usedComponentsMap).forEach(([namespace, com]: any) => {
     const namespaceSplit = namespace.split(".")
 
     const importName = namespaceSplit.join("_");
-    const asImportName = (config.type === "ui" ? "Basic" : "basic") + namespaceSplit.map((text) => {
+    const isUI = !com.def.rtType;
+    const asImportName = (isUI ? "Basic" : "basic") + namespaceSplit.map((text) => {
       if (text.toUpperCase() === "MYBRICKS") {
         return "MyBricks";
       }
@@ -573,7 +590,7 @@ const generatePageCodeWithMetadata = async (params) => {
 
     importComponentCode += `${importName} as ${asImportName},`
 
-    if (config.type === "ui") {
+    if (isUI) {
       const importData = importName + "_Data";
       importComponentCode += `${importData},`
       const componentName = asImportName.replace("Basic", "");
@@ -685,7 +702,7 @@ const copyComponents = async (params, config) => {
       (await fse.readFile(path.join(__dirname, "./hm/common/IndexOhpmLibrary.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
-          `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+          `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined} }`,
         )
     );
   } else {
@@ -695,7 +712,7 @@ const copyComponents = async (params, config) => {
       (await fse.readFile(path.join(__dirname, "./hm/common/Index.ets"), 'utf-8'))
         .replace(
           "{ domain: undefined }",
-          `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined}}`,
+          `{ domain: ${data.appConfig?.defaultCallServiceHost ? JSON.stringify(data.appConfig?.defaultCallServiceHost) : undefined} }`,
         )
         .replace("$r('app.common.component.import')", importComponentCode ? `import { ${importComponentCode} } from "../comlib/Index"` : "")
         .replace("$r('app.common.component.declared')", declaredComponentCode)
@@ -726,6 +743,7 @@ const getApiCode = async (params, config) => {
   }).map((frame) => frame.title);
 
   const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
+  const indent = " ".repeat(2);
   return apiCode
     .replace("$r('app.api.import.utils')",
       `import { MyBricks, transformApi, createBus, transformBus } from "${RENDER_UTILS_PACKAGE_NAME}";`
@@ -747,22 +765,19 @@ const getApiCode = async (params, config) => {
       router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { navigation, NavConfig } from './utils/AppRouter'"
     ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: NavConfig) => {\n  navigation.registConfig(navConfig)\n}') +
     (
-      eventTitles.length ? `
-        class Events {
-          ${eventTitles.reduce((pre, cur) => {
-        return pre + `${cur}: MyBricks.Api = createBus()\n`
-      }, "")}}
-
-        export const events = new Events();
-
-        type Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void
-        interface OnEventParams {
-          ${eventTitles.reduce((pre, cur) => {
-        return pre + `${cur}: Event;\n`
-      }, "")}}
-
-        export const onEvent: (events: OnEventParams) => void = transformBus(events);
-      ` : ""
+      eventTitles.length ? (
+        "\nclass Events {" + 
+        `\n${eventTitles.reduce((pre, cur) => {
+          return pre + `${indent}${cur}: MyBricks.Api = createBus()\n`
+        }, "")}}` + 
+        `\n\nexport const events = new Events()` + 
+        `\n\ntype Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void` +
+        `\n\ninterface OnEventParams {` + 
+        `\n${eventTitles.reduce((pre, cur) => {
+        return pre + `${indent}${cur}: Event;\n`
+      }, "")}}` + 
+      `\n\nexport const onEvent: (events: OnEventParams) => void = transformBus(events);`
+      ) : ""
     );
 }
 
@@ -903,7 +918,7 @@ const compilerHarmonyModule = async (params, config) => {
     if (page.type === "extension-config") {
       // 配置
       apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.config')", `(${page.meta.inputs?.length ? "value: MyBricks.Any" : ""}) => {
-  ${page.content}
+${page.content}
 }`);
       return
     }
