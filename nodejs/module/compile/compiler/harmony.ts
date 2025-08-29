@@ -499,6 +499,7 @@ const generatePageCodeWithMetadata = async (params) => {
               COMPONENT_PACKAGE_NAME,
             type: "named",
           },
+          name: "jsModules",
           callName: `jsModules.${com.id}`
         }
       }
@@ -525,7 +526,9 @@ const generatePageCodeWithMetadata = async (params) => {
             ) : 
             "@mybricks/comlib-harmony-normal",
           type: "named",
-        }
+        },
+        name: componentName,
+        callName: componentName
       }
     },
     getComponentPackageName(params) {
