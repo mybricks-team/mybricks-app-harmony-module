@@ -39,6 +39,4 @@ const env: MyBricks.Any = {
 context.env = env;
 context._env = _env;
 
-$r('app.common.component.declared')
-
-export { jsModules, page, globalVars, globalFxs }
+$r('app.common.component.declared')export { jsModules, page, globalVars, globalFxs }
