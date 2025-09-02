@@ -7,3 +7,7 @@ export function PagesBuilder() {
     MyBricksIndex()
   }.hideTitleBar(true)
 }
+
+export * from "./api"
+export * from "./sections/Index"
+export { ModuleController } from "@mybricks/render-utils"

@@ -2,7 +2,6 @@ import { appRouter, TabBarConfig, parseRadius } from '../utils/Index'
 
 $r('app.config.imports')
 
-@Entry
 @ComponentV2
 export default struct EntryView {
   /** 开启闪屏页支持 */

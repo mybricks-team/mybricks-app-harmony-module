@@ -1,8 +1,8 @@
 {
   "module": {
-    "name": "library",
+    "name": "--replace-name--",
     "type": "shared",
-    "description": "description",
+    "description": "$string:shared_desc",
     "deviceTypes": [
       "phone",
       "tablet",

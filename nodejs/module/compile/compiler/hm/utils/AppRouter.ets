@@ -1,4 +1,5 @@
 import { open, close } from "../api"
+
 type UnknownJson = Record<string, string | number | boolean | Object> | string | number | boolean
 
 export interface TabBarConfig {
@@ -20,16 +21,13 @@ export type TabBarJson = Record<string, string | number | boolean | ESObject>
 export class AppRouter {
   navPathStack: NavPathStack = new NavPathStack();
   routerStack: Array<string> = new Array();
-
   tabList: Array<TabBarConfig> = []
-
   @Trace activeTabIndex?: number = 0
   @Trace entryPageId?: string
   @Trace entryMode?: 'tab' | 'page'
-
   pageParams?: Map<string, UnknownJson | undefined> = new Map()
 
-  public registTabbar (configList: Array<TabBarJson>) {
+  public registTabbar(configList: Array<TabBarJson>) {
     this.tabList = configList as Array<TabBarConfig>
     return this
   }
@@ -49,7 +47,7 @@ export class AppRouter {
     return !!this.tabList.length
   }
 
-  public isTabbarPage (name: string) {
+  public isTabbarPage(name: string) {
     return this.tabList.some(item => item?.id === name)
   }
 
@@ -66,7 +64,7 @@ export class AppRouter {
     if (this.entryMode === 'page') { // for application 导出，注册非tabbar首页
       this.routerStack.push(name);
       this.navPathStack.pushPathByName(name, params, callback, true)
-    } else if (this.entryMode === 'tab') {  // for application 导出，注册非tabbar首页
+    } else if (this.entryMode === 'tab') { // for application 导出，注册非tabbar首页
       if (this.isTabbarPage(name)) {
         this.clear(); // 一般来说回到tabbar再物理返回就是直接退出APP了，不会到启动页，也不会有历史页，所以清空
         this.activeTabIndex = this.tabList.findIndex(t => t.id === name);
@@ -164,12 +162,10 @@ export interface NavConfig {
 class Navigation {
   private navPathStack?: NavPathStack
   private entryRouter?: string
-
   registConfig = (config: NavConfig) => {
     this.entryRouter = config.entryRouter
     this.navPathStack = config.navPathStack
   }
-
   push = () => {
     if (this.entryRouter) {
       this.navPathStack?.pushPath({
@@ -177,7 +173,6 @@ class Navigation {
       })
     }
   }
-
   pop = () => {
     this.navPathStack?.pop()
   }

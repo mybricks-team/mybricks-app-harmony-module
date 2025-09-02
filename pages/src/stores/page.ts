@@ -17,6 +17,7 @@ interface PageInfo {
     fileName: string;
     source: "ohpmLibrary" | "sourceCode";
     router: "Navigation" | "HMRouter";
+    integrationType: "HSP" | "sourceCode";
   }
 }
 

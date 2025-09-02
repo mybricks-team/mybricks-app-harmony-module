@@ -15,6 +15,7 @@ interface RgbRes {
   g: number,
   b: number
 }
+
 // 将十六进制颜色转换为 RGB
 const hexToRgb = (hex: string): RgbRes => {
   // 移除 # 号
@@ -93,7 +94,7 @@ export struct AppCommonHeader {
             middle: { anchor: "__container__", align: HorizontalAlign.Center },
           })
         if (!!this.showBackIcon) {
-          Column(){
+          Column() {
             SymbolGlyph($r('sys.symbol.chevron_left'))
               .fontSize(32)
               .renderingStrategy(SymbolRenderingStrategy.SINGLE)
@@ -140,7 +141,7 @@ export struct AppCustomHeader {
   }
 
   build() {
-    Stack(){
+    Stack() {
     }
     .width('100%')
     .padding({ top: appWindow.statusBarHeight })

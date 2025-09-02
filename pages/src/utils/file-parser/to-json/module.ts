@@ -213,7 +213,7 @@ export function toFrameJSON(frame, regs: {
     if (pin.rels) {
       pinRelsReg[`${idPre}-${pin.hostId}`] = pin.rels
     } else {
-      if (pin.parent._type === 1) {//component
+      if (pin.parent?._type === 1) {//component
         const parentCom = pin.parent
         if (parentCom.runtime.def.namespace === 'mybricks.core-comlib.module') {//模块组件
           const ioProxyForCall = parentCom.ioProxyForCall

@@ -50,6 +50,31 @@
       border-color: #FA6400;
       background: #FA6400;
     }
+    .ant-form-item-has-error .ant-form-item-explain {
+      position: absolute;
+      top: 24px;
+      right: 0;
+    }
+    .ant-show-help-leave {
+      display: none !important;
+      transform: none !important;
+      animation-name: none !important;
+      animation-play-state: unset !important;
+      animation-timing-function: unset !important;
+      animation-duration: unset !important;
+      animation-fill-mode: none !important;
+    }
+  }
+  .formItem {
+    position: relative;
+  }
+  .fileNameError {
+    color: #ff4d4f;
+    font-size: 11px;
+    line-height: 1;
+    position: absolute;
+    top: 48px;
+    right: 0px;
   }
   .footer {
     padding-top: 12px;
@@ -85,6 +110,12 @@
       color: #FFF;
       font-weight: bold;
       transition: transform 0.3s ease;
+
+      &:disabled {
+        box-shadow: none;
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
     }
   }
 
