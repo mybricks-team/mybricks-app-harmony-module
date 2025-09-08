@@ -430,6 +430,60 @@ const handleReadMeCode = (params) => {
       "ohpm i @mybricks/render-utils\n"
     )) +
     "```\n\n" +
+    (router === "Navigation" ? `## Navigation 初始化
+由于模块中可能包含一些页面，在使用时需要关注两个方面：
+
+1. 将navPathStack注入给模块，用于跳转页面；
+    \`\`\`typescript
+      import { configNavigation } from "模块文件夹路径/Index"
+   
+      // 在入口组件初始化或者其它合适的时机
+      configNavigation({
+        // navPathStack: 当前使用的navPathStack实例
+        // entryRouter: 定义路由名称，跳转时使用此名称
+      })
+    \`\`\`
+2. 将模块内的页面注册到Navigation，根据使用方式不同分为，*navDestination* 和 *routerMap.json*
+
+### 使用 navDestination
+在navDestination方法中渲染PagesBuilder
+
+\`\`\`typescript
+import { PagesBuilder } from "模块文件夹路径/Index";
+
+@Component
+struct Index {
+
+   @Builder
+   pageRender(name: string) {
+      if (name === 'configNavigation定义的entryRouter') {
+         PagesBuilder()
+      }
+   }
+}
+  
+  build() {
+   Navigation() {
+  
+   }.navDestination(this.pagesRender)
+}
+\`\`\`
+
+### 使用 routerMap.json
+将PagesBuilder注册到routerMap.json文件中
+\`\`\`json
+{
+   "routerMap": [
+      {
+         "name": "configNavigation定义的entryRouter",
+         "pageSourceFile": "模块文件夹路径/Index.ets",
+         "buildFunction": "PagesBuilder"
+      }
+   ]
+}
+\`\`\`
+
+` : '') +
     "## 🚀 使用\n" +
     "```typescript\n" +
     'import { api, config, onBus } from "模块文件夹路径/api"\n\n' +
