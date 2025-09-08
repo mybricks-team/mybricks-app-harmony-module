@@ -4,7 +4,7 @@ import API from "@mybricks/sdk-for-app/api";
 import cloneDeep from "lodash/cloneDeep";
 import _flatten from "lodash/flatten";
 import { message } from "antd";
-import { toJSONFromPageDump } from "../utils/file-parser";
+import { toJSONFromPageDump } from "../utils/file-parser-next";
 import {
   ToJsonSchema,
   DumpMetaJson,
@@ -349,7 +349,7 @@ class Content {
     return {
       toJsonPages: Object.values(pages).map((json) => {
         return toJSONFromPageDump(JSON.stringify(json), {
-          forMPA: true,
+          // forMPA: true,
         });
       }),
       dumpJsonPages: Object.values(pages).map((json) => {
@@ -1002,6 +1002,7 @@ class Content {
         ...toJson.scenes,
         ...toJsonPages
           .filter((item) => {
+            console.log(1, item)
             return item.type === "module";
           })
           .map((item) => {
