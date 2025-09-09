@@ -5,6 +5,7 @@ import { COMPONENT_PACKAGE_NAME, RENDER_UTILS_PACKAGE_NAME } from "./hm/constant
 import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip, indentation } from "../utils";
 import fetchAI from "./utils/ai/fetchAI";
 import { Logger } from "@mybricks/rocker-commons";
+import { readme } from "./utils"
 
 /**
  * [DISCUSS] 组件namespace命名规范，除了中文0-9a-zA-Z，只允许使用 . 和 _ 两个特殊字符
@@ -373,146 +374,6 @@ const handleGlobalCode = (page, { params }) => {
 
   return `${page.importManager.toCode()}
 ${page.content}`
-}
-
-const handleReadMeCode = (params) => {
-  const { data } = params;
-  const { toJson, download, basic } = data;
-  const { source, router } = download;
-
-  let config = null
-  const apis = []
-  const events = []
-
-
-  toJson.frames.forEach((frame) => {
-    if (frame.type === "extension-config") {
-      // 只有一个配置
-      config = frame
-    } else if (frame.type === "extension-api") {
-      // 0或多个api
-      apis.push(frame)
-    } else if (frame.type === "extension-event") {
-      events.push(frame);
-    }
-  })
-
-  return `# ${basic.name}\n\n` +
-    (router === "Navigation" ? "模块基于[Navigation](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-navigation-navigation)实现\n\n" : "模块基于[HMRouter](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-hmrouter)实现\n\n") +
-    "## 📋 基本信息\n\n" +
-    `- **作者**：${basic.author}\n` +
-    `- **版本**：${basic.version}\n` +
-    `- **更新时间**：${basic.updateTime}\n` +
-    `- **最后更新人**：${basic.updater}\n` +
-    `- **搭建地址**：[点击访问](${basic.link})\n\n` +
-    "## 📦 安装依赖\n\n" +
-    // "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-    // "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
-    (source === "ohpmLibrary" ? (
-      "- [@mybricks/comlib-harmony-normal](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Fcomlib-harmony-normal)\n" +
-      "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
-    ) : (
-      "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
-      "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-      "- [@aliyun/oss](https://ohpm.openharmony.cn/#/cn/detail/@aliyun%2Foss)\n" +
-      "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
-    )) +
-    "``` bash\n" +
-    // "ohpm i dayjs\n" +
-    // "ohpm i @ohos/axios\n" +
-    (source === "ohpmLibrary" ? (
-      "ohpm i @mybricks/comlib-harmony-normal\n" +
-      "ohpm i @mybricks/render-utils\n"
-    ) : (
-      "ohpm i dayjs\n" +
-      "ohpm i @ohos/axios\n" +
-      "ohpm i @aliyun/oss\n" +
-      "ohpm i @mybricks/render-utils\n"
-    )) +
-    "```\n\n" +
-    (router === "Navigation" ? `## Navigation 初始化
-由于模块中可能包含一些页面，在使用时需要关注两个方面：
-
-1. 将navPathStack注入给模块，用于跳转页面；
-    \`\`\`typescript
-      import { configNavigation } from "模块文件夹路径/Index"
-   
-      // 在入口组件初始化或者其它合适的时机
-      configNavigation({
-        // navPathStack: 当前使用的navPathStack实例
-        // entryRouter: 定义路由名称，跳转时使用此名称
-      })
-    \`\`\`
-2. 将模块内的页面注册到Navigation，根据使用方式不同分为，*navDestination* 和 *routerMap.json*
-
-### 使用 navDestination
-在navDestination方法中渲染PagesBuilder
-
-\`\`\`typescript
-import { PagesBuilder } from "模块文件夹路径/Index";
-
-@Component
-struct Index {
-
-   @Builder
-   pageRender(name: string) {
-      if (name === 'configNavigation定义的entryRouter') {
-         PagesBuilder()
-      }
-   }
-}
-  
-  build() {
-   Navigation() {
-  
-   }.navDestination(this.pagesRender)
-}
-\`\`\`
-
-### 使用 routerMap.json
-将PagesBuilder注册到routerMap.json文件中
-\`\`\`json
-{
-   "routerMap": [
-      {
-         "name": "configNavigation定义的entryRouter",
-         "pageSourceFile": "模块文件夹路径/Index.ets",
-         "buildFunction": "PagesBuilder"
-      }
-   ]
-}
-\`\`\`
-
-` : '') +
-    "## 🚀 使用\n" +
-    "```typescript\n" +
-    'import { api, config, onBus } from "模块文件夹路径/api"\n\n' +
-    (config ? (
-      `/** 模块配置 */\n` +
-      `config(${config.inputs?.length ? "{\n" : ""}` +
-      (config.inputs?.length ? config.inputs.reduce((pre, cur) => {
-        return pre + `  ${cur.pinId}: value,\n`
-      }, "") : "") +
-      `${config.inputs?.length ? "}" : ""})`
-    ) : "") +
-    `${apis.length ? "\n\n/** 调用api */\n" + apis.reduce((pre, cur, index) => {
-      return pre + `api.${cur.title}(value${cur.outputs?.length ? (
-        ", {\n" +
-        (cur.outputs.reduce((pre, cur) => {
-          return pre + `  ${cur.id}(value) {\n    // ${cur.title}\n  },\n`
-        }, "")) +
-        "}"
-      ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
-    }, "") : ""}` +
-    "\n\n/** 注册系统总线 */\n" +
-    "onBus({\n" +
-    "  /** 总线:获取登录用户 */\n" +
-    "  getUser(value, callBack) {\n" +
-    "    // callBack.then(value) // 成功时，返回用户信息\n" +
-    "    // callBack.catch(value) // 发生错误时，返回错误信息\n" +
-    "  }\n" +
-    "})" +
-    "\n```"
 }
 
 export const compilerHarmony = async (params, config) => {
@@ -941,14 +802,6 @@ const compilerHarmonyModule = async (params, config) => {
   // 拷贝项目
   await copyProject(params, { targetPath });
 
-  Logger.info(`[AppHarmonyModule - compiler] - handleReadMeCode`)
-  // 写入README.md [TODO] 放最后处理
-  await fse.writeFile(
-    path.join(targetPath, "README.md"),
-    handleReadMeCode(params),
-    { encoding: "utf8" }
-  );
-
   Logger.info(`[AppHarmonyModule - compiler] - copyComlib`)
   // 拷贝组件库
   await copyComlib(params, {
@@ -1051,6 +904,16 @@ ${page.content}
         'export * from "./sections/Index"\n', ""
       ))
   }
+
+  Logger.info(`[AppHarmonyModule - compiler] - handleReadMeCode`)
+  // 写入README.md [TODO] 放最后处理
+  await fse.writeFile(
+    path.join(targetPath, "README.md"),
+    readme(params, {
+      fileNameMap
+    }),
+    { encoding: "utf8" }
+  );
 
   Logger.info(`[AppHarmonyModule - compiler] - api`)
   await fse.writeFile(path.join(targetPath, "api.ets"), apiCode)
