@@ -3,7 +3,7 @@ $r('app.api.import.utils')
 $r('app.api.import')
 $r('app.api.export.pageUrl')
 
-export const open = () => {
+export const open = (name: string, param: MyBricks.Any) => {
   $r('app.api.router.open')
 }
 

@@ -682,7 +682,7 @@ const getApiCode = async (params, config) => {
       router === "HMRouter" ? "import { PAGE_URL } from './pages/Index'" : ""
     )
     .replace("$r('app.api.router.open')",
-      router === "HMRouter" ? "HMRouterMgr.push({ pageUrl: PAGE_URL })" : "navigation.push()"
+      router === "HMRouter" ? "HMRouterMgr.push({ pageUrl: PAGE_URL })" : "navigation.push(name, param)"
     )
     .replace("$r('app.api.router.close')",
       router === "HMRouter" ? "HMRouterMgr.pop()" : "navigation.pop()"
@@ -828,6 +828,7 @@ const compilerHarmonyModule = async (params, config) => {
 
   const sceneMap = {};
   const moduleNames = new Set<string>();
+  const popupIds = new Set<string>();
 
   let extensionApiCode = "";
 
@@ -877,6 +878,7 @@ ${page.content}
     } else if (page.type === "popup") {
       // 弹窗
       content = handlePopupCode(page, { params });
+      popupIds.add(page.meta.id);
     }
 
     const fileName = page.name;
@@ -904,6 +906,10 @@ ${page.content}
         'export * from "./sections/Index"\n', ""
       ))
   }
+
+  let appRouterCode = fse.readFileSync(path.join(targetPath, "/utils/AppRouter.ets"), "utf-8")
+  appRouterCode = appRouterCode.replace("$r('app.appRouter.popupIds')", JSON.stringify(Array.from(popupIds)));
+  fse.writeFileSync(path.join(targetPath, "/utils/AppRouter.ets"), appRouterCode);
 
   Logger.info(`[AppHarmonyModule - compiler] - handleReadMeCode`)
   // 写入README.md [TODO] 放最后处理
