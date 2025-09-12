@@ -17,7 +17,7 @@ export interface TabBarConfig {
 
 export type TabBarJson = Record<string, string | number | boolean | ESObject>
 
-const popupIds = $r('app.appRouter.popupIds');
+const popupIds: string[] = $r('app.appRouter.popupIds');
 
 @ObservedV2
 export class AppRouter {
