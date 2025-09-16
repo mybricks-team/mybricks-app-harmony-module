@@ -4,6 +4,7 @@ import * as fse from "fs-extra";
 import { COMPONENT_PACKAGE_NAME, RENDER_UTILS_PACKAGE_NAME } from "./hm/constant";
 import { pinyin, cleanAndSplitString, firstCharToUpperCase, downloadZip, AdmZip, indentation } from "../utils";
 import fetchAI from "./utils/ai/fetchAI";
+import { ResourceCollector } from './utils/resources';
 import { Logger } from "@mybricks/rocker-commons";
 import { readme } from "./utils"
 
@@ -785,18 +786,26 @@ const compilerHarmonyModule = async (params, config) => {
   const { data, projectPath } = params;
   const { download } = data;
   const fileNameMap = {};
-  Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata")
-  const { pageCode, importComponentCode, declaredComponentCode } = await generatePageCodeWithMetadata(params);
-  Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata Done")
 
   // 目标项目路径
   let targetPath = path.join(projectPath, download.fileName || "module");
 
+  const resourceCollector = new ResourceCollector();
+
   if (download.integrationType === "HSP") {
     await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
     await handleHSP(params, { targetPath })
+    const hspPath = targetPath
+    console.log('hspPath', hspPath);
     targetPath = path.join(targetPath, "/src/main/ets");
+
+    resourceCollector.collectByToJson(data.toJson)
+    resourceCollector.outputToResources(hspPath)
   }
+
+  Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata")
+  const { pageCode, importComponentCode, declaredComponentCode } = await generatePageCodeWithMetadata(params);
+  Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata Done")
 
   Logger.info(`[AppHarmonyModule - compiler] - copyProject`)
   // 拷贝项目
