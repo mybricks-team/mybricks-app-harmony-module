@@ -175,7 +175,6 @@ const sectionsCode = (params) => {
       if (input.type === "normal") {
         hasInputs = true
       } else if (input.type === "config") {
-        console.log(input, 123)
         // hasConfig = true
         hasConfig += `\n    ${input.id}: "",\n`
       }
