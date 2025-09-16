@@ -796,11 +796,9 @@ const compilerHarmonyModule = async (params, config) => {
     await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
     await handleHSP(params, { targetPath })
     const hspPath = targetPath
-    console.log('hspPath', hspPath);
     targetPath = path.join(targetPath, "/src/main/ets");
-
     resourceCollector.collectByToJson(data.toJson)
-    resourceCollector.outputToResources(hspPath)
+    await resourceCollector.outputToResources(hspPath)
   }
 
   Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata")

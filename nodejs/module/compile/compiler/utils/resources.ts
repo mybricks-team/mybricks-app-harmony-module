@@ -107,14 +107,12 @@ export class ResourceCollector {
     await fse.ensureDir(mediaPath)
 
     // 在方法内创建缓存 Map
-    const urlCache = new Map<string, Promise<Buffer>>();
+    const urlCache = new Map<string, Buffer>();
 
     const fetchUrl = async (url: string): Promise<Buffer> => {
       if (!urlCache.has(url)) {
-        urlCache.set(url,
-          axios.get(url, { responseType: 'arraybuffer' })
-            .then(response => Buffer.from(response.data))
-        );
+        const file = await axios.get(url, { responseType: 'arraybuffer' }).then(response => Buffer.from(response.data))
+        urlCache.set(url, file);
       }
       return urlCache.get(url)!;
     };
@@ -130,6 +128,7 @@ export class ResourceCollector {
         }
 
         const filePath = path.join(mediaPath, resource.fileName);
+        console.log('Writing resource file:', filePath);
         await fse.writeFile(filePath, data);
       } catch (error) {
         console.error(`Failed to process resource: ${original}`, error);
