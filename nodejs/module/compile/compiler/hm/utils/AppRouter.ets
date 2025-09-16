@@ -17,6 +17,8 @@ export interface TabBarConfig {
 
 export type TabBarJson = Record<string, string | number | boolean | ESObject>
 
+const popupIds: string[] = $r('app.appRouter.popupIds');
+
 @ObservedV2
 export class AppRouter {
   navPathStack: NavPathStack = new NavPathStack();
@@ -51,7 +53,10 @@ export class AppRouter {
     return this.tabList.some(item => item?.id === name)
   }
 
-  public getParams(name: string) {
+  public getParams(name: string): UnknownJson | undefined {
+    if (!this.routerStack.length) {
+      return navigation.getParams(name)["param"]
+    }
     if (this.isTabbarPage(name) && this.pageParams?.has(name)) {
       return this.pageParams?.get(name)
     }
@@ -75,10 +80,15 @@ export class AppRouter {
       this.navPathStack.pushPathByName(name, params, callback, true)
     } else { // for module 单独导出，没有 registEntryPage，所以需要先 registEntryPage
       if (!this.routerStack.length) {
-        open()
+        if (popupIds.includes(name)) {
+          open(name, params)
+          return
+        }
+
         this.registEntryPage(name)
         this.routerStack.push(name)
         this.pageParams?.set(name, params)
+        open(name, params)
         return
       }
       this.routerStack.push(name);
@@ -166,15 +176,32 @@ class Navigation {
     this.entryRouter = config.entryRouter
     this.navPathStack = config.navPathStack
   }
-  push = () => {
-    if (this.entryRouter) {
-      this.navPathStack?.pushPath({
-        name: this.entryRouter
-      })
+  push = (name: string, param: UnknownJson) => {
+    interface Param {
+      name: string;
+      param: UnknownJson
     }
+    this.navPathStack?.pushPathByName(this.entryRouter, {
+      name,
+      param
+    } as Param)
   }
   pop = () => {
     this.navPathStack?.pop()
+  }
+  getParams = (name: string) => {
+    const paramsList = this.navPathStack?.getParamByName(this.entryRouter) as Map<string, UnknownJson | undefined>[]
+    const params: UnknownJson = {}
+
+    for (let i = paramsList.length -1; i >= 0; i--) {
+      const nextParams = paramsList[i]
+      if (nextParams["name"] === name) {
+        params.params = nextParams
+        break
+      }
+    }
+
+    return params.params as Map<string, UnknownJson | undefined>
   }
 }
 

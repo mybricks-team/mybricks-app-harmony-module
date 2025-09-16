@@ -2,6 +2,12 @@ import { appRouter, TabBarConfig, parseRadius } from '../utils/Index'
 
 $r('app.config.imports')
 
+/** 所有非Tabbar场景的入口 */
+@Builder
+export function renderScenes(path: string) {
+  $r('app.config.scenes')
+}
+
 @ComponentV2
 export default struct EntryView {
   /** 开启闪屏页支持 */
@@ -11,12 +17,6 @@ export default struct EntryView {
   @Builder
   renderMainScenes(path: string) {
     $r('app.config.mainScenes')
-  }
-
-  /** 所有非Tabbar场景的入口 */
-  @Builder
-  renderScenes(path: string) {
-    $r('app.config.scenes')
   }
 
   aboutToAppear(): void {
@@ -62,7 +62,7 @@ export default struct EntryView {
       .width('100%')
       .height('100%')
       .hideTitleBar(true)
-      .navDestination(this.renderScenes)
+      .navDestination(renderScenes)
       .mode(NavigationMode.Stack)
     }
     .alignContent(Alignment.BottomEnd)
