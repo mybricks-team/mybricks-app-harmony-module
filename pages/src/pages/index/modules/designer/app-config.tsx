@@ -789,24 +789,24 @@ export default function ({
           //     })
           //   }
           // },
-          {
-            type: "normal",
-            title: `${getPageTitlePrefix()}标签页`,
-            template: {
-              namespace: COMPONENT_NAMESPACE.systemPage,
-              deletable: false,
-              asRoot: true,
-            },
-            inputs: [
-              {
-                id: "open",
-                title: "打开",
-                schema: {
-                  type: "object",
-                },
-              },
-            ],
-          },
+          // {
+          //   type: "normal",
+          //   title: `${getPageTitlePrefix()}标签页`,
+          //   template: {
+          //     namespace: COMPONENT_NAMESPACE.systemPage,
+          //     deletable: false,
+          //     asRoot: true,
+          //   },
+          //   inputs: [
+          //     {
+          //       id: "open",
+          //       title: "打开",
+          //       schema: {
+          //         type: "object",
+          //       },
+          //     },
+          //   ],
+          // },
           {
             type: "normal",
             title: `${getPageTitlePrefix()}页面`,
