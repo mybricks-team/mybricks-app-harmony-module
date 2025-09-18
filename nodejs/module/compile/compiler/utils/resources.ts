@@ -16,6 +16,12 @@ const FALLBACK_IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAi4AAAIuBA
 export class ResourceCollector {
   private resources: Map<string, ImageResource> = new Map();
   private resourceIndex: number = 0;
+  private hspOrHapFolderPath: string
+  
+
+  setHspOrHapFolderPath(hspOrHapFolderPath: string) {
+    this.hspOrHapFolderPath = hspOrHapFolderPath
+  }
 
   private isImageUrl(str: string): boolean {
     const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|avif)$/i;
@@ -84,8 +90,6 @@ export class ResourceCollector {
             this.findImageInObject(com.model.data, (obj: any, key: string, value: string) => {
               const name = this.collectResource(`img_${com.id}`, value);
               obj[key] = `$r('app.media.${name}')`
-
-              console.log('obj[key]', obj[key])
             })
           }
 
@@ -93,8 +97,6 @@ export class ResourceCollector {
             this.findImageInObject(com.model.style.styleAry, (obj: any, key: string, value: string) => {
               const name = this.collectResource(`img_style_${com.id}`, value);
               obj[key] = `$r('app.media.${name}')`
-
-              console.log('obj[key]', obj[key])
             })
           }
         })
@@ -103,8 +105,8 @@ export class ResourceCollector {
 
   }
 
-  async outputToResources(appFolder: string): Promise<void> {
-    const mediaPath = path.join(appFolder, 'src', 'main', 'resources', 'base', 'media');
+  async outputImagesToResources(): Promise<void> {
+    const mediaPath = path.join(this.hspOrHapFolderPath, 'src', 'main', 'resources', 'base', 'media');
 
     await fse.ensureDir(mediaPath)
 
@@ -135,5 +137,36 @@ export class ResourceCollector {
       const filePath = path.join(mediaPath, resource.fileName);
       await fse.writeFile(filePath, data);
     }
+  }
+
+  async outputPageToRouterMap({
+    id,
+    pageFileName
+  }) {
+    const profilePath = path.join(this.hspOrHapFolderPath, 'src', 'main', 'resources', 'base', 'profile');
+    await fse.ensureDir(profilePath)
+
+    const routerMapPath = path.join(profilePath, 'router_map.json');
+    if (!await fse.exists(routerMapPath)) {
+      await fse.writeJSON(routerMapPath, { routerMap: [] }, { encoding: 'utf8', spaces: 2 })
+    }
+
+    const routerMapJson = await fse.readJSON(routerMapPath, { encoding: 'utf8' });
+    if (!routerMapJson.routerMap) {
+      routerMapJson.routerMap = []
+    }
+    routerMapJson.routerMap.push({
+      name: id,
+      pageSourceFile: `src/main/ets/pages/${pageFileName}.ets`,
+      buildFunction: "PageBuilder"
+    })
+    await fse.writeJSON(routerMapPath, routerMapJson, { encoding: 'utf8', spaces: 2 })
+  }
+
+  async setModuleRouterMap() {
+    const moduleJsonPath = path.join(this.hspOrHapFolderPath, 'src', 'main', 'module.json5');
+    const moduleJson = await fse.readJSON(moduleJsonPath, { encoding: 'utf8' });
+    moduleJson.module.routerMap = "$profile:router_map"
+    await fse.writeJSON(moduleJsonPath, moduleJson, { encoding: 'utf8', spaces: 2 });
   }
 }

@@ -119,6 +119,12 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
     });
   }
 
+  const BuilderTemplate = `@Builder
+export function PageBuilder() {
+  Page();
+}
+`;
+
   switch (navigationStyle) {
     case 'default': {
       page.importManager.addImport({
@@ -127,6 +133,7 @@ const handlePageCode = (page: ReturnType<typeof toHarmonyCode>[0], {
         importType: "named",
       });
       return `${page.importManager.toCode()}
+${BuilderTemplate}
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -154,6 +161,7 @@ ${page.content}
         importType: "named",
       });
       return `${page.importManager.toCode()}
+${BuilderTemplate}
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -174,6 +182,7 @@ ${page.content}
     }
     case 'none': {
       return `${page.importManager.toCode()}
+${BuilderTemplate}
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -233,7 +242,15 @@ const handlePopupCode = (page: ReturnType<typeof toHarmonyCode>[0], { params }) 
       importType: "named",
     });
   }
+
+  const BuilderTemplate = `@Builder
+export function PageBuilder() {
+  Page();
+}
+`;
+
   return `${page.importManager.toCode()}
+${BuilderTemplate}
 /** ${page.meta.title} */
 @ComponentV2
 export default struct Page {
@@ -796,9 +813,10 @@ const compilerHarmonyModule = async (params, config) => {
     await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
     await handleHSP(params, { targetPath })
     const hspPath = targetPath
+    resourceCollector.setHspOrHapFolderPath(hspPath);
     targetPath = path.join(targetPath, "/src/main/ets");
     resourceCollector.collectByToJson(data.toJson)
-    await resourceCollector.outputToResources(hspPath)
+    await resourceCollector.outputImagesToResources();
   }
 
   Logger.info("[AppHarmonyModule - compiler] - generatePageCodeWithMetadata")
@@ -893,6 +911,23 @@ ${page.content}
 
     fse.outputFileSync(path.join(targetPath, `pages/${fileName}.ets`), content, { encoding: "utf8" })
   }))
+
+  if ('HSP' === download.integrationType) {
+    let isConfigRouterMap = false
+    for (const page of pageCode) {
+      if (page.type === 'normal' || page.type === 'popup') {
+        await resourceCollector.outputPageToRouterMap({
+          id: page.meta.id,
+          pageFileName: page.name
+        })
+        isConfigRouterMap = true
+      }
+    }
+    if (isConfigRouterMap) {
+      await resourceCollector.setModuleRouterMap();
+    }
+  }
+  
 
   apiCode = apiCode.replace("$r('app.api.apis')", extensionApiCode).replace("$r('app.api.import')", "").replace("$r('app.api.config')", "() => {}");
 
