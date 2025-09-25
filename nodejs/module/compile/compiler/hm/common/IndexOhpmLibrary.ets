@@ -30,4 +30,6 @@ const env: MyBricks.Env = {
 context.env = env;
 context._env = _env;
 
+globalVars.init()
+
 export { jsModules, page, globalVars, globalFxs }

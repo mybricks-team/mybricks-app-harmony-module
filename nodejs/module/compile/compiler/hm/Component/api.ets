@@ -36,3 +36,30 @@ interface OnBusParams {
 }
 
 export const onBus: (bus: OnBusParams) => void = transformBus(bus);
+
+interface GetVarResult<T> {
+  getValue: () => T
+  setValue: (value: T) => void
+}
+interface GetOutputResult<T> {
+  setValue: (value: T) => void
+}
+interface GetInputResult<T> {
+  getValue: () => T
+}
+interface ComEventCtx {
+  getVar: <T>(varName: string) => GetVarResult<T>
+  getOutput: <T>(outputName: string) => GetOutputResult<T>
+  getInput: <T>(inputName: string) => GetInputResult<T>
+}
+type ComEvent = Record<
+  string,
+  Record<
+    string,
+    (value: MyBricks.Any, ctx: ComEventCtx) => void
+  >
+>
+
+export const onComEvent = (comEvent: ComEvent): void => {
+  return baseOnComEvent(comEvent);
+}

@@ -319,22 +319,22 @@ const handleModuleCode = (page: ReturnType<typeof toHarmonyCode>[0], { params })
     });
   }
 
-  if (download.router === "Navigation") {
-    page.importManager.addImport({
-      packageName: "../utils/AppRouter",
-      dependencyNames: ["NavConfig", "navigation"],
-      importType: "named",
-    });
-    // [TODO]缩进配置
-    const indent = " ".repeat(2)
-    const indent2 = " ".repeat(4)
-    page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: NavConfig = undefined\n` +
-      `${indent}myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
-    if (page.content.includes("@MyBricksDescriptor({")) {
-      page.content = page.content.replace("@MyBricksDescriptor({", `@MyBricksDescriptor({` + 
-        `\n${indent2}navigation,`)
-    }
-  }
+  // if (download.router === "Navigation") {
+  //   page.importManager.addImport({
+  //     packageName: "../utils/AppRouter",
+  //     dependencyNames: ["NavConfig", "navigation"],
+  //     importType: "named",
+  //   });
+  //   // [TODO]缩进配置
+  //   const indent = " ".repeat(2)
+  //   const indent2 = " ".repeat(4)
+  //   page.content = page.content.replace("myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)", `@Param navigation?: NavConfig = undefined\n` +
+  //     `${indent}myBricksColumnModifier = new MyBricksColumnModifier(this.styles.root)`)
+  //   if (page.content.includes("@MyBricksDescriptor({")) {
+  //     page.content = page.content.replace("@MyBricksDescriptor({", `@MyBricksDescriptor({` + 
+  //       `\n${indent2}navigation,`)
+  //   }
+  // }
 
   page.importManager.addImport({
     // packageName: download.source === "sourceCode" ? COMPONENT_PACKAGE_NAME : RENDER_UTILS_PACKAGE_NAME,
@@ -690,7 +690,7 @@ const getApiCode = async (params, config) => {
   const indent = " ".repeat(2);
   return apiCode
     .replace("$r('app.api.import.utils')",
-      `import { MyBricks, transformApi, createBus, transformBus } from "${RENDER_UTILS_PACKAGE_NAME}";`
+      `import { MyBricks, transformApi, createBus, transformBus, onComEvent as baseOnComEvent } from "${RENDER_UTILS_PACKAGE_NAME}";`
       // download.source === "sourceCode" ?
       //   'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
       //   'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'

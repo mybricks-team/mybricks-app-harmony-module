@@ -193,14 +193,14 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
             pageModel.appConfig.download.source = values.source;
             isEdited = true;
           }
-          if (pageModel.appConfig.download.router !== values.router) {
-            pageModel.appConfig.download.router = values.router;
-            isEdited = true;
-          }
-          if (pageModel.appConfig.download.integrationType !== values.integrationType) {
-            pageModel.appConfig.download.integrationType = values.integrationType;
-            isEdited = true;
-          }
+          // if (pageModel.appConfig.download.router !== values.router) {
+          //   pageModel.appConfig.download.router = values.router;
+          //   isEdited = true;
+          // }
+          // if (pageModel.appConfig.download.integrationType !== values.integrationType) {
+          //   pageModel.appConfig.download.integrationType = values.integrationType;
+          //   isEdited = true;
+          // }
           onCompile(values);
           setShowExportPanel(false);
           if (isEdited) {

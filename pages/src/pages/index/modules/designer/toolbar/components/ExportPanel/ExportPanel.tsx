@@ -106,7 +106,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             getPopupContainer={getPopupContainer}
           />
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           name="router"
           label="路由方式"
         >
@@ -143,7 +143,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             ]}
             getPopupContainer={getPopupContainer}
           />
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item
           name="enableAI"
           label="AI润色（Beta）"
@@ -168,6 +168,8 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             .then((values) => {
               onOk?.({
                 ...values,
+                router: "Navigation",
+                integrationType: "HSP",
                 fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
               });
             })
