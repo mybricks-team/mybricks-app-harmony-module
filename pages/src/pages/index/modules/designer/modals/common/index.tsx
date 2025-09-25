@@ -20,6 +20,7 @@ import {
 import { LoadingOutlined } from '@ant-design/icons'
 import { globalModal } from '@/components'
 import { pageModel, userModel } from '@/stores'
+import classNames from 'classnames'
 
 import styles from './index.less'
 
@@ -109,13 +110,16 @@ export const showSavesValidateConfirm = ({
             <div className={styles.footer}>
               {willSaves.length > 0 ? (
                 <>
-                  <Button size='small' onClick={_reject}>取消</Button>
-                  <Button size='small' type="primary" style={{ marginLeft: 12 }} onClick={_resolve}>
+                <div className={styles.button} onClick={_reject} style={{marginRight:12}}>取消</div>
+                <div className={classNames(styles.button,styles.main_button)} onClick={_resolve}>好的，仅保存已上锁内容</div>
+                  {/* <Button size='small' onClick={_reject}>取消22</Button> */}
+                  {/* <Button size='small' type="primary" style={{ marginLeft: 12 }} onClick={_resolve}>
                     好的，仅保存已上锁内容
-                  </Button>
+                  </Button> */}
                 </>
               ) : (
-                <Button size='small' onClick={_reject}>好的</Button>
+                // <Button size='small' onClick={_reject}>好的</Button>
+                <div className={styles.button} onClick={_reject} style={{marginRight:12}}>好的</div>
               )}
             </div>
           </div>

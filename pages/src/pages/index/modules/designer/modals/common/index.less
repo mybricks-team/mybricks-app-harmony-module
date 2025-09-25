@@ -36,7 +36,7 @@
       // color: #16A157;
     }
 
-  .item {
+    .item {
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -109,9 +109,31 @@
     justify-content: flex-end;
     margin-top: 26px;
 
+    .button {
+      font-size: 12px;
+      padding: 3px 13px;
+      border-radius: 6px;
+      border: 1px solid #e1e1e1;
+      cursor: pointer;
+
+      &:hover{
+        opacity: 0.9;
+      }
+
+    }
+
+    .main_button {
+      background-color: #FA6400;
+      border: 1px solid #FA6400;
+      color: #fff;
+    }
+
     :global {
       .ant-btn {
         font-size: 12px;
+      }
+      .ant-modal-content {
+        border-radius: 8px;
       }
     }
   }
