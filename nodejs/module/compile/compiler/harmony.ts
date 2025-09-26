@@ -860,7 +860,7 @@ const compilerHarmonyModule = async (params, config) => {
   Logger.info(`[AppHarmonyModule - compiler] - 遍历pageCode写页面、模块、api等`)
   await Promise.all(pageCode.map(async (page) => {
     if (page.type === "abstractEventTypeDef") {
-      apiCode = apiCode.replace("$r('app.api.onComEvent.ComEvent')}", page.content)
+      apiCode = apiCode.replace("$r('app.api.onComEvent.ComEvent')", page.content)
       return
     }
     if (page.type === "extension-config") {

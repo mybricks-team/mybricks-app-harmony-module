@@ -37,7 +37,7 @@ interface OnBusParams {
 
 export const onBus: (bus: OnBusParams) => void = transformBus(bus);
 
-$r('app.api.onComEvent.ComEvent')}
+$r('app.api.onComEvent.ComEvent')
 
 export const onComEvent = (comEvent: ComEvent): void => {
   return baseOnComEvent(comEvent);
