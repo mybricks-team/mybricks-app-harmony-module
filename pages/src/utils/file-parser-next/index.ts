@@ -67,7 +67,7 @@ export function toJSONFromPageDump(pageJSON: string, opts?: { forMPA: boolean })
   
   const temp = parsePage(content)
   
-  return getJSONFromModule(temp as any, opts)
+  return getJSONFromModule(temp as any, { ...opts, withIOSchema: true })
 }
 
 export function getPageTemplateJSONFromDumpJson(pageJSON: string, opts?: { forMPA: boolean }) {

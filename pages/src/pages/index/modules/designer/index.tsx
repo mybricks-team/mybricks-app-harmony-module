@@ -823,6 +823,7 @@ const Designer = ({ appData }) => {
       try {
         const toJson = await contentModel.toJSON({
           withDiagrams: true,
+          withIOSchema: true,
           getNewJSON(json) {
             json.scenes.forEach((scene) => {
               if (scene.type) {
@@ -1169,6 +1170,7 @@ const Designer = ({ appData }) => {
       try {
         const toJson = await contentModel.toJSON({
           withDiagrams: true,
+          withIOSchema: true,
           getNewJSON(json) {
             json.scenes.forEach((scene) => {
               if (scene.type) {
