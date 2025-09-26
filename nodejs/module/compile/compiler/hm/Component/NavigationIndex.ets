@@ -1,4 +1,3 @@
-import { MyBricks } from "@mybricks/render-utils"
 import { renderScenes } from "./pages/Index"
 
 /** 所有页面入口 Builder */
