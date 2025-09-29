@@ -550,8 +550,8 @@ const generatePageCodeWithMetadata = async (params) => {
       (hasSlots ? `\n${indent2}slots: params.slots,` : "") +
       (hasSlots ? `\n${indent2}slotsIO: createSlotsIO(params),` : "") +
       `\n${indent2}parentSlot: params.parentSlot,` +
-      `\n${indent2}env,` +
-      `\n${indent2}_env,` +
+      `\n${indent2}env: createEnv(params),` +
+      `\n${indent2}_env: _createEnv(params),` +
       `\n${indent2}modifier: createModifier(params, CommonModifier)` +
       `\n${indent1}})` + 
       `\n}` +
@@ -574,8 +574,8 @@ const generatePageCodeWithMetadata = async (params) => {
       let componentName = asImportName.replace("basic", "");
       componentName = componentName[0].toLowerCase() + componentName.slice(1);
       declaredComponentCode += `export const ${componentName} =` +
-      `\n${indent1}(props: MyBricks.JSParams): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {` +
-      `\n${indent2}return createJSHandle(${asImportName}, { props, env });` +
+      `\n${indent1}(props: MyBricks.JSParams, appContext: MyBricks.AppContext): (...values: MyBricks.EventValue) => Record<string, MyBricks.EventValue> => {` +
+      `\n${indent2}return createJSHandle(${asImportName}, { props, appContext });` +
       `\n${indent1}}\n\n`
     }
   })
@@ -669,7 +669,7 @@ const copyJs = async (params, config) => {
   const { targetPath } = config;
   const jsCodePath = path.join(targetPath, "common/JSModules.ts");
   await fse.ensureFile(jsCodePath)
-  await fse.writeFile(jsCodePath, `export default function({ createJSHandle, context }) {
+  await fse.writeFile(jsCodePath, `export default function({ createJSHandle }) {
       const comModules = {};
       ${decodeURIComponent(data.allModules?.all)};
       return comModules;
@@ -690,7 +690,7 @@ const getApiCode = async (params, config) => {
   const indent = " ".repeat(2);
   return apiCode
     .replace("$r('app.api.import.utils')",
-      `import { MyBricks, transformApi, createBus, transformBus, onComEvent as baseOnComEvent } from "${RENDER_UTILS_PACKAGE_NAME}";`
+      `import { MyBricks, transformApi, createBus, transformBus } from "${RENDER_UTILS_PACKAGE_NAME}";`
       // download.source === "sourceCode" ?
       //   'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
       //   'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'

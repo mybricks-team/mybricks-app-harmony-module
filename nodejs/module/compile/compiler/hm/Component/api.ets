@@ -1,6 +1,7 @@
 $r('app.api.import.appRouter')
 $r('app.api.import.utils')
 $r('app.api.import')
+import { onComEvent as baseOnComEvent } from "./common/Index"
 $r('app.api.export.pageUrl')
 
 export const open = (name: string, param: MyBricks.Any) => {
