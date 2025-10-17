@@ -491,6 +491,7 @@ export function toFrameJSON(frame, regs: {
               pinId: realFPin.hostId,
               pinType: realFPin.type,
               direction: realFPin.direction,
+              extData:con.extData,
               extBinding: realFPin.extBinding,
               isIgnored: opts?.forDebug ? con.isIgnored : void 0,
               isBreakpoint: opts?.forDebug ? con.isBreakpoint : void 0
@@ -524,7 +525,7 @@ export function toFrameJSON(frame, regs: {
           const realFPin = fPin.forkedFrom || fPin
 
           const fp = realFPin.parent
-          if (fp?._type === 0) {//frame
+          if (fp&&fp._type === 0) {//frame
             const forkedFromJointPin = realFPin.forkedAsJoint//joint
             if (forkedFromJointPin) {
               const pinHostId = forkedFromJointPin.from?.hostId || forkedFromJointPin.hostId
