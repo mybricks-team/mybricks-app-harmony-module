@@ -707,22 +707,22 @@ const getApiCode = async (params, config) => {
     )
     .replace("$r('app.api.import.appRouter')",
       router === "HMRouter" ? 'import { HMRouterMgr } from "@hadss/hmrouter"' : "import { navigation, NavConfig } from './utils/AppRouter'"
-    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: NavConfig) => {\n  navigation.registConfig(navConfig)\n}') +
-    (
-      eventTitles.length ? (
-        "\nclass Events {" + 
-        `\n${eventTitles.reduce((pre, cur) => {
-          return pre + `${indent}${cur}: MyBricks.Api = createBus()\n`
-        }, "")}}` + 
-        `\n\nexport const events = new Events()` + 
-        `\n\ntype Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void` +
-        `\n\ninterface OnEventParams {` + 
-        `\n${eventTitles.reduce((pre, cur) => {
-        return pre + `${indent}${cur}: Event;\n`
-      }, "")}}` + 
-      `\n\nexport const onEvent: (events: OnEventParams) => void = transformBus(events);`
-      ) : ""
-    );
+    ).replace("$r('app.api.export.pagconfigNavigationUrl')", router === "HMRouter" ? '' : '/** 配置页面跳转要使用的路由 */\nexport const configNavigation = (navConfig: NavConfig) => {\n  navigation.registConfig(navConfig)\n}')
+    // (
+    //   eventTitles.length ? (
+    //     "\nclass Events {" + 
+    //     `\n${eventTitles.reduce((pre, cur) => {
+    //       return pre + `${indent}${cur}: MyBricks.Api = createBus()\n`
+    //     }, "")}}` + 
+    //     `\n\nexport const events = new Events()` + 
+    //     `\n\ntype Event = (value: MyBricks.Any, callBack: Record<string, (value: MyBricks.Any) => void>) => void` +
+    //     `\n\ninterface OnEventParams {` + 
+    //     `\n${eventTitles.reduce((pre, cur) => {
+    //     return pre + `${indent}${cur}: Event;\n`
+    //   }, "")}}` + 
+    //   `\n\nexport const onEvent: (events: OnEventParams) => void = transformBus(events);`
+    //   ) : ""
+    // );
 }
 
 const copyProject = async (params, config) => {
@@ -859,6 +859,10 @@ const compilerHarmonyModule = async (params, config) => {
 
   Logger.info(`[AppHarmonyModule - compiler] - 遍历pageCode写页面、模块、api等`)
   await Promise.all(pageCode.map(async (page) => {
+    if (page.type === "extensionEventTypeDef") {
+      apiCode += page.content;
+      return;
+    }
     if (page.type === "abstractEventTypeDef") {
       apiCode = apiCode.replace("$r('app.api.onComEvent.ComEvent')", page.content)
       return
