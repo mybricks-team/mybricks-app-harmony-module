@@ -72,7 +72,7 @@
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "mobx": "^6.13.1",
-    "mybricks-plugin-version": "^0.0.27",
+    "mybricks-plugin-version": "^0.0.28",
     "normalize.css": "^8.0.1",
     "qs": "^6.13.0",
     "react": "17.0.2",

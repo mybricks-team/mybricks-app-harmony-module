@@ -24,6 +24,7 @@ import { compilerHarmony } from "./compiler";
 import publish from "./publish";
 import getModule from "./getModule";
 import loadPage from "./loadPage";
+import addDownloadRecord from "./addDownloadRecord";
 
 const tempFolderPath = path.resolve(__dirname, "../../.tmp"); //临时目录
 
@@ -354,6 +355,36 @@ export default class CompileController {
         message:
           error?.message ||
           (error.code ? `获取页面失败，错误码：${error.code}` : "获取页面失败"),
+        stack: error?.stack,
+      };
+    }
+  }
+
+  @Post("addDownloadRecord")
+  async addDownloadRecord(
+    @Body("userId") userId: string,
+    @Body("fileId") fileId: string,
+    @Body("content") content: any,
+  ) {
+    try {
+      await addDownloadRecord({
+        userId,
+        fileId,
+        content
+      })
+      return {
+        code: 1,
+        message: "添加下载记录成功",
+        data: {},
+      };
+    } catch (error) {
+      Logger.info("[addDownloadRecord] fail " + error.message, error);
+      return {
+        code: -1,
+        errCode: error.errCode,
+        message:
+          error?.message ||
+          (error.code ? `添加下载记录失败，错误码：${error.code}` : "添加下载记录失败"),
         stack: error?.stack,
       };
     }

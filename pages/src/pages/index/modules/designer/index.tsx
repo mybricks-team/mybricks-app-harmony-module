@@ -1307,6 +1307,18 @@ const Designer = ({ appData }) => {
         })
           .then(() => {
             message.success("导出完成")
+            // 添加下载记录
+            axios.post(
+              "/api/harmony-module/addDownloadRecord",
+              {
+                userId: userModel.user?.id,
+                fileId: pageModel.fileId,
+                content: {
+                  // 版本
+                  saveVersion: versionModel.file.version,
+                }
+              }
+            );
           })
           .catch((e) => {
             message.error(`导出失败: ${e.message || e.msg}！请重试`)
