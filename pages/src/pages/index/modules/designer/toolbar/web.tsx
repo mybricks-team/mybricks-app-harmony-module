@@ -13,10 +13,12 @@ import { CompileType } from "@/types";
 import { Export } from "./icons/export";
 import { publish } from "./icons/publish";
 import { ExportPanel } from "./components";
+import classNames from 'classnames'
 
 interface WebToolbarProps {
   operable: boolean;
   globalOperable: boolean;
+  roleDescription: number;
   statusChange: any;
   toggleLock: any;
   isModify?: boolean;
@@ -30,9 +32,12 @@ interface WebToolbarProps {
   setBeforeunload: (bool: boolean) => void
 }
 
+const canDownLoadRoleDescriptions = new Set([1, 2, '1', '2']);
+
 export const WebToolbar: React.FC<WebToolbarProps> = ({
   operable,
   globalOperable,
+  roleDescription,
   statusChange,
   toggleLock,
   isModify = false,
@@ -68,9 +73,9 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
   }, [publishLoading]);
 
   const publishHandle = () => {
-    // if (!globalOperable) {
-    //   return;
-    // }
+    if (!globalOperable) {
+      return
+    }
     onPublish()
   };
 
@@ -163,7 +168,9 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
           placement="bottom"
           title={"发布到物料中心"}
         > */}
-          <div className={css.publish_btn} onClick={publishHandle} data-mybricks-tip={`{content:'发布到物料中心',position:'bottom'}`}>
+          <div className={classNames(css.publish_btn, {
+            [css.disabled_btn]: !globalOperable
+          })} onClick={publishHandle} data-mybricks-tip={`{content:'发布到物料中心',position:'bottom'}`}>
             {publish}
           </div>
         {/* </Tooltip> */}
@@ -173,8 +180,16 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
           title={"导出模块源码"}
         > */}
           <div
-            className={`${css.export_btn} ${showExportPanel ? css.active_btn : ""}`}
-            onClick={() => setShowExportPanel(true)}
+            className={classNames(css.export_btn, {
+              [css.active_btn]: showExportPanel,
+              [css.disabled_btn]: !canDownLoadRoleDescriptions.has(roleDescription)
+            })}
+            onClick={() => {
+              if (!canDownLoadRoleDescriptions.has(roleDescription)) {
+                return
+              }
+              setShowExportPanel(true)
+            }}
             data-mybricks-tip={`{content:'导出模块源码',position:'left'}`}
           >
             {Export}

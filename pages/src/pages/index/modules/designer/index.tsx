@@ -138,6 +138,7 @@ const Designer = ({ appData }) => {
   const [beforeunload, setBeforeunload] = useState(false);
   const [operable, setOperable] = useState(false);
   const [globalOperable, setGlobalOperable] = useState(false);
+  const [roleDescription, setRoleDescription] = useState(-1);
   const designerRef = useRef<{ switchActivity; dump; toJSON }>();
   const [SPADesigner, setSPADesigner] = useState(null);
 
@@ -1365,7 +1366,8 @@ const Designer = ({ appData }) => {
       <AppToolbar
         operable={operable}
         globalOperable={globalOperable}
-        statusChange={({ status, file, extraFiles, isNew, init }) => {
+        roleDescription={roleDescription}
+        statusChange={({ status, file, extraFiles, isNew, init, roleDescription }) => {
           // setOperable(status === 1);
           let operable = status === 1;
           pageModel.operable = status === 1;
@@ -1374,6 +1376,7 @@ const Designer = ({ appData }) => {
           pageModel.isNew = isNew;
           pageModel.file = file;
           versionModel.compare(file);
+          setRoleDescription(roleDescription);
 
           if (!isNew || window.__type__ === "spa") {
             pageModel.canSave = operable;
