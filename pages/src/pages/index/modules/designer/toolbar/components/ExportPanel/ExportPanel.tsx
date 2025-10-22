@@ -12,6 +12,7 @@ interface ExportPanelProps {
     source: "ohpmLibrary" | "sourceCode";
     router: "Navigation" | "HMRouter";
     integrationType: "HSP" | "sourceCode";
+    downloadApplication: boolean;
   }) => void;
 }
 const ExportPanel = (props: ExportPanelProps) => {
@@ -59,6 +60,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
       source: pageModel.appConfig.download.source || "ohpmLibrary",
       router: pageModel.appConfig.download.router || "Navigation",
       integrationType: pageModel.appConfig.download.integrationType || "HSP",
+      downloadApplication: pageModel.appConfig.download.downloadApplication || false,
       enableAI: false,
     })
   }, [])
@@ -105,6 +107,13 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             ]}
             getPopupContainer={getPopupContainer}
           />
+        </Form.Item>
+        <Form.Item
+          name="downloadApplication"
+          label="下载完整应用"
+          tooltip="该选项仅适用于开发阶段，方便调试模块。"
+        >
+          <Switch />
         </Form.Item>
         {/* <Form.Item
           name="router"

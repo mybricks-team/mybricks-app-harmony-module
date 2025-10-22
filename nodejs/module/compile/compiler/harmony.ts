@@ -806,11 +806,46 @@ const compilerHarmonyModule = async (params, config) => {
 
   // 目标项目路径
   let targetPath = path.join(projectPath, download.fileName || "module");
+  const dateTime = new Date().getTime();
 
   const resourceCollector = new ResourceCollector();
 
   if (download.integrationType === "HSP") {
-    await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
+    const hspFileName = download.fileName || "module";
+    const hspPackageName = hspFileName.toLowerCase();
+
+    if (download.downloadApplication) {
+      // 下载完整应用
+      // 拷贝应用模版
+      targetPath = path.join(projectPath, `application${dateTime}`);
+      await fse.copy(path.join(__dirname, "./template/application"), targetPath);
+      const buildProfileJsonPath = path.join(targetPath, "./build-profile.json5");
+      fse.writeFileSync(
+        buildProfileJsonPath,
+        fse.readFileSync(buildProfileJsonPath, "utf-8")
+          .replace(/hsp-file-name/g, hspFileName)
+      )
+      const entryOhPackageJsonPath = path.join(targetPath, "./entry/oh-package.json5");
+      fse.writeFileSync(
+        entryOhPackageJsonPath,
+        fse.readFileSync(entryOhPackageJsonPath, "utf-8")
+          .replace(/hsp-package-name/g, hspPackageName)
+          .replace(/hsp-file-name/g, hspFileName)
+      )
+      const entryPageIndexPath = path.join(targetPath, "./entry/src/main/ets/pages/Index.ets");
+      fse.writeFileSync(
+        entryPageIndexPath,
+        fse.readFileSync(entryPageIndexPath, "utf-8")
+          .replace(/hsp-package-name/g, hspPackageName)
+      )
+      targetPath = path.join(targetPath, hspFileName);
+
+      // 拷贝hsp
+      await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
+    } else {
+      await fse.copy(path.join(__dirname, "./template/hsp"), targetPath);
+    }
+
     await handleHSP(params, { targetPath })
     const hspPath = targetPath
     resourceCollector.setHspOrHapFolderPath(hspPath);
@@ -963,11 +998,22 @@ ${page.content}
 
   Logger.info(`[AppHarmonyModule - compiler] - handleReadMeCode`)
   // 写入README.md [TODO] 放最后处理
+
+  const readmeCode = readme(params, {
+    fileNameMap
+  });
+
+  if (download.downloadApplication) {
+    await fse.writeFile(
+      path.join(projectPath, `application${dateTime}/README.md`),
+      readmeCode,
+      { encoding: "utf8" }
+    );
+  }
+
   await fse.writeFile(
     path.join(targetPath, "README.md"),
-    readme(params, {
-      fileNameMap
-    }),
+    readmeCode,
     { encoding: "utf8" }
   );
 

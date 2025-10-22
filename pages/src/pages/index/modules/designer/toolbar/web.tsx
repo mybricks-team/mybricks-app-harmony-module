@@ -199,28 +199,34 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
       <ExportPanel
         visible={showExportPanel}
         onOk={(values) => {
-          let isEdited = false
-          if (pageModel.appConfig.download.fileName !== values.fileName) {
-            pageModel.appConfig.download.fileName = values.fileName;
-            isEdited = true;
-          }
-          if (pageModel.appConfig.download.source !== values.source) {
-            pageModel.appConfig.download.source = values.source;
-            isEdited = true;
-          }
-          // if (pageModel.appConfig.download.router !== values.router) {
-          //   pageModel.appConfig.download.router = values.router;
-          //   isEdited = true;
-          // }
-          // if (pageModel.appConfig.download.integrationType !== values.integrationType) {
-          //   pageModel.appConfig.download.integrationType = values.integrationType;
-          //   isEdited = true;
-          // }
           onCompile(values);
           setShowExportPanel(false);
-          if (isEdited) {
-            contentModel.editRecord.global = true;
-            setBeforeunload(true);
+          if (globalOperable) {
+            let isEdited = false
+            if (pageModel.appConfig.download.fileName !== values.fileName) {
+              pageModel.appConfig.download.fileName = values.fileName;
+              isEdited = true;
+            }
+            if (pageModel.appConfig.download.source !== values.source) {
+              pageModel.appConfig.download.source = values.source;
+              isEdited = true;
+            }
+            if (pageModel.appConfig.download.downloadApplication !== values.downloadApplication) {
+              pageModel.appConfig.download.downloadApplication = values.downloadApplication;
+              isEdited = true;
+            }
+            // if (pageModel.appConfig.download.router !== values.router) {
+            //   pageModel.appConfig.download.router = values.router;
+            //   isEdited = true;
+            // }
+            // if (pageModel.appConfig.download.integrationType !== values.integrationType) {
+            //   pageModel.appConfig.download.integrationType = values.integrationType;
+            //   isEdited = true;
+            // }
+            if (isEdited) {
+              contentModel.editRecord.global = true;
+              setBeforeunload(true);
+            }
           }
         }}
         onCancel={() => {
