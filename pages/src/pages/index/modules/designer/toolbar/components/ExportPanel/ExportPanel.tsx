@@ -37,7 +37,7 @@ const ExportPanel = (props: ExportPanelProps) => {
   return show && createPortal(
     <div ref={ref} className={css.panel} style={{ display: props.visible ? "block" : "none" }}>
       <div className={css.title}>
-        导出下载模块的源代码
+        导出模块的源代码
       </div>
       <HarmonyRequireForm
         onCancel={props.onCancel}
@@ -60,7 +60,6 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
       source: pageModel.appConfig.download.source || "ohpmLibrary",
       router: pageModel.appConfig.download.router || "Navigation",
       integrationType: pageModel.appConfig.download.integrationType || "HSP",
-      downloadApplication: pageModel.appConfig.download.downloadApplication || false,
       enableAI: false,
     })
   }, [])
@@ -107,13 +106,6 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             ]}
             getPopupContainer={getPopupContainer}
           />
-        </Form.Item>
-        <Form.Item
-          name="downloadApplication"
-          label="下载完整应用"
-          tooltip="该选项仅适用于开发阶段，方便调试模块。"
-        >
-          <Switch />
         </Form.Item>
         {/* <Form.Item
           name="router"
@@ -171,6 +163,20 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
 
       <div className={css.footer}>
         <button className={css.button} onClick={onCancel}>取消</button>
+        <button disabled={fileNameError} className={`${css.button}`} onClick={() => {
+          form
+            .validateFields()
+            .then((values) => {
+              onOk?.({
+                ...values,
+                router: "Navigation",
+                integrationType: "HSP",
+                fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
+                downloadApplication: true
+              });
+            })
+        }}
+        data-mybricks-tip={`{content:'应用仅适用于开发阶段，方便调试模块',position:'top'}`}>导出应用</button>
         <button disabled={fileNameError} className={`${css.button} ${css.mainButton}`} onClick={() => {
           form
             .validateFields()
@@ -182,7 +188,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
                 fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
               });
             })
-        }}>确认</button>
+        }}>导出模块</button>
       </div>
     </div>
   );
