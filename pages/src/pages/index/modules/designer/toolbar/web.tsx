@@ -25,10 +25,7 @@ interface WebToolbarProps {
   designerRef: any;
   onSave: any;
   onCompile: any;
-  onPreview: any;
   onPublish: () => void;
-  onH5Publish?: any;
-  onH5Preview?: any;
   setBeforeunload: (bool: boolean) => void
 }
 
