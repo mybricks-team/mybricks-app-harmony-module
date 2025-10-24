@@ -276,7 +276,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
                   <span className={classNames(css.span, {
                     [css.unlink]: targetDirectoryStatus.status === 0
                   })}
-                    data-mybricks-tip="文件目录不存在，请点击重新选择"
+                    data-mybricks-tip={targetDirectoryStatus.status === 0 ? "文件目录不存在，请点击重新选择" : ""}
                     onClick={showDirectoryPickerButtonClick}
                   >
                     {targetDirectoryStatus.handle.name}
