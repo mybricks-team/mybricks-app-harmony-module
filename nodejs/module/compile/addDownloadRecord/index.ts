@@ -14,6 +14,7 @@ const addDownloadRecord = async (params: any) => {
     extName: "harmony-module",
     content: JSON.stringify(content),
     type: "download",
+    commitInfo: JSON.stringify(content),
   })
 }
 

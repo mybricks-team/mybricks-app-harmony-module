@@ -22,6 +22,7 @@ import { DESIGNER_STATIC_PATH, HARMONY_COM_LIB } from "../../../../constants";
 import { ExclamationCircleFilled, CheckCircleFilled } from "@ant-design/icons";
 import cloneDeep from "lodash/cloneDeep"
 import { initOperableTips } from "./initOperableTips";
+import { parse, modify, applyEdits } from "jsonc-parser";
 
 function extractVersion(url = "") {
   // 使用正则表达式匹配版本号
@@ -848,32 +849,127 @@ const Designer = ({ appData }) => {
           close()
           return;
         }
-        download({
-          type,
-          backEndProjectPath: data?.data?.backEndProjectPath,
-          filename: `${params.fileName}.zip`,
-        })
-          .then(() => {
-            message.success("导出完成")
-            // 添加下载记录
-            axios.post(
-              "/api/harmony-module/addDownloadRecord",
-              {
-                userId: userModel.user?.id,
-                fileId: pageModel.fileId,
-                content: {
-                  // 版本
-                  saveVersion: versionModel.file.version,
+
+        if (!params.fse) {
+          download({
+            type,
+            backEndProjectPath: data?.data?.backEndProjectPath,
+            filename: `${params.fileName}.zip`,
+          })
+            .then(() => {
+              message.success("导出完成")
+              // 添加下载记录
+              axios.post(
+                "/api/harmony-module/addDownloadRecord",
+                {
+                  userId: userModel.user?.id,
+                  fileId: pageModel.fileId,
+                  content: {
+                    // 版本
+                    saveVersion: versionModel.file.version,
+                  }
+                }
+              );
+            })
+            .catch((e) => {
+              message.error(`导出失败: ${e.message || e.msg}！请重试`)
+            })
+            .finally(() => {
+              close()
+            })
+        } else {
+          try {
+            const fileHandle = await (params.fse as FileSystemDirectoryHandle).getFileHandle('build-profile.json5');
+            const file = await fileHandle.getFile();
+            const contents = await file.text();
+            const json = parse(contents);
+
+            if (!json.modules.find((module) => module.name === params.fileName)) {
+              // 没有相同的module name 写文件
+              const edits = modify(contents, ['modules', 10000], {
+                "name": params.fileName,
+                "srcPath": `./${params.fileName}`,
+                "targets": [
+                  {
+                    "name": "default",
+                    "applyToProducts": [
+                      "default"
+                    ]
+                  }
+                ]
+              }, {
+                formattingOptions: {
+                  insertSpaces: true,
+                  tabSize: 2
+                },
+                isArrayInsertion: true
+              })
+              const newContents = applyEdits(contents, edits);
+              const writable = await fileHandle.createWritable();
+              await writable.write(newContents);
+              await writable.close();    
+            }        
+          } catch (e) {
+            console.error("[FileSystemDirectoryHandle.getFileHandle]", e)
+          }
+
+          axios.get(`/api/harmony-module/download2?fileId=${pageModel.fileId}&type=${type}`)
+            .then(async ({ data: { data } }) => {
+              console.log("[data]", data)
+              async function deep(data, handle: FileSystemDirectoryHandle) {
+                if (data.type === "directory") {
+                  const nextHandle = await handle.getDirectoryHandle(data.fileName, {
+                    create: true,
+                  });
+
+                  if (data.children) {
+                    await Promise.all(data.children.map((children) => {
+                      return deep(children, nextHandle)
+                    }))
+                  }
+                } else if (data.type === "file") {
+                  const fileHandle = await handle.getFileHandle(data.fileName, { create: true });
+                  const writable = await fileHandle.createWritable();
+                  if (/\.(jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|avif)$/i.test(data.fileName)) {
+                    const res = await axios.get(
+                      `/api/harmony-module/getTmpFile?tmpPath=${data.content}`,
+                      {
+                        responseType: 'blob'
+                      }
+                    );
+                    await writable.write(res.data)
+                  } else {
+                    await writable.write(data.content);
+                  }
+                  await writable.close();
                 }
               }
-            );
-          })
-          .catch((e) => {
-            message.error(`导出失败: ${e.message || e.msg}！请重试`)
-          })
-          .finally(() => {
-            close()
-          })
+
+              const time = new Date().getTime()
+              await deep(data, params.fse)
+              console.log("[download - 写文件耗时]", new Date().getTime() - time)
+
+              message.success("导出完成")
+              // 添加下载记录
+              axios.post(
+                "/api/harmony-module/addDownloadRecord",
+                {
+                  userId: userModel.user?.id,
+                  fileId: pageModel.fileId,
+                  content: {
+                    // 版本
+                    saveVersion: versionModel.file.version,
+                  }
+                }
+              );
+            })
+            .catch((e) => {
+              message.error(`导出失败: ${e.message || e.msg}！请重试`)
+            })
+            .finally(() => {
+              close()
+            })
+        }
       } catch (e) {
         message.error(`导出失败: ${e.message || e.msg}！请重试`)
         console.error("导出失败:", e);

@@ -247,6 +247,48 @@ export default class CompileController {
     }
   }
 
+  @Get("download2")
+  async download2(
+    @Query("fileId") fileId: number,
+    @Query("type") type: string = "weapp",
+  ) {
+    fse.ensureDirSync(tempFolderPath);
+    const projectName = `project-${fileId}-build-${type}`;
+    const projectPath = path.resolve(tempFolderPath, `./${projectName}`);
+
+    function deep(dir) {
+      const basename = path.basename(dir);
+      const stat = fse.statSync(dir);
+
+      if (stat.isDirectory()) {
+        return {
+          type: 'directory',
+          fileName: basename,
+          children: fse.readdirSync(dir).map((name) => {
+            return deep(path.resolve(dir, name))
+          })
+        }
+      }
+
+      if (stat.isFile()) {
+        const isImage = /\.(jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|avif)$/i.test(basename);
+
+        return {
+          type: 'file',
+          fileName: basename,
+          content: isImage ? dir.replace(tempFolderPath, "") : fse.readFileSync(dir, 'utf-8'),
+        }
+      }
+    }
+    const dirName = fse.readdirSync(projectPath)[0];
+    const data = deep(path.resolve(projectPath, dirName))
+
+    return {
+      code: 1,
+      data
+    }
+  }
+
   @Get("queryFiles")
   async queryFiles(
     @Query("fileId") fileId: number,
@@ -388,5 +430,15 @@ export default class CompileController {
         stack: error?.stack,
       };
     }
+  }
+
+  @Get("getTmpFile")
+  getTmpFile(
+    @Query("tmpPath") tmpPath: string,
+    @Res() res: Response,
+  ) {
+    const completeTmpPath = path.join(tempFolderPath, tmpPath);
+
+    fs.createReadStream(completeTmpPath).pipe(res);
   }
 }
