@@ -18,7 +18,7 @@ import { editorAppenderFn } from "./editorAppender";
 import { COMPONENT_NAMESPACE, LOCAL_EDITOR_ASSETS } from "@/constants";
 import { MpConfig, CompileConfig } from "./custom-configs";
 import { getAIResponse } from './utils/get-ai-response'
-import { getNewDSL, getSystemAppendPrompts, getDSLPrompts, getExamplePrompts, getSystemPrompts, getExamplePromptsAtFirst } from './utils/get-new-dsl'
+import { getNewDSL, getSystemAppendPrompts, getDSLPrompts, getExamplePrompts, getSystemPrompts, getExamplePromptsAtFirst, getSystemExamplePrompts } from './utils/get-new-dsl'
 import extendsConfig from "./configs/extends";
 // import systemContent from "./system.txt";
 import { message } from "antd";
@@ -26,7 +26,7 @@ import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
 
-// import { mock2Res, mock1Res, systemPrompts, mock1Prompt } from './mock'
+import { mock2Res, mock1Res, systemPrompts, mock1Prompt } from './mock'
 
 // import  AICom  from "../../../../../public/ai-com"
 // import typeConfig from "./configs/type";
@@ -1362,6 +1362,7 @@ const getAiView = (enableAI, option) => {
       getExamplePrompts,
       getNewDSL,
       getSystemAppendPrompts,
+      getSystemExamplePrompts,
       getAvailable(){
         return new Promise((resolve, reject) => {
           fetch('//ai.mybricks.world/api/rate-limit/mine', {
@@ -1394,11 +1395,13 @@ const getAiView = (enableAI, option) => {
 
         // const isScenond = messages.length > 2
         // if (isScenond) {
-        //   setTimeout(() => {
-        //     write(mock2Res);
-        //     complete();
-        //   }, 1000)
-        //   return 
+        //   // _messages[0].content = mock1Prompt
+
+        //   // setTimeout(() => {
+        //   //   write(mock2Res);
+        //   //   complete();
+        //   // }, 1000)
+        //   // return 
         // }
 
         // const isFirstOne = messages.length === 2

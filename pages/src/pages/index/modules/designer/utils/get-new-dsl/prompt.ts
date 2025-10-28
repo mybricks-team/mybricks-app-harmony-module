@@ -561,3 +561,56 @@ export const getSystemAppendPrompts = () => {
   </允许使用的图标>
 </对于当前搭建有以下特殊上下文>`
 }
+
+export const getSystemExamplePrompts = () => {
+  return `
+  <example>
+    <user_query>搭建一个个人中心页面框架</user_query>
+    <assistant_response>
+      基于用户当前的选择上下文，我们来实现一个个人中心页面框架，由于是框架，所以我仅给出主体部分，思考过程如下：
+      1. 搭建页面时一般用从上到下的楼层化搭建方式，我们推荐在页面最外层设置为flex的垂直布局，设置子组件的左右margin以及高度，这样好调整位置；
+      2. 将页面从上到下分成顶部信息、个人信息、中间入口、底部按钮四个部分；
+      3. 个人信息部分，图文编排卡片，用flex布局实现左右布局；
+      4. 中间入口是竖排的入口，为了方便上下调整，我们可以使用flex布局；
+      5. 底部居下固定的修改个人信息的按钮；
+
+      \`\`\`json file="actions.json"
+      [
+        ["_root_",":root","doConfig",{"path":"root/标题","value":"个人中心页面框架"}],
+        ["_root_",":root","doConfig",{"path":"root/布局","value":{"display":"flex","flexDirection":"column","alignItems":"center"}}],
+        ["_root_",":root","doConfig",{"path":"root/样式","style":{"background":"#F5F5F5"}}],
+        ["_root_","_rootSlot_","addChild",{"title":"顶部信息","ns":"some.banner","comId":"u_top32","layout":{"width":"100%","height":80,"marginTop":8,"marginLeft":12,"marginRight":12},"configs":[{"path":"常规/布局","value":{"display":"flex"}}]}],
+        ["_root_","_rootSlot_","addChild",{"title":"个人信息","ns":"some.container","comId":"u_a2fer","layout":{"width":"100%","height":100,"marginLeft":8,"marginRight":8},"configs":[{"path":"常规/布局","value":{"display":"flex","flexDirection":"row","justifyContent":"space-between","alignItems":"center"}}]}],
+        ["u_a2fer", "content", "addChild",{"title":"头像","ns":"some.avatar","comId":"u_avatar1","layout":{"width":64,"height":64},"configs":[]}],
+        ["u_a2fer", "content", "addChild",{"title":"用户信息","ns":"some.container","comId":"u_info4","ignore":true,"layout":{"width":"fit-content","height":"fit-content"},"configs":[{"path":"常规/布局","value":{"display":"flex","flexDirection":"row","alignItems":"center"}}]}],
+        ["_root_","_rootSlot_","addChild",{"title":"中间入口","ns":"some.container","comId":"u_iiusd7","layout":{"width":"100%","height":200,"marginLeft":8,"marginRight":8},"configs":[{"path":"常规/布局","value":{"display":"flex","flexDirection":"column"}}]}],
+        ["_root_","_rootSlot_","addChild",{"title":"底部固定按钮","comId":"u_btm21","ns":"some.container","layout":{"width":"100%","height":84,"position":"fixed","bottom":0,"left":0},"configs":[{"path":"常规/布局","value":{"display":"flex"}}]}]
+      ]
+      \`\`\`
+
+      注意：
+      - 用户信息布局组件父组件为布局组件，且仅承担布局功能，不承担样式、点击功能，我们添加ignore标记来优化。
+    </assistant_response>
+  </example>
+
+  <example>
+    <user_query>添加一个一行三列的导航</user_query>
+    <assistant_response>
+      好的，一行三列的导航考察的是我们布局的关键知识，一行三列，就是均分布局，均分我们一般选择使用flex布局。
+      所以提供一个flex容器，确定子组件的宽度，并将内容平铺上去。
+      
+     \`\`\`json file="actions.json"
+      [
+        ["_root_",":root","doConfig",{"path":"root/标题","value":"一行三列的导航"}],
+        ["_root_",":root","doConfig",{"path":"root/布局","value":{"display":"flex","flexDirection":"column","alignItems":"center"}}],
+        ["_root_","_rootSlot_","addChild",{"title":"Flex容器","ns":"some.container","comId":"u_iiusd7","layout":{"width":"100%","height":200,"marginLeft":8,"marginRight":8},"configs":[{"path":"常规/布局","value":{"display":"flex","flexDirection":"row","justifyContent":"space-between","alignItems":"center","flexWrap":"wrap"}}]}],
+        ["u_iiusd7","content","addChild",{"title":"导航1","ns":"some.icon","comId":"u_icon1","layout":{"width":120,"height":120,"marginTop":8},"configs":[{"path":"样式/文本","style":{"background":"#0000FF"}}]}],
+      ]
+    \`\`\`
+
+    注意：
+      - 这个Flex容器是根组件的直接子组件，所以不允许添加ignore标记。
+    </assistant_response>
+  </example>
+  `
+}
