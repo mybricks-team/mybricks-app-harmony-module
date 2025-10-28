@@ -6,65 +6,23 @@ import React, {
   useState,
   useLayoutEffect
 } from "react";
-import { message, Modal, notification } from "antd";
+import { message, notification } from "antd";
 import { pageModel, userModel, contentModel, versionModel } from "@/stores";
 import axios from "axios";
 import dayjs from "dayjs";
 import API from "@mybricks/sdk-for-app/api";
-import { previewModel } from "./pop-overs";
 import styles from "./index.less";
-import { writeLocalProject, supportFSAccess } from "./readwrite-to-local";
-import { getH5Json, getMiniappJson, getHarmonyJson } from "./get-compile-json";
-import { handlePublishErrCode, showCompileSuccess } from "./../publishModal";
-import {
-  showH5PublishSuccessModal,
-  showWeappPublishSuccessModal,
-} from "./modals";
+import { getHarmonyJson } from "./get-compile-json";
+import { handlePublishErrCode } from "./../publishModal";
 import AppToolbar from "./toolbar";
-
 import config from "./app-config";
 import { useFxServices } from "../utils/use-fx-services";
-
-import { getLibsFromConfig } from "@/utils/getComlibs";
-import { sleep, isDesignFilePlatform } from "@/utils";
-import { CompileType } from "@/types";
+import { sleep } from "@/utils";
 import { DESIGNER_STATIC_PATH, HARMONY_COM_LIB } from "../../../../constants";
 import { ExclamationCircleFilled, CheckCircleFilled } from "@ant-design/icons";
 import cloneDeep from "lodash/cloneDeep"
 import { initOperableTips } from "./initOperableTips";
-
-// message.success(
-//  "保存成功",
-//  null
-// )
-
-// notification.open({
-//   message: (
-//     <div>
-//       <CheckCircleFilled style={{color: "#52c41a", marginRight: 8}}/>
-//       <span>保存完成</span>
-//     </div>
-//   ),
-//   placement: "top",
-//   description: (
-//     <>
-//       {/* <div style={{ marginLeft: 24 }}>
-//         保存内容：应用配置，<b style={{ color: "#FA6400" }}>画布3</b>，<b style={{ color: "#FA6400" }}>画布4</b>
-//       </div> */}
-//       {/* <div style={{ display: 'flex' }}>
-//         <div><ExclamationCircleFilled style={{color: "#faad14", marginRight: 8, marginLeft: 2}}/>注意：</div>
-//         <div>
-//           <div>以下内容未保存</div>
-//           <div>
-//             <b style={{ color: "#FA6400" }}>全局配置</b>，<b style={{ color: "#FA6400" }}>画布1</b>，<b style={{ color: "#FA6400" }}>画布2</b>
-//           </div>
-//         </div>
-//       </div> */}
-//       <div style={{ marginLeft: 24 }}>修改内容都已保存</div>
-//     </>
-//   ),
-//   duration: null
-// });
+import { parse, modify, applyEdits } from "jsonc-parser";
 
 function extractVersion(url = "") {
   // 使用正则表达式匹配版本号
@@ -102,42 +60,13 @@ function compareVersions(version1, version2) {
   return 0; // version1 等于 version2
 }
 
-/** 获取Script脚本的具体内容 */
-const getScrtptContentFromNetwork = async (url) => {
-  const response = await fetch(url, { method: "GET", mode: "cors" });
-  if (!response.ok) {
-    throw new Error(`Network response was not ok ${response.statusText}`);
-  }
-  const content = await response.text();
-  return { content };
-};
-
-const injectComlibsScriptContent = async (data) => {
-  if (!Array.isArray(data?.allComponents?.comlibs)) {
-    return;
-  }
-  const res = await Promise.all(
-    data?.allComponents?.comlibs
-      .map((t) => t.rtJs)
-      .filter((t) => !!t)
-      .map((t) => getScrtptContentFromNetwork(t))
-  );
-  // 这里只需要让_mybricks_loaded_comlibs_调用的时候执行组件初始化就行，这个时机才有React、Taro依赖的东西，同时不需要返回有意义的对象，因为rendertaro会去获取_comlib_rt_的东西
-  const scriptContent = `
-      function execComlibs() {
-          ${res.map((r) => r.content).join("\n")}
-      }
-      window._mybricks_loaded_comlibs_ = function() { execComlibs(); return Promise.resolve({}) }
-  `;
-  return scriptContent;
-};
-
 let lastCooperationAry;
 
 const Designer = ({ appData }) => {
   const [beforeunload, setBeforeunload] = useState(false);
   const [operable, setOperable] = useState(false);
   const [globalOperable, setGlobalOperable] = useState(false);
+  const [roleDescription, setRoleDescription] = useState(-1);
   const designerRef = useRef<{ switchActivity; dump; toJSON }>();
   const [SPADesigner, setSPADesigner] = useState(null);
 
@@ -287,27 +216,6 @@ const Designer = ({ appData }) => {
           reject();
         });
     })
-
-    // const urls = [
-    //   {
-    //     url: `/api/harmony-module/download?fileId=${pageModel.fileId}&type=${type}&localize=${localize}`,
-    //     filename: filename || `${pageModel.fileId}-${type}.zip`,
-    //   },
-    // ];
-
-    // urls.forEach((item) => {
-    //   let a = document.createElement("a");
-    //   a.style = "display: none"; // 创建一个隐藏的a标签
-    //   a.download = item.filename;
-    //   a.href = item.url;
-    //   document.body.appendChild(a);
-    //   a.click(); // 触发a标签的click事件
-    //   a.onload = () => {};
-    //   a.onerror = (err) => {
-    //     console.error(err);
-    //   };
-    //   document.body.removeChild(a);
-    // });
   }, []);
 
   const showPublishLoading = useCallback(async () => {
@@ -699,111 +607,6 @@ const Designer = ({ appData }) => {
     //   });
   }, []);
 
-  const onPreview = useCallback(async (compileLevel?) => {
-    if (previewModel.isLoading()) {
-      return;
-    }
-
-    previewModel.loading({
-      title: "微信扫码预览",
-    });
-
-    // 对一些大项目，babel时间比较久，会假死，先停一下把loading展示出来先，后面优化一下去掉
-    await sleep(300);
-
-    (async () => {
-      // pageModel.previewStatusTips.push("正在加载所有搭建数据...");
-      const toJson = await contentModel.toJSON();
-
-      let comlibs = [...ctx.comlibs];
-      if (window.__DEBUG_COMLIB__) {
-        let containIndex = comlibs.findIndex((lib) => {
-          return (
-            lib.id === window.__DEBUG_COMLIB__.id ||
-            lib.namespace === window.__DEBUG_COMLIB__.namespace
-          );
-        });
-
-        if (containIndex > -1) {
-          comlibs.splice(containIndex, 1, window.__DEBUG_COMLIB__);
-        } else {
-          comlibs.push(window.__DEBUG_COMLIB__);
-        }
-      }
-
-      const json = await getMiniappJson({
-        toJson: {
-          ...toJson,
-          tabbar: window.__tabbar__.get(),
-        },
-        ci: {
-          appid: pageModel.wxConfig.appid,
-          privateKey: decodeURIComponent(pageModel.wxConfig.privateKey || ""),
-          type: "miniProgram",
-          version: "1.0.0",
-          desc: "版本说明",
-        },
-        status: {
-          projectId: pageModel.sdk.projectId,
-          ...pageModel.appConfig,
-          apiEnv: "staging",
-          appid: pageModel.wxConfig.appid,
-          appsecret: pageModel.wxConfig.appsecret,
-        },
-        comlibs: comlibs,
-        events: {
-          onBeforeTransformJson: () => {
-            // pageModel.previewStatusTips.push("正在处理搭建数据...");
-          },
-          onBeforeTransformCode: () => {
-            // pageModel.previewStatusTips.push("正在处理和压缩代码...");
-          },
-        },
-      });
-
-      // pageModel.previewStatusTips.push("正在构建及上传小程序...");
-
-      const res = await axios({
-        url: "/api/harmony-module/miniapp/preview",
-        method: "POST",
-        data: {
-          userId: userModel.user?.id,
-          fileId: pageModel.fileId,
-          fileName: pageModel.file.name,
-          data: {
-            ...json,
-            services: toJson.services,
-            serviceFxUrl: pageModel.appConfig.serviceFxUrl,
-            database: pageModel.appConfig.datasource,
-          },
-          compileLevel,
-        },
-        withCredentials: false,
-      });
-
-      let data = res.data;
-
-      if (data.code !== 1) {
-        previewModel.close();
-        handlePublishErrCode(data);
-
-        if (data.innerMessage) {
-          message.error(data.innerMessage);
-        }
-        return;
-        // throw new Error(data?.message ?? "构建失败，请重试");
-      }
-
-      previewModel.success({
-        qrcodeUrl: data?.qrcode,
-      });
-    })().catch((err) => {
-      previewModel.fail();
-      message.error({ content: err.message ?? "构建小程序失败，请重试" });
-      console.error(err);
-    });
-  }, []);
-
   const onPublish = useCallback(
     async () => {
       // 没上锁也要能发布
@@ -904,257 +707,6 @@ const Designer = ({ appData }) => {
     [onSave]
   );
 
-  /**
-   * 支付宝预览
-   */
-  const onAlipayPreview = useCallback(async (compileLevel?) => {
-    if (previewModel.isLoading()) {
-      return;
-    }
-
-    previewModel.loading({
-      title: "支付宝扫码预览",
-    });
-
-    // 对一些大项目，babel时间比较久，会假死，先停一下把loading展示出来先，后面优化一下去掉
-    await sleep(300);
-
-    (async () => {
-      const toJson = await contentModel.toJSON();
-
-      let comlibs = [...ctx.comlibs];
-      if (window.__DEBUG_COMLIB__) {
-        let containIndex = comlibs.findIndex((lib) => {
-          return (
-            lib.id === window.__DEBUG_COMLIB__.id ||
-            lib.namespace === window.__DEBUG_COMLIB__.namespace
-          );
-        });
-
-        if (containIndex > -1) {
-          comlibs.splice(containIndex, 1, window.__DEBUG_COMLIB__);
-        } else {
-          comlibs.push(window.__DEBUG_COMLIB__);
-        }
-      }
-
-      const json = await getMiniappJson({
-        toJson: {
-          ...toJson,
-          tabbar: window.__tabbar__.get(),
-        },
-        ci: {
-          appid: pageModel.wxConfig.appid,
-          privateKey: decodeURIComponent(pageModel.wxConfig.privateKey || ""),
-          type: "miniProgram",
-          version: "1.0.0",
-          desc: "版本说明",
-        },
-        status: {
-          projectId: pageModel.sdk.projectId,
-          ...pageModel.appConfig,
-          apiEnv: "staging",
-          appid: pageModel.wxConfig.appid,
-          appsecret: pageModel.wxConfig.appsecret,
-        },
-        comlibs: comlibs,
-        events: {
-          onBeforeTransformJson: () => {
-            // pageModel.previewStatusTips.push("正在处理搭建数据...");
-          },
-          onBeforeTransformCode: () => {
-            // pageModel.previewStatusTips.push("正在处理和压缩代码...");
-          },
-        },
-      });
-
-      // pageModel.previewStatusTips.push("正在构建及上传小程序...");
-
-      const res = await axios({
-        url: "/api/harmony-module/alipay/preview",
-        method: "POST",
-        data: {
-          userId: userModel.user?.id,
-          fileId: pageModel.fileId,
-          fileName: pageModel.file.name,
-          data: {
-            ...json,
-          },
-          compileLevel,
-        },
-        withCredentials: false,
-      });
-
-      let data = res.data;
-
-      if (data.code !== 1) {
-        previewModel.close();
-        handlePublishErrCode(data);
-
-        if (data.innerMessage) {
-          message.error(data.innerMessage);
-        }
-        return;
-        // throw new Error(data?.message ?? "构建失败，请重试");
-      }
-
-      previewModel.success({
-        qrcodeUrl: data?.qrcode,
-      });
-    })().catch((err) => {
-      previewModel.fail();
-      message.error({ content: err.message ?? "构建小程序失败，请重试" });
-      console.error(err);
-    });
-  }, []);
-
-  const onH5Publish = useCallback(async ({ commitInfo }) => {
-    if (!pageModel.operable) {
-      // 没有页面级权限
-      return true;
-    }
-    if (pageModel?.publishLoading) {
-      return;
-    }
-    await showPublishLoading();
-
-    await onSave(false);
-
-    try {
-      const toJson = await contentModel.toJSON();
-      const json = await getH5Json({
-        toJson: {
-          ...toJson,
-          tabbar: window.__tabbar__.get(),
-        },
-        status: {
-          ...pageModel.appConfig,
-        },
-        title: pageModel.file?.name,
-        comlibs: ctx.comlibs,
-      });
-      const ComlibsScriptContent = await injectComlibsScriptContent(json);
-
-      const res = await axios({
-        url: "/api/harmony-module/h5/publish",
-        method: "POST",
-        data: {
-          userId: userModel.user?.id,
-          fileId: pageModel.fileId,
-          fileName: pageModel.file.name,
-          data: {
-            ...json,
-          },
-          injectComlibsScriptContent: encodeURIComponent(ComlibsScriptContent),
-          injectH5Head: pageModel.appConfig.h5Head,
-        },
-        withCredentials: false,
-      });
-
-      let data = res.data;
-
-      if (data.code !== 1) {
-        handlePublishErrCode(data);
-        pageModel.publishLoading = false;
-
-        if (data.innerMessage) {
-          message.error(data.innerMessage);
-        }
-        return;
-        // throw new Error(data?.data ?? data?.message);
-      }
-
-      if (data?.data) {
-        showH5PublishSuccessModal({
-          url: data?.data?.url,
-          onDownload: ({ localize = 0 }) => download({ type: "h5", localize }),
-        });
-      }
-    } catch (e) {
-      console.error(e);
-      message.error(e?.message ?? "构建H5失败，请重试");
-      console.error(e?.message ?? "构建H5失败，请重试");
-    }
-
-    pageModel.publishLoading = false;
-  }, []);
-
-  const onH5Preview = useCallback(async () => {
-    if (previewModel.isLoading()) {
-      return;
-    }
-
-    previewModel.loading({
-      title: "手机扫码预览",
-    });
-
-    // 对一些大项目，babel时间比较久，会假死，先停一下把loading展示出来先，后面优化一下去掉
-    await sleep(300);
-    (async () => {
-      const toJson = await contentModel.toJSON();
-
-      //
-      let comlibs = [...ctx.comlibs];
-      if (window.__DEBUG_COMLIB__) {
-        let containIndex = comlibs.findIndex((lib) => {
-          return (
-            lib.id === window.__DEBUG_COMLIB__.id ||
-            lib.namespace === window.__DEBUG_COMLIB__.namespace
-          );
-        });
-
-        if (containIndex > -1) {
-          comlibs.splice(containIndex, 1, window.__DEBUG_COMLIB__);
-        } else {
-          comlibs.push(window.__DEBUG_COMLIB__);
-        }
-      }
-
-      const json = await getH5Json({
-        toJson: {
-          ...toJson,
-          tabbar: window.__tabbar__.get(),
-        },
-        status: {
-          ...pageModel.appConfig,
-        },
-        title: pageModel.file?.name,
-        comlibs: comlibs,
-      });
-      const ComlibsScriptContent = await injectComlibsScriptContent(json);
-
-      const res = await axios({
-        url: "/api/harmony-module/h5/preview",
-        method: "POST",
-        data: {
-          userId: userModel.user?.id,
-          fileId: pageModel.fileId,
-          fileName: pageModel.file.name,
-          data: {
-            ...json,
-          },
-          injectComlibsScriptContent: encodeURIComponent(ComlibsScriptContent),
-        },
-        withCredentials: false,
-      });
-
-      let data = res.data;
-
-      if (data.code !== 1) {
-        previewModel.fail();
-        return;
-      }
-
-      previewModel.success({
-        webUrl: data?.data?.url,
-      });
-    })().catch((err) => {
-      previewModel.fail();
-      message.error({ content: err.message ?? "构建H5失败，请重试" });
-      console.error(err);
-    });
-  }, []);
-
   const onCompile = useCallback(
     async (params) => {
       const close = message.loading({
@@ -1251,8 +803,6 @@ const Designer = ({ appData }) => {
           return componentMetaMap;
         }
 
-        // const fileNameMap = params.enableAI ? await getFileNameMapByAi(toJson) : {};
-
         const res = await axios({
           url: "/api/harmony-module/harmony/compile",
           method: "POST",
@@ -1299,20 +849,127 @@ const Designer = ({ appData }) => {
           close()
           return;
         }
-        download({
-          type,
-          backEndProjectPath: data?.data?.backEndProjectPath,
-          filename: `${params.fileName}.zip`,
-        })
-          .then(() => {
-            message.success("导出完成")
+
+        if (!params.fse) {
+          download({
+            type,
+            backEndProjectPath: data?.data?.backEndProjectPath,
+            filename: `${params.fileName}.zip`,
           })
-          .catch((e) => {
-            message.error(`导出失败: ${e.message || e.msg}！请重试`)
-          })
-          .finally(() => {
-            close()
-          })
+            .then(() => {
+              message.success("导出完成")
+              // 添加下载记录
+              axios.post(
+                "/api/harmony-module/addDownloadRecord",
+                {
+                  userId: userModel.user?.id,
+                  fileId: pageModel.fileId,
+                  content: {
+                    // 版本
+                    saveVersion: versionModel.file.version,
+                  }
+                }
+              );
+            })
+            .catch((e) => {
+              message.error(`导出失败: ${e.message || e.msg}！请重试`)
+            })
+            .finally(() => {
+              close()
+            })
+        } else {
+          try {
+            const fileHandle = await (params.fse as FileSystemDirectoryHandle).getFileHandle('build-profile.json5');
+            const file = await fileHandle.getFile();
+            const contents = await file.text();
+            const json = parse(contents);
+
+            if (!json.modules.find((module) => module.name === params.fileName)) {
+              // 没有相同的module name 写文件
+              const edits = modify(contents, ['modules', 10000], {
+                "name": params.fileName,
+                "srcPath": `./${params.fileName}`,
+                "targets": [
+                  {
+                    "name": "default",
+                    "applyToProducts": [
+                      "default"
+                    ]
+                  }
+                ]
+              }, {
+                formattingOptions: {
+                  insertSpaces: true,
+                  tabSize: 2
+                },
+                isArrayInsertion: true
+              })
+              const newContents = applyEdits(contents, edits);
+              const writable = await fileHandle.createWritable();
+              await writable.write(newContents);
+              await writable.close();    
+            }        
+          } catch (e) {
+            console.error("[FileSystemDirectoryHandle.getFileHandle]", e)
+          }
+
+          axios.get(`/api/harmony-module/download2?fileId=${pageModel.fileId}&type=${type}`)
+            .then(async ({ data: { data } }) => {
+              console.log("[data]", data)
+              async function deep(data, handle: FileSystemDirectoryHandle) {
+                if (data.type === "directory") {
+                  const nextHandle = await handle.getDirectoryHandle(data.fileName, {
+                    create: true,
+                  });
+
+                  if (data.children) {
+                    await Promise.all(data.children.map((children) => {
+                      return deep(children, nextHandle)
+                    }))
+                  }
+                } else if (data.type === "file") {
+                  const fileHandle = await handle.getFileHandle(data.fileName, { create: true });
+                  const writable = await fileHandle.createWritable();
+                  if (/\.(jpg|jpeg|png|gif|webp|svg|ico|bmp|tiff|avif)$/i.test(data.fileName)) {
+                    const res = await axios.get(
+                      `/api/harmony-module/getTmpFile?tmpPath=${data.content}`,
+                      {
+                        responseType: 'blob'
+                      }
+                    );
+                    await writable.write(res.data)
+                  } else {
+                    await writable.write(data.content);
+                  }
+                  await writable.close();
+                }
+              }
+
+              const time = new Date().getTime()
+              await deep(data, params.fse)
+              console.log("[download - 写文件耗时]", new Date().getTime() - time)
+
+              message.success("导出完成")
+              // 添加下载记录
+              axios.post(
+                "/api/harmony-module/addDownloadRecord",
+                {
+                  userId: userModel.user?.id,
+                  fileId: pageModel.fileId,
+                  content: {
+                    // 版本
+                    saveVersion: versionModel.file.version,
+                  }
+                }
+              );
+            })
+            .catch((e) => {
+              message.error(`导出失败: ${e.message || e.msg}！请重试`)
+            })
+            .finally(() => {
+              close()
+            })
+        }
       } catch (e) {
         message.error(`导出失败: ${e.message || e.msg}！请重试`)
         console.error("导出失败:", e);
@@ -1349,15 +1006,6 @@ const Designer = ({ appData }) => {
     message[type](msg);
   }, []);
 
-  const checkIsMiniCIReady = useCallback(async () => {
-    const result = await axios({
-      url: "/api/harmony-module/wx/ready",
-      method: "GET",
-      withCredentials: false,
-    });
-    return result?.data?.code === 1;
-  }, []);
-
   const FxService = useFxServices();
 
   return (
@@ -1365,7 +1013,8 @@ const Designer = ({ appData }) => {
       <AppToolbar
         operable={operable}
         globalOperable={globalOperable}
-        statusChange={({ status, file, extraFiles, isNew, init }) => {
+        roleDescription={roleDescription}
+        statusChange={({ status, file, extraFiles, isNew, init, roleDescription }) => {
           // setOperable(status === 1);
           let operable = status === 1;
           pageModel.operable = status === 1;
@@ -1374,6 +1023,7 @@ const Designer = ({ appData }) => {
           pageModel.isNew = isNew;
           pageModel.file = file;
           versionModel.compare(file);
+          setRoleDescription(roleDescription);
 
           if (!isNew || window.__type__ === "spa") {
             pageModel.canSave = operable;
@@ -1494,15 +1144,10 @@ const Designer = ({ appData }) => {
         toggleLock={(status) => {
           message.success(status === 1 ? "上锁成功" : "解锁成功")
         }}
-        checkIsMiniCIReady={checkIsMiniCIReady}
         isModify={beforeunload}
         onSave={onSave}
         onCompile={onCompile}
-        onPreview={onPreview}
         onPublish={onPublish}
-        onH5Publish={onH5Publish}
-        onH5Preview={onH5Preview}
-        onAlipayPreview={onAlipayPreview}
         designerRef={designerRef}
         setBeforeunload={setBeforeunload}
       />
@@ -1542,193 +1187,3 @@ const Designer = ({ appData }) => {
 };
 
 export default Designer;
-
-import { aiUtils } from "./utils/get-ai-encrypt-data";
-import renameFileSystem from "./rename/file.md";
-
-const getFileNameMapByAi = async (toJson: any, model = "deepseek-chat") => {
-  const files = toJson.scenes.map((scene) => {
-    return {
-      id: scene.id,
-      title: scene.title,
-      fileName: null
-    };
-  });
-  const cancelControl = !!AbortController ? new AbortController() : null;
-  const _messages = [
-    {
-      role: "system",
-      content: renameFileSystem
-    },
-    {
-      role: "user",
-      content: `\`\`\` json
-      ${JSON.stringify(files)}
-      \`\`\``
-    }
-  ]
-
-  const response = await fetch(
-    APP_ENV === 'production' ? "//ai.mybricks.world/stream-with-tools" : "//ai.mybricks.world/stream-test",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      signal: cancelControl?.signal,
-      credentials: 'include',
-      body: JSON.stringify(
-        APP_ENV === 'production' ? aiUtils.getAiEncryptData({
-          model,
-          messages: _messages,
-        }) : {
-          model,
-          messages: _messages,
-        }
-      ),
-    }
-  );
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let chunk = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-
-    chunk += decoder.decode(value, { stream: true });
-  }
-
-  const jsonStr = chunk.match(/```json\s*([\s\S]*?)\s*```/)?.[1];
-
-  if (!jsonStr) {
-    throw new Error('未找到 JSON 代码块');
-  }
-
-  let nextFiles = [];
-  try {
-    nextFiles = JSON.parse(jsonStr);
-  } catch (e) {
-    console.error('JSON 解析失败:', e);
-  }
-
-  const fileNameMap = nextFiles.reduce((pre, cur) => {
-    pre[cur.id] = cur.fileName
-    return pre;
-  }, {})
-
-  return fileNameMap;
-}
-
-// import renameCodeSystem from "./rename/code.md";
-// import arkts from "./rename/arkts.md";
-
-// const refactorCodeByAi = async (code: string, model = "google/gemini-2.5-pro") => {
-//   const cancelControl = !!AbortController ? new AbortController() : null;
-//   const _messages = [
-//     {
-//       role: "system",
-//       content: renameCodeSystem
-//     },
-//     {
-//       role: "user",
-//       content: `\`\`\`arkts
-//       ${code}
-//       \`\`\``
-//     }
-//   ]
-
-//   const response = await fetch(
-//     APP_ENV === 'production' ? "//ai.mybricks.world/stream-with-tools" : "//ai.mybricks.world/stream-test",
-//     {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         // ...(role ? {
-//         //   "M-Request-Role": role,
-//         // } : {})
-//       },
-//       signal: cancelControl?.signal,
-//       credentials: 'include',
-//       body: JSON.stringify(
-//         APP_ENV === 'production' ? aiUtils.getAiEncryptData({
-//           model,
-//           // role,
-//           messages: _messages,
-//           // tools,
-//           // tool_choice: 'auto',
-//         }) : {
-//           model,
-//           messages: _messages,
-//           // tools,
-//           // tool_choice: 'auto',
-//         }
-//       ),
-//     }
-//   );
-
-//   const reader = response.body.getReader();
-//   const decoder = new TextDecoder();
-//   let chunk = "";
-
-//   while (true) {
-//     const { done, value } = await reader.read();
-//     if (done) {
-//       break;
-//     }
-
-//     chunk += decoder.decode(value, { stream: true });
-//   }
-
-//   const arkts = chunk.match(/```arkts\s*([\s\S]*?)\s*```/)?.[1];
-
-//   console.log(arkts, `[arkts - ${model}]`);
-
-//   return arkts;
-// }
-
-// refactorCodeByAi(arkts, "deepseek-chat"); // 代码截断
-// refactorCodeByAi(arkts, "deepseek/deepseek-r1-0528") //
-// refactorCodeByAi(arkts, "qwen/qwen3-coder"); // 截断，返回不完整
-// refactorCodeByAi(arkts, "google/gemini-2.0-flash-001") // 
-
-// refactorCodeByAi(arkts, "openai/gpt-4.1-mini"); // ☑️ 基本稳定，还需要通过提示词来约束可修改范围。返回截断较频繁
-// refactorCodeByAi(arkts, "moonshotai/kimi-k2"); // 修改不允许修改的代码、不理解驼峰式命名，速度很慢
-// refactorCodeByAi(arkts, "google/gemini-2.5-pro"); // ✅
-
-
-// const testModel = "google/gemini-2.5-pro"
-// const testModel = "openai/gpt-5-mini";
-// const testModel = "google/gemini-2.5-flash";
-// refactorCodeByAi(arkts, testModel);
-// refactorCodeByAi(arkts, testModel);
-// refactorCodeByAi(arkts, testModel);
-// refactorCodeByAi(arkts, testModel);
-// refactorCodeByAi(arkts, testModel);
-
-/**
- * 代码行：未格式化，800行
- * 平均耗时：忽略了截断的请求
- */
-// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// refactorCodeByAi(arkts, "openai/gpt-4.1-mini");
-// 4/5 - 2.6min - [截断1] 80% - 100%
-// 4/5 - 2.6min - [截断1] 80% - 100%
-// 3/5 - 2.4min - [截断2] 60% - 100%
-// 3/5 - 1.9min - [截断2] 60% - 100%
-// 2/5 - 2min - [截断1、修改了变量2(不影响运行)] 40% - 60%
-// 4/5 - 1.8min - [截断1] 80% - 100%
-// 4/5 - 2min - [截断1] 80% - 100%
-
-/**
- *        计算截断 不计算截断
- * 成功率  68%     94%
- * 
- * 
- */

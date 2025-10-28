@@ -16,7 +16,8 @@ const publish = async (params: any) => {
     userId,
     fileId,
     extName: "harmony-module",
-    content: JSON.stringify(publishModule)
+    content: JSON.stringify(publishModule),
+    type: "publish",
   })
 
   await API.Material.createCommonMaterial({

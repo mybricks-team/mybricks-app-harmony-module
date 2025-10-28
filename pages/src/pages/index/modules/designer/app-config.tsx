@@ -196,6 +196,12 @@ export default function ({
         saveRevertData: {
           isMpa: true,
         },
+        publishConfig: {
+          type: "publish"
+        },
+        downloadConfig: {
+          type: "download"
+        }
       }),
       toolsPlugin({
         dump: contentModel.dump,

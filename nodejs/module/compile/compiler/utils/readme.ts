@@ -2,7 +2,8 @@ export const readme = (params, { fileNameMap }) => {
   const { data } = params;
   const { toJson, download, basic } = data;
   const { source, router } = download;
-  const modulePath = download.integrationType === "HSP" ? "模块" : "模块文件夹路径/Index"
+  // const modulePath = download.integrationType === "HSP" ? "模块" : "模块文件夹路径/Index"
+  const modulePath = (download.fileName || "module").toLowerCase();
 
   let config = null
   const apis = []
@@ -35,84 +36,17 @@ export const readme = (params, { fileNameMap }) => {
     `- **更新时间**：${basic.updateTime}\n` +
     `- **最后更新人**：${basic.updater}\n` +
     `- **搭建地址**：[点击访问](${basic.link})\n\n` +
-    "## 📦 安装依赖\n\n" +
-    // "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-    // "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
-    (source === "ohpmLibrary" ? (
-      "- [@mybricks/comlib-harmony-normal](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Fcomlib-harmony-normal)\n" +
-      "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
-    ) : (
-      "- [dayjs](https://ohpm.openharmony.cn/#/cn/detail/dayjs)\n" +
-      "- [@ohos/axios](https://ohpm.openharmony.cn/#/cn/detail/@ohos%2Faxios)\n" +
-      "- [@aliyun/oss](https://ohpm.openharmony.cn/#/cn/detail/@aliyun%2Foss)\n" +
-      "- [@mybricks/render-utils](https://ohpm.openharmony.cn/#/cn/detail/@mybricks%2Frender-utils)\n\n"
-    )) +
-    "``` bash\n" +
-    // "ohpm i dayjs\n" +
-    // "ohpm i @ohos/axios\n" +
-    (source === "ohpmLibrary" ? (
-      "ohpm i @mybricks/comlib-harmony-normal\n" +
-      "ohpm i @mybricks/render-utils\n"
-    ) : (
-      "ohpm i dayjs\n" +
-      "ohpm i @ohos/axios\n" +
-      "ohpm i @aliyun/oss\n" +
-      "ohpm i @mybricks/render-utils\n"
-    )) +
-    "```\n\n" +
     (router === "Navigation" ? `## 🧭 Navigation 初始化
-由于模块中可能包含一些页面，在使用时需要关注两个方面：
+如果需要打开模块内页面，必须调用configNavigation方法进行初始化，传入NavPathStack实例
 
-1. 将navPathStack注入给模块，用于跳转页面；
 \`\`\`extendtypescript
 import { configNavigation } from "${modulePath}"
 
 // 在入口组件初始化或者其它合适的时机
 configNavigation({
-  // navPathStack: 当前使用的navPathStack实例
-  // entryRouter: 定义路由名称，跳转时使用此名称
+  // navPathStack: 当前使用的NavPathStack实例
 })
 \`\`\`
-2. 将模块内的页面注册到Navigation，根据使用方式不同分为，*navDestination* 和 *routerMap.json*
-
-### 使用 navDestination
-在navDestination方法中渲染PagesBuilder
-
-\`\`\`extendtypescript
-import { PagesBuilder } from "${modulePath}";
-
-@Component
-struct Index {
-
-  @Builder
-  pageRender(name: string) {
-    if (name === 'configNavigation定义的entryRouter') {
-      PagesBuilder()
-    }
-  }
-  
-  build() {
-    Navigation() {
-    
-    }.navDestination(this.pagesRender)
-  }
-}
-\`\`\`
-
-### 使用 routerMap.json
-将PagesBuilder注册到routerMap.json文件中
-\`\`\`json
-{
-  "routerMap": [
-    {
-      "name": "configNavigation定义的entryRouter",
-      "pageSourceFile": "src/main/ets/Index.ets",
-      "buildFunction": "PagesBuilder"
-    }
-  ]
-}
-\`\`\`
-
 ` : '') +
     "## 🚀 使用\n" +
     "```typescript\n" +
@@ -132,7 +66,7 @@ struct Index {
           return pre + `  ${cur.id}(value) {\n    // ${cur.title}\n  },\n`
         }, "")) +
         "}"
-      ) : ", {}"})${index === apis.length - 1 ? "" : "\n\n"}`
+      ) : ""})${index === apis.length - 1 ? "" : "\n\n"}`
     }, "") : ""}` +
     "\n\n/** 注册系统总线 */\n" +
     "onBus({\n" +
@@ -150,9 +84,8 @@ struct Index {
         (cur.outputs.length ? cur.outputs.reduce((pre, cur) => {
           return pre + `\n    // callBack.${cur.id}() // ${cur.title}`
         }, "") + "\n  }," : "\n\n  },")
-      }, "") :
+      }, "") + "\n})" :
       "") + 
-      "\n})" + 
     "\n```" + (sections.length ? sectionsCode({ sections, fileNameMap, modulePath }) : "")
 }
 
@@ -203,7 +136,7 @@ const sectionsCode = (params) => {
     importNames += ` ModuleController,`
   }
 
-  return "\n\n```extendtypescript" + 
+  return "\n\n### 渲染区块\n```extendtypescript" + 
   `\nimport {${importNames} } from "${modulePath}"` + 
   `${createController ? `\n${createController}` : ""}` +
   `${usedSections}` + 

@@ -13,26 +13,28 @@ import { CompileType } from "@/types";
 import { Export } from "./icons/export";
 import { publish } from "./icons/publish";
 import { ExportPanel } from "./components";
+import classNames from 'classnames'
 
 interface WebToolbarProps {
   operable: boolean;
   globalOperable: boolean;
+  roleDescription: number;
   statusChange: any;
   toggleLock: any;
   isModify?: boolean;
   designerRef: any;
   onSave: any;
   onCompile: any;
-  onPreview: any;
   onPublish: () => void;
-  onH5Publish?: any;
-  onH5Preview?: any;
   setBeforeunload: (bool: boolean) => void
 }
+
+const canDownLoadRoleDescriptions = new Set([1, 2, '1', '2']);
 
 export const WebToolbar: React.FC<WebToolbarProps> = ({
   operable,
   globalOperable,
+  roleDescription,
   statusChange,
   toggleLock,
   isModify = false,
@@ -68,9 +70,9 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
   }, [publishLoading]);
 
   const publishHandle = () => {
-    // if (!globalOperable) {
-    //   return;
-    // }
+    if (!globalOperable) {
+      return
+    }
     onPublish()
   };
 
@@ -163,7 +165,9 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
           placement="bottom"
           title={"发布到物料中心"}
         > */}
-          <div className={css.publish_btn} onClick={publishHandle} data-mybricks-tip={`{content:'发布到物料中心',position:'bottom'}`}>
+          <div className={classNames(css.publish_btn, {
+            [css.disabled_btn]: !globalOperable
+          })} onClick={publishHandle} data-mybricks-tip={`{content:'发布到物料中心',position:'bottom'}`}>
             {publish}
           </div>
         {/* </Tooltip> */}
@@ -173,8 +177,16 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
           title={"导出模块源码"}
         > */}
           <div
-            className={`${css.export_btn} ${showExportPanel ? css.active_btn : ""}`}
-            onClick={() => setShowExportPanel(true)}
+            className={classNames(css.export_btn, {
+              [css.active_btn]: showExportPanel,
+              [css.disabled_btn]: !canDownLoadRoleDescriptions.has(roleDescription)
+            })}
+            onClick={() => {
+              if (!canDownLoadRoleDescriptions.has(roleDescription)) {
+                return
+              }
+              setShowExportPanel(true)
+            }}
             data-mybricks-tip={`{content:'导出模块源码',position:'left'}`}
           >
             {Export}
@@ -184,28 +196,30 @@ export const WebToolbar: React.FC<WebToolbarProps> = ({
       <ExportPanel
         visible={showExportPanel}
         onOk={(values) => {
-          let isEdited = false
-          if (pageModel.appConfig.download.fileName !== values.fileName) {
-            pageModel.appConfig.download.fileName = values.fileName;
-            isEdited = true;
-          }
-          if (pageModel.appConfig.download.source !== values.source) {
-            pageModel.appConfig.download.source = values.source;
-            isEdited = true;
-          }
-          // if (pageModel.appConfig.download.router !== values.router) {
-          //   pageModel.appConfig.download.router = values.router;
-          //   isEdited = true;
-          // }
-          // if (pageModel.appConfig.download.integrationType !== values.integrationType) {
-          //   pageModel.appConfig.download.integrationType = values.integrationType;
-          //   isEdited = true;
-          // }
           onCompile(values);
           setShowExportPanel(false);
-          if (isEdited) {
-            contentModel.editRecord.global = true;
-            setBeforeunload(true);
+          if (globalOperable) {
+            let isEdited = false
+            if (pageModel.appConfig.download.fileName !== values.fileName) {
+              pageModel.appConfig.download.fileName = values.fileName;
+              isEdited = true;
+            }
+            if (pageModel.appConfig.download.source !== values.source) {
+              pageModel.appConfig.download.source = values.source;
+              isEdited = true;
+            }
+            // if (pageModel.appConfig.download.router !== values.router) {
+            //   pageModel.appConfig.download.router = values.router;
+            //   isEdited = true;
+            // }
+            // if (pageModel.appConfig.download.integrationType !== values.integrationType) {
+            //   pageModel.appConfig.download.integrationType = values.integrationType;
+            //   isEdited = true;
+            // }
+            if (isEdited) {
+              contentModel.editRecord.global = true;
+              setBeforeunload(true);
+            }
           }
         }}
         onCancel={() => {

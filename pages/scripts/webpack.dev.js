@@ -38,11 +38,14 @@ module.exports = merge(common, {
           "/api/harmony-module/h5/publish",
           "/api/harmony-module/h5/preview",
           "/api/harmony-module/download",
+          "/api/harmony-module/download2",
+          "/api/harmony-module/getTmpFile",
           "/api/harmony-module/queryFiles",
           "/api/harmony-module/getMybricksConfig",
           "/api/harmony-module/cpu",
           "/api/harmony-module/wx/test",
-          "/api/harmony-module/miniapp/searchUser"
+          "/api/harmony-module/miniapp/searchUser",
+          "/api/harmony-module/addDownloadRecord"
         ],
         target: "http://localhost:3000",
         secure: false,

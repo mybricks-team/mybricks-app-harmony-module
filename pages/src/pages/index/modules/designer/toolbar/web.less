@@ -103,3 +103,17 @@
     background: #ffddc4;
   }
 }
+
+.disabled_btn {
+  box-shadow: none;
+  opacity: 0.4;
+  cursor: not-allowed;
+
+  &:hover{
+    background-color: unset;
+  }
+
+  &:not(.active_btn):hover{
+    background-color: unset;
+  }
+}
