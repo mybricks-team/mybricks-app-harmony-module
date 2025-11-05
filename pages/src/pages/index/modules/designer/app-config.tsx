@@ -893,6 +893,16 @@ export default function ({
           },
         ],
       },
+      useBreakpoints: [
+        {
+          title: '双屏',
+          width: 720,
+        },
+        {
+          title: '三联屏',
+          width: 1080,
+        }
+      ],
     },
     toplView: {
       title: "交互",
