@@ -1,6 +1,5 @@
 $r('app.api.import.appRouter')
 $r('app.api.import.utils')
-$r('app.api.import')
 import { onComEvent as baseOnComEvent } from "./common/Index"
 $r('app.api.export.pageUrl')
 
@@ -12,14 +11,7 @@ export const close = () => {
   $r('app.api.router.close')
 }
 
-export const config = $r('app.api.config')
-
 $r('app.api.export.pagconfigNavigationUrl')
-
-class Api {
-$r('app.api.apis')}
-
-export const api = new Api()
 
 class Bus {
   getUser: MyBricks.Api = createBus()

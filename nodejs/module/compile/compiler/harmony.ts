@@ -689,12 +689,6 @@ const getApiCode = async (params, config) => {
   const apiCode = await fse.readFile(path.join(targetPath, "api.ets"), "utf-8");
   const indent = " ".repeat(2);
   return apiCode
-    .replace("$r('app.api.import.utils')",
-      `import { MyBricks, transformApi, createBus, transformBus } from "${RENDER_UTILS_PACKAGE_NAME}";`
-      // download.source === "sourceCode" ?
-      //   'import { MyBricks } from "./utils/types";\nimport { transformApi, createBus, transformBus } from "./utils/mybricks"\n;' :
-      //   'import { MyBricks, transformApi, createBus, transformBus } from "@mybricks/render-utils";'
-    )
     .replace("$r('app.api.export.pageUrl')",
       // router === "HMRouter" ? `export const PAGE_URL = "myBricks${fileId}"` : ""
       router === "HMRouter" ? "import { PAGE_URL } from './pages/Index'" : ""
@@ -894,19 +888,18 @@ const compilerHarmonyModule = async (params, config) => {
 
   Logger.info(`[AppHarmonyModule - compiler] - 遍历pageCode写页面、模块、api等`)
   await Promise.all(pageCode.map(async (page) => {
-    if (page.type === "extensionEventTypeDef") {
+    if (page.type === "api") {
+      page.importManager.addImport({
+        packageName: RENDER_UTILS_PACKAGE_NAME,
+        dependencyNames: ["MyBricks", "transformApi", "createBus", "transformBus"],
+        importType: "named"
+      })
+      apiCode = apiCode.replace("$r('app.api.import.utils')", page.importManager.toCode())
       apiCode += page.content;
       return;
     }
     if (page.type === "abstractEventTypeDef") {
       apiCode = apiCode.replace("$r('app.api.onComEvent.ComEvent')", page.content)
-      return
-    }
-    if (page.type === "extension-config") {
-      // 配置
-      apiCode = apiCode.replace("$r('app.api.import')", page.importManager.toCode()).replace("$r('app.api.config')", `(${page.meta.inputs?.length ? "value: MyBricks.Any" : ""}) => {
-${page.content}
-}`);
       return
     }
 
@@ -970,9 +963,6 @@ ${page.content}
       await resourceCollector.setModuleRouterMap();
     }
   }
-  
-
-  apiCode = apiCode.replace("$r('app.api.apis')", extensionApiCode).replace("$r('app.api.import')", "").replace("$r('app.api.config')", "() => {}");
 
   if (moduleNames.size) {
     Logger.info(`[AppHarmonyModule - compiler] - 补充区块入口`)
