@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Form, Input, Select, Switch } from "antd";
+import { Form, Input, Select, Switch, message } from "antd";
 import { pageModel } from "@/stores";
 import css from "./ExportPanel.less";
 import { get as idbGet, set as idbSet, del as idbDel } from "idb-keyval";
-import { DeleteOutlined } from "@ant-design/icons"
 import classNames from "classnames";
 
 // 是否可以使用该api
 const canUseFSAccess = !!window.showDirectoryPicker;
-
 
 interface ExportPanelProps {
   visible: boolean;
@@ -58,21 +56,22 @@ const ExportPanel = (props: ExportPanelProps) => {
 
 const fileNamePattern = /^[A-Za-z][A-Za-z0-9_]{0,30}$/;
 
-// 检查目录是否正常。移动，重命名，删除，返回false
-const verifyLife = async (handle: FileSystemDirectoryHandle) => {
+const verifyFileLife = async (handle: FileSystemDirectoryHandle) => {
   try {
     for await (const key of handle.entries()) {
       break;
     }
     return true;
-  } catch {
-    return false
+  } catch (e) {
+    // 目录已失效，可能是重命名、被删除、移动等
+    console.log("[getTargetDirectoryStatus] - 目录已失效，可能是重命名、被删除、移动等")
+    return false;
   }
 }
 
 // 获取当前状态
 const getTargetDirectoryStatus = async (key: string) => {
-  let directoryHandle
+  let directoryHandle: FileSystemDirectoryHandle
   try {
     directoryHandle = await idbGet(key);
   } catch (e) {
@@ -80,6 +79,7 @@ const getTargetDirectoryStatus = async (key: string) => {
   }
   if (!directoryHandle) {
     // 没有选择目录
+    console.log("[getTargetDirectoryStatus] - 未选择目录")
     return {
       handle: null,
       status: -1,
@@ -87,8 +87,22 @@ const getTargetDirectoryStatus = async (key: string) => {
     }
   }
 
-  if (!await verifyLife(directoryHandle)) {
-    // 目录已经失效
+  // 权限校验
+  const queryPermission = await directoryHandle.queryPermission({ mode: 'readwrite' });
+
+  console.log(`[getTargetDirectoryStatus] - queryPermission: ${queryPermission}`);
+
+  if (queryPermission !== "granted") {
+    // 没有权限
+    return {
+      handle: directoryHandle,
+      status: 0,
+      key
+    }
+  }
+
+  if (!await verifyFileLife(directoryHandle)) {
+    // 有权限，但是文件不存在
     return {
       handle: directoryHandle,
       status: 0,
@@ -150,7 +164,6 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
   const showDirectoryPickerButtonClick = () => {
     showDirectoryPicker(targetDirectoryStatus.key)
       .then((handle) => {
-        console.log(1, handle)
         if (handle) {
           setTargetDirectoryStatus((status) => {
             return {
@@ -261,30 +274,28 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
             <Form.Item
               name="moduleExportDirectory"
               label="模块导出目录"
-              tooltip="配置目录后，导出模块将使用写文件覆盖的形式，不再下载zip包"
+              tooltip="配置目录后，可通过点击同步按钮将模块代码以写文件覆盖的形式直接同步至目标目录下"
             >
               {targetDirectoryStatus.status === -1 && (
                 <button
-                  className={css.button}
+                  className={classNames(css.button, css.configDirectoryButton)}
                   onClick={showDirectoryPickerButtonClick}
                 >
                   配置目录
                 </button>
               )}
-              {(targetDirectoryStatus.status === 1 || targetDirectoryStatus.status === 0) && (
+              {(targetDirectoryStatus.status !== -1) && (
                 <div className={css.targetDirectoryStatus1}>
                   <span className={classNames(css.span, {
-                    [css.unlink]: targetDirectoryStatus.status === 0
+                    [css.unlink]: targetDirectoryStatus.status !== 1
                   })}
-                    data-mybricks-tip={targetDirectoryStatus.status === 0 ? "文件目录不存在，请点击重新选择" : ""}
+                    data-mybricks-tip={targetDirectoryStatus.status === 0 ? "文件目录不存在或未授权，请点击重新选择" : ""}
                     onClick={showDirectoryPickerButtonClick}
                   >
                     {targetDirectoryStatus.handle.name}
                   </span>
-                  <DeleteOutlined
-                    width={12} 
-                    height={12}
-                    data-mybricks-tip="取消配置"
+                  <button
+                    className={css.button}
                     onClick={() => {
                       setTargetDirectoryStatus((status) => {
                         return {
@@ -300,7 +311,7 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
                         console.error("[idb-keyval - del]", e);
                       }
                     }}
-                  />
+                  >重置</button>
                 </div>
               )}
             </Form.Item>
@@ -335,17 +346,37 @@ const HarmonyRequireForm = ({ onCancel, onOk, getPopupContainer }) => {
           form
             .validateFields()
             .then((values) => {
-              genTargetDirectoryStatus().then(({ status, handle }: any) => {
-                onOk?.({
-                  ...values,
-                  router: "Navigation",
-                  integrationType: "HSP",
-                  fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
-                  fse: status === 1 ? handle : null
-                });
-              })
+              onOk?.({
+                ...values,
+                router: "Navigation",
+                integrationType: "HSP",
+                fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
+                fse: null
+              });
             })
         }}>导出模块</button>
+        {targetDirectoryStatus?.status !== -1 && <button
+          disabled={fileNameError || (targetDirectoryStatus?.status !== 1)}
+          className={`${css.button} ${css.mainButton}`}
+          onClick={() => {
+            genTargetDirectoryStatus().then(({ status, handle }: any) => {
+              if (status === 1) {
+                form
+                  .validateFields()
+                  .then((values) => {
+                    onOk?.({
+                      ...values,
+                      router: "Navigation",
+                      integrationType: "HSP",
+                      fileName: (values.fileName).trim() || pageModel.appConfig.download.fileName,
+                      fse: handle
+                    });
+                  })
+              } else {
+                message.warning("文件目录不存在或未授权，请点击「目录名称」重新选择")
+              }
+            })
+          }}>同步模块</button>}
       </div>
     </div>
   );
