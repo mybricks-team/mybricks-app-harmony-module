@@ -1370,6 +1370,7 @@ function getDesignerParams(args) {
 const getAiView = (enableAI, option) => {
   const { model } = option ?? {};
 
+  localStorage.setItem("RXAI_MODE", APP_ENV);
   if (enableAI) {
     return {
       getSystemPrompts,
