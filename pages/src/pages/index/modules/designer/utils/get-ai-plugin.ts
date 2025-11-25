@@ -1,4 +1,4 @@
-import AIPlugin, { fileFormat } from '/Users/cocolbell/Desktop/projects/mybricks/plugin-ai/src/index'
+import AIPlugin, { fileFormat } from '@mybricks/plugin-ai'
 
 
 export default ({ requestAsStream, user, }: any) => AIPlugin({

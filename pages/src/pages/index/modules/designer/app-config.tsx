@@ -25,7 +25,7 @@ import { message } from "antd";
 import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
-import AIPlugin from '@mybricks/plugin-ai'
+import AIPlugin from './utils/get-ai-plugin'
 
 import { mock2Res, mock1Res, systemPrompts, mock1Prompt } from './mock'
 
