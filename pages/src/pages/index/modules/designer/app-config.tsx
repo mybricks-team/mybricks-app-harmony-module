@@ -25,6 +25,7 @@ import { message } from "antd";
 import { CompileType } from "@/types";
 import { getPageTitlePrefix, isDesignFilePlatform } from '@/utils'
 import { myRequire } from "@/utils/comlib"
+import AIPlugin from '@mybricks/plugin-ai'
 
 import { mock2Res, mock1Res, systemPrompts, mock1Prompt } from './mock'
 
@@ -88,6 +89,11 @@ export default function ({
   setOperable,
 }) {
   // console.log("应用设置: ", appConfig);
+
+  const aiViewConfig = getAiView(true, {
+    model: DEFAULT_AI_MODEL,
+  })
+
   return {
     type: window.__type__,
     shortcuts: {
@@ -207,6 +213,16 @@ export default function ({
         dump: contentModel.dump,
         loadContent: (importData) => contentModel.loadContent(importData, ctx),
       }),
+      AIPlugin({
+        user: {
+          name: appData.user.name || appData.user.email || "user",
+          avatar: appData.user.avatar
+        },
+        // requestAsStream
+        requestAsStream: ({ messages, emits, aiRole }) => {
+          return aiViewConfig.requestAsStream(messages, undefined, emits, { aiRole });
+        }
+      })
       // VarBind(),
     ],
     // comLibLoader: comlibLoader(ctx),
@@ -972,9 +988,7 @@ export default function ({
     // aiView: getAiView(appConfig?.publishLocalizeConfig?.enableAI, {
     //   model: appConfig?.publishLocalizeConfig?.selectAIModel
     // }), // TODO: 开发settings页面后再放开注释
-    aiView: getAiView(true, {
-      model: DEFAULT_AI_MODEL,
-    }),
+    aiView: aiViewConfig,
     com: {
       env: {
         getBusData(key, params) {
@@ -1311,7 +1325,11 @@ export function mergeEditorOptions(
   return options;
 }
 
-const DEFAULT_MODEL = 'deepseek-chat';
+// const DEFAULT_MODEL = 'google/gemini-2.5-flash';
+// const DEFAULT_MODEL = 'z-ai/glm-4.6'
+// const DEFAULT_MODEL = 'openai/gpt-4.1-mini'
+// const DEFAULT_MODEL = 'openai/gpt-5-mini'
+const DEFAULT_MODEL = 'x-ai/grok-4.1-fast'
 function getDesignerParams(args) {
   let context = args[0];
   let tools = undefined;

@@ -118,6 +118,7 @@ const Designer = ({ appData }) => {
     if (designer) {
       const script = document.createElement('script')
       script.src = designer
+      // script.src = 'https://f2.eckwai.com/kos/nlav12333/mybricks/designer-spa/3.9.801.r1/index.min.js'
       document.head.appendChild(script)
       script.onload = () => {
         ;(window as any).mybricks.SPADesigner &&

@@ -98,14 +98,10 @@ export const getAIResponse = async ({ model, messages, role, tools }, options?) 
     body: JSON.stringify(devMode ? {
       model,
       messages,
-      tools,
-      tool_choice: 'auto',
     } : aiUtils.getAiEncryptData({
       model,
       messages,
       role,
-      tools,
-      tool_choice: 'auto',
     })),
     credentials: 'include'
   });
