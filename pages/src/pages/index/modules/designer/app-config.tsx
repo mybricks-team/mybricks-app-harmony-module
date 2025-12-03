@@ -214,6 +214,7 @@ export default function ({
         loadContent: (importData) => contentModel.loadContent(importData, ctx),
       }),
       AIPlugin({
+        key: pageModel?.fileId,
         user: {
           name: appData.user.name || appData.user.email || "user",
           avatar: appData.user.avatar

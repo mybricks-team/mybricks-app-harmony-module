@@ -1,7 +1,7 @@
 import AIPlugin, { fileFormat } from '@mybricks/plugin-ai'
 
 
-export default ({ requestAsStream, user, }: any) => AIPlugin({
+export default ({ requestAsStream, user, key }: any) => AIPlugin({
   requestAsStream,
   user,
   prompts: {
@@ -9,7 +9,8 @@ export default ({ requestAsStream, user, }: any) => AIPlugin({
     systemAppendPrompts: systemAppendPrompts(),
     prdExamplesPrompts: prdExamplesPrompts(),
     generatePageActionExamplesPrompts: generatePageActionExamplesPrompts(),
-  }
+  },
+  key
 })
 
 
