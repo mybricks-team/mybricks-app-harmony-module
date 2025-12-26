@@ -750,11 +750,13 @@ const handleHSP = async (params, config) => {
       '"@mybricks/comlib-harmony-normal": "latest"'
     )
   } else {
+    //添加下第三方库的依赖
     dependencies.push(
       '"dayjs": "latest"',
       '"@ohos/axios": "latest"',
       '"@aliyun/oss": "latest"',
-      '"@mybricks/render-utils": "latest"'
+      '"@mybricks/render-utils": "latest"',
+      '"libavinnerrecord": "latest"'
     )
   }
 
