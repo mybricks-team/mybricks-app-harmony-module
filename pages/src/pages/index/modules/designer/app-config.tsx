@@ -1352,24 +1352,24 @@ function getDesignerParams(args) {
 
   switch (true) {
     case extraOption?.expert === 'image': {
-      model = 'anthropic/claude-sonnet-4';
+      model = 'anthropic/claude-sonnet-4.5';
       role = 'image'
       break;
     }
     case ['image'].includes(extraOption?.aiRole): {
-      model = 'anthropic/claude-sonnet-4';
+      model = 'anthropic/claude-sonnet-4.5';
       role = 'image'
       break
     }
     case ['architect'].includes(extraOption.aiRole): {
-      model = 'google/gemini-2.5-pro-preview';
+      model = 'google/gemini-3-pro-preview';
       // model = 'openai/gpt-4.1'
       // model = 'deepseek/deepseek-r1-0528'
       role = 'architect'
       break
     }
     case ['expert'].includes(extraOption.aiRole): {
-      model = 'anthropic/claude-sonnet-4';
+      model = 'anthropic/claude-sonnet-4.5';
       role = 'expert'
       break
     }

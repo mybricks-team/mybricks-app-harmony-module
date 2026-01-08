@@ -10,7 +10,7 @@ const logger = {
       message
     )
   }
-} 
+}
 
 enum FetchTarget {
   CustomApp = 'CustomApp',
@@ -98,6 +98,76 @@ export const getAIResponse = async ({ model, messages, role, tools }, options?) 
     body: JSON.stringify(devMode ? {
       model,
       messages,
+      // response_format: {
+      //   type: 'json_schema',
+      //   json_schema: {
+      //     name: 'response',
+      //     strict: true,
+      //     description: '智能响应，根据用户意图返回计划或对话',
+      //     schema: {
+      //       type: 'object',
+      //       properties: {
+      //         type: {
+      //           type: 'string',
+      //           enum: ['plan', 'dialogue'],
+      //           description: '响应类型：plan表示规划模式，dialogue表示对话模式'
+      //         },
+      //         data: {
+      //           description: '响应数据，根据type字段的值决定具体结构',
+      //           oneOf: [
+      //             {
+      //               description: '当type为plan时的数据结构：工具调用列表',
+      //               type: 'array',
+      //               items: {
+      //                 type: 'object',
+      //                 description: '单个工具调用对象',
+      //                 properties: {
+      //                   name: {
+      //                     type: 'string',
+      //                     description: '工具名称'
+      //                   },
+      //                   params: {
+      //                     type: 'object',
+      //                     description: '工具参数对象，包含调用该工具所需的所有参数',
+      //                     additionalProperties: true
+      //                   }
+      //                 },
+      //                 required: ['name', 'params'],
+      //                 additionalProperties: false
+      //               }
+      //             },
+      //             {
+      //               description: '当type为dialogue时的数据结构',
+      //               type: 'object',
+      //               properties: {
+      //                 content: {
+      //                   type: 'string',
+      //                   description: '直接回答的内容'
+      //                 },
+      //                 reason: {
+      //                   type: 'string',
+      //                   description: '直接回答而不是执行工具的原因'
+      //                 },
+      //                 suggestions: {
+      //                   type: 'array',
+      //                   description: '给用户的建议列表',
+      //                   items: {
+      //                     type: 'string',
+      //                     description: '单条建议内容'
+      //                   }
+      //                 }
+      //               },
+      //               required: ['content', 'reason', 'suggestions'],
+      //               additionalProperties: false
+      //             }
+      //           ]
+      //         }
+      //       },
+      //       required: ['type', 'data'],
+      //       additionalProperties: false
+      //     }
+      //   }
+      // }
     } : aiUtils.getAiEncryptData({
       model,
       messages,
